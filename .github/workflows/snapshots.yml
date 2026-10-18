@@ -1,0 +1,34 @@
+name: Atualizar snapshots visuais
+
+# Gera os baselines de regressão visual no Linux (mesmo ambiente do CI) e commita em tests/e2e/__screenshots__.
+# Rodar manualmente depois de uma mudança visual intencional. Localmente, o equivalente é `npm run e2e:baselines`
+# (usa a imagem Docker oficial do Playwright).
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  snapshots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium webkit
+      - run: npx playwright test --project=reduced-motion --project=reduced-motion-mobile tests/e2e/visual.spec.ts --update-snapshots
+      - name: Commit dos baselines
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e/__screenshots__
+          git diff --cached --quiet && echo "sem mudanças" && exit 0
+          git commit -m "test: atualiza baselines visuais (Linux)"
+          git push

@@ -1,0 +1,55 @@
+name: Smoke em produção
+
+# Depois de cada deploy e toda segunda às 9h (BRT): o site está no ar, os CTAs apontam para o WhatsApp certo,
+# os metadados estão lá, a 404 responde e os links externos (LinkedIn, Instagram, e-mail) continuam válidos.
+on:
+  workflow_run:
+    workflows: [Deploy]
+    types: [completed]
+  schedule:
+    - cron: "0 12 * * 1"
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: URL a testar
+        default: https://www.resetia.com.br
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: Playwright contra produção
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    env:
+      BASE_URL: ${{ github.event.inputs.base_url || 'https://www.resetia.com.br' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: CTAs, SEO e 404 em produção
+        run: npx playwright test --project=desktop-chromium tests/e2e/cta-whatsapp.spec.ts tests/e2e/seo.spec.ts tests/e2e/404.spec.ts
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: smoke-report
+          path: playwright-report
+          retention-days: 14
+
+  links-externos:
+    name: Links externos (lychee)
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: lycheeverse/lychee-action@v2
+        with:
+          # wa.me, LinkedIn e Instagram bloqueiam robôs: ficam de fora; o resto é checado de verdade.
+          args: --no-progress --accept 200..=204,429,999 --exclude 'wa\.me' --exclude 'linkedin\.com' --exclude 'instagram\.com' --exclude 'cloud\.umami\.is' --exclude 'googletagmanager\.com' 'src/content/*.ts' 'README.md' 'docs/*.md'
+          fail: true

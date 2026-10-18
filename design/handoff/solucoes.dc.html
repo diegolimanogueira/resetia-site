@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Treinamentos de IA para equipes | Reset IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#F6F7F5;color:#0B0F0E;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}*{box-sizing:border-box}
+a{color:inherit;text-decoration:none}a:hover{color:#00E676}:focus-visible{outline:2px solid #00E676;outline-offset:3px}
+@media (max-width:860px){[data-nav]{display:none!important}[data-hdr-cta]{display:none!important}[data-prog]{grid-template-columns:1fr!important}[data-two]{grid-template-columns:1fr!important}[data-vline]{display:none!important}[data-foot]{grid-template-columns:1fr 1fr!important}}
+</style>
+</helmet>
+
+<header style="position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:0 6vw;height:72px;background:rgba(246,247,245,.85);backdrop-filter:blur(12px);border-bottom:1px solid rgba(11,15,14,.08)">
+  <a href="home.dc.html" aria-label="Reset IA" style="display:flex;align-items:center;gap:10px">
+    <img src="brand/logo-light.png" alt="Reset IA — IA sem hype. Resultado na prática." style="height:40px;width:auto;display:block">
+  </a>
+  <nav data-nav style="display:flex;gap:36px;font-size:15px;font-weight:500">
+    <a href="solucoes.dc.html" aria-current="page" style="padding:6px 0;border-bottom:2px solid #00E676">Soluções</a>
+    <a href="spotlite.dc.html" style="padding:6px 0;border-bottom:2px solid transparent" style-hover="border-bottom-color:#00E676;color:#0B0F0E">Spotlite</a>
+    <a href="sobre.dc.html" style="padding:6px 0;border-bottom:2px solid transparent" style-hover="border-bottom-color:#00E676;color:#0B0F0E">Sobre</a>
+  </nav>
+  <a data-hdr-cta href="{{ waUrl }}" target="_blank" rel="noopener" style="background:#00E676;color:#0B0F0E;font-weight:600;font-size:14px;padding:10px 18px;border-radius:999px" style-hover="color:#0B0F0E">Fale conosco</a>
+</header>
+
+<section data-screen-label="Hero" style="padding:120px 6vw 80px">
+  <div style="max-width:1200px;margin:0 auto">
+    <h1 style="margin:0 0 24px;font-weight:700;font-size:clamp(40px,5.6vw,80px);line-height:.95;letter-spacing:-0.03em;max-width:16ch;text-wrap:balance">Treinamentos que a equipe usa na segunda-feira.</h1>
+    <p style="margin:0;font-size:20px;line-height:1.6;color:rgba(11,15,14,.6);max-width:60ch;text-wrap:pretty">Todos online, com exercícios sobre o trabalho real de cada pessoa. O conteúdo é definido pelo diagnóstico, não pela ementa.</p>
+  </div>
+</section>
+
+<section data-screen-label="Programas" style="padding:0 6vw 120px">
+  <div style="max-width:1200px;margin:0 auto">
+    <sc-for list="{{ programas }}" as="p" hint-placeholder-count="5">
+      <div style="padding:64px 0;border-top:1px solid rgba(11,15,14,.12)">
+        <div data-prog style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:48px">
+          <div><p style="margin:0 0 12px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:rgba(11,15,14,.6)">{{ p.num }}</p><h2 style="margin:0;font-weight:700;font-size:clamp(28px,3.2vw,44px);line-height:1;letter-spacing:-0.03em;text-wrap:balance">{{ p.nome }}</h2></div>
+          <div style="display:flex;flex-direction:column;gap:32px">
+            <div style="display:grid;grid-template-columns:3px 1fr;gap:24px"><div data-glow style="background:rgba(11,15,14,.12);transition:background .6s"></div><div><p style="margin:0 0 6px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:rgba(11,15,14,.6)">Para quem</p><p style="margin:0;font-size:18px;line-height:1.6;max-width:62ch;text-wrap:pretty">{{ p.quem }}</p></div></div>
+            <div style="display:grid;grid-template-columns:3px 1fr;gap:24px"><div data-glow style="background:rgba(11,15,14,.12);transition:background .6s"></div><div><p style="margin:0 0 6px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:rgba(11,15,14,.6)">Como funciona</p><p style="margin:0;font-size:18px;line-height:1.6;max-width:62ch;text-wrap:pretty">{{ p.como }}</p></div></div>
+            <div style="display:grid;grid-template-columns:3px 1fr;gap:24px"><div data-glow style="background:rgba(11,15,14,.12);transition:background .6s"></div><div><p style="margin:0 0 6px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:rgba(11,15,14,.6)">O que a equipe leva</p><p style="margin:0;font-size:18px;line-height:1.6;max-width:62ch;text-wrap:pretty">{{ p.leva }}</p></div></div>
+          </div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+</section>
+
+<section data-screen-label="Depois do treinamento" style="background:#0B0F0E;color:#F6F7F5;padding:120px 6vw">
+  <div style="max-width:1200px;margin:0 auto">
+    <h2 style="margin:0 0 64px;font-weight:700;font-size:clamp(36px,4.6vw,64px);line-height:.98;letter-spacing:-0.03em">Depois do treinamento</h2>
+    <div data-two style="display:grid;grid-template-columns:1fr 1px 1fr;gap:56px">
+      <div><h3 style="margin:0 0 16px;font-size:28px;font-weight:600;letter-spacing:-0.02em;line-height:1.1">Governança de IA</h3><p style="margin:0;font-size:18px;line-height:1.6;color:#9CA3AF;text-wrap:pretty">Política de uso, comitê multidisciplinar, rito de homologação de ferramentas e um painel de demandas. Tudo desenhado em processo, em linguagem que o jurídico, a TI e o negócio entendem. Montado junto com os Champions formados no treinamento.</p></div>
+      <div data-vline style="background:rgba(156,163,175,.25)"></div>
+      <div><h3 style="margin:0 0 16px;font-size:28px;font-weight:600;letter-spacing:-0.02em;line-height:1.1">Fábrica de Agentes</h3><p style="margin:0;font-size:18px;line-height:1.6;color:#9CA3AF;text-wrap:pretty">Um portal interno onde cada colaborador acessa agentes de IA da própria empresa: triagem de demandas, políticas internas, suporte, processos. Construído sobre a governança, com guardrails e log de tudo.</p></div>
+    </div>
+    <p style="margin:56px 0 0;padding-top:24px;border-top:1px solid rgba(156,163,175,.25);font-size:16px;color:#9CA3AF">Essas frentes entram depois que a equipe está treinada. Nunca antes.</p>
+  </div>
+</section>
+
+<section data-screen-label="FAQ" style="padding:120px 6vw">
+  <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:64px">
+    <h2 style="margin:0;font-weight:700;font-size:clamp(36px,4.6vw,64px);line-height:.98;letter-spacing:-0.03em">Perguntas frequentes</h2>
+    <div>
+      <sc-for list="{{ faq }}" as="f" hint-placeholder-count="5">
+        <div style="border-bottom:1px solid rgba(11,15,14,.12)">
+          <button onClick="{{ f.toggle }}" aria-expanded="{{ f.open }}" style="width:100%;display:flex;justify-content:space-between;align-items:center;gap:24px;background:none;border:0;padding:22px 0;text-align:left;font:inherit;font-size:19px;font-weight:600;letter-spacing:-0.01em;color:#0B0F0E;cursor:pointer" style-hover="color:#0B0F0E">
+            <span>{{ f.q }}</span><span aria-hidden="true" style="color:#00E676;font-weight:500;font-size:24px;line-height:1;transform:rotate({{ f.rot }});transition:transform .25s;display:inline-block">+</span>
+          </button>
+          <div style="display:grid;grid-template-rows:{{ f.rows }};transition:grid-template-rows .3s ease"><div style="overflow:hidden"><p style="margin:0 0 24px;font-size:17px;line-height:1.6;color:rgba(11,15,14,.6);max-width:60ch;text-wrap:pretty">{{ f.a }}</p></div></div>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="CTA" style="background:#0B0F0E;color:#F6F7F5;padding:140px 6vw;text-align:center">
+  <h2 style="margin:0 auto 32px;font-weight:700;font-size:clamp(36px,5vw,72px);line-height:.95;letter-spacing:-0.03em;max-width:18ch;text-wrap:balance">Um novo ciclo começa com uma conversa de 30 minutos.</h2>
+  <a href="{{ waUrl }}" target="_blank" rel="noopener" style="background:#00E676;color:#0B0F0E;font-weight:600;font-size:16px;padding:16px 26px;border-radius:999px;display:inline-flex" style-hover="color:#0B0F0E">Falar com um especialista</a>
+</section>
+
+<footer style="background:#0B0F0E;color:#9CA3AF;padding:64px 6vw 40px;border-top:1px solid rgba(156,163,175,.25)">
+  <div data-foot style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;font-size:15px;line-height:1.6">
+    <div><div style="display:flex;align-items:center;gap:10px;color:#F6F7F5;margin-bottom:12px"><img src="brand/logo-dark.png" alt="Reset IA — IA sem hype. Resultado na prática." style="height:44px;width:auto;display:block"></div><p style="margin:0">Um novo ciclo de possibilidades.</p></div>
+    <div><p style="margin:0 0 12px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase">Navegação</p><div style="display:flex;flex-direction:column;gap:8px;color:#F6F7F5"><a href="solucoes.dc.html">Soluções</a><a href="spotlite.dc.html">Spotlite</a><a href="sobre.dc.html">Sobre</a></div></div>
+    <div><p style="margin:0 0 12px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase">Contato</p><div style="display:flex;flex-direction:column;gap:8px;color:#F6F7F5"><a href="{{ waUrl }}" target="_blank" rel="noopener">+55 11 91617-0606</a><a href="mailto:contato@resetia.com.br">contato@resetia.com.br</a></div></div>
+    <div><p style="margin:0 0 12px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase">Redes</p><div style="display:flex;flex-direction:column;gap:8px;color:#F6F7F5"><a href="https://www.linkedin.com/company/resetia" target="_blank" rel="noopener">LinkedIn Reset IA</a><a href="https://www.linkedin.com/in/diegonogueira1" target="_blank" rel="noopener">LinkedIn Diego</a><a href="https://www.instagram.com/odiegonog" target="_blank" rel="noopener">Instagram</a></div></div>
+  </div>
+  <div style="max-width:1200px;margin:48px auto 0;padding-top:24px;border-top:1px solid rgba(156,163,175,.25);font-size:13px;display:flex;flex-wrap:wrap;gap:8px 24px"><span>© 2026 Reset IA</span><span>CNPJ [FALTA]</span><span>Fortaleza e Campinas, Brasil</span><span>Política de privacidade [FALTA]</span></div>
+</footer>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { open: -1 };
+  programas = [
+    { num: '01', nome: 'Letramento em IA', quem: 'Pessoas escolhidas para aprender IA antes do resto da empresa. Não precisam ser líderes nem técnicas.', como: '5 módulos em 11 sessões online de 90 minutos, mais mentoria individual. Cada sessão tem três blocos: explicação curta, "acompanhe na tela" e exercício com material real da área.', leva: 'Método de prompt que funciona (CLARO, CONFERE, PACEF), domínio da ferramenta da casa, um agente próprio criado pela pessoa, guia de uso seguro.' },
+    { num: '02', nome: 'Champions de IA', quem: 'Gestores e multiplicadores que vão levar IA para as outras áreas.', como: '7 módulos, 75% prática, online. Começa com a devolutiva do diagnóstico e termina com um projeto real apresentado à diretoria. Certificação ao final.', leva: 'Um caso de uso resolvido na própria área, capacidade de prototipar com IA, visão do que entra na governança.' },
+    { num: '03', nome: 'Workshops por ferramenta', quem: 'Empresas que já pagam Gemini Workspace, Claude ou ChatGPT e usam pouco.', como: '3 a 6 encontros de 2h, tudo dentro da ferramenta contratada. Uma única história do começo ao fim: a mesma tarefa resolvida de três jeitos, do prompt ao agente.', leva: 'Cada pessoa sai dizendo "agora sei fazer um agente de IA".' },
+    { num: '04', nome: 'Claude Code para times de tecnologia', quem: 'Desenvolvedores e analistas de TI que nunca usaram agentes de código.', como: 'Aula guiada presencial ou remota. Todos fazem juntos: setup, CLAUDE.md, skills, banco, TDD. Depois cada um toca o próprio projeto com acompanhamento.', leva: 'A fundação de um projeto real de pé e um fluxo de desenvolvimento para repetir.' },
+    { num: '05', nome: 'Uso seguro de IA e LGPD', quem: 'Toda a empresa, de preferência antes de publicar a política de IA.', como: 'Encontro dedicado por área, com exemplos do que acontece no dia a dia daquela área.', leva: 'Guia de uso seguro de uma página e clareza sobre o que pode, o que não pode e por quê.' },
+  ];
+  faq = [
+    { q: 'Os treinamentos são presenciais?', a: 'Online por padrão, pelo Meet ou Teams. Presencial sob combinação.' },
+    { q: 'Precisa ter licença de alguma IA?', a: 'Não. Treinamos na ferramenta que a empresa já tem. Se não tiver, indicamos a melhor para o caso.' },
+    { q: 'Quantas pessoas por turma?', a: 'Letramento e workshops até 15. Champions até 10.' },
+    { q: 'Qual o tempo de um programa?', a: 'De 3 semanas (workshop) a 12 semanas (Letramento ou Champions).' },
+    { q: 'O diagnóstico é obrigatório?', a: 'É o que torna o treinamento direcionado. Sem ele, entregamos ementa genérica, e isso a gente não faz.' },
+  ];
+  renderVals() {
+    const o = this.state.open;
+    return {
+      waUrl: 'https://wa.me/5511916170606?text=' + encodeURIComponent('Olá! Vim pelo site da Reset IA e quero conversar sobre treinamento de IA para a minha equipe.'),
+      programas: this.programas,
+      faq: this.faq.map((f, i) => ({ ...f, open: o === i, rows: o === i ? '1fr' : '0fr', rot: o === i ? '45deg' : '0deg', toggle: () => this.setState({ open: o === i ? -1 : i }) })),
+    };
+  }
+  componentDidMount() {
+    const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const els = document.querySelectorAll('[data-glow]');
+    if (rm) { els.forEach(g => g.style.background = '#00E676'); return; }
+    const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { e.target.style.background = '#00E676'; io.unobserve(e.target); } }), { threshold: 0.3 });
+    els.forEach(el => io.observe(el));
+  }
+}
+</script>
+</body>
+</html>

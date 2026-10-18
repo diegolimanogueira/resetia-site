@@ -1,0 +1,168 @@
+@import "tailwindcss";
+@import "shadcn/tailwind.css";
+
+/* Tokens do manual de marca. Derivados só por opacidade (ex.: text-carvao/60, border-cinza/25). */
+@theme {
+  --color-carvao: #0b0f0e;
+  --color-neutro: #f6f7f5;
+  --color-verde: #00e676;
+  --color-cinza: #9ca3af;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  /* 861px: a partir daqui é desktop (handoff: breakpoint em 860px). */
+  --breakpoint-md: 53.8125rem;
+  --radius: 0;
+}
+
+/* Tom por seção: data-tom="carvao" | "neutro" define bg, texto, texto de apoio e linhas. */
+@theme inline {
+  --color-fg: var(--fg);
+  --color-fg-2: var(--fg-2);
+  --color-line: var(--line);
+  /* Mínimo que os componentes shadcn (Sheet, Accordion) usam. */
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-popover: var(--color-carvao);
+  --color-popover-foreground: var(--color-neutro);
+  --color-border: var(--line);
+  --color-ring: var(--color-verde);
+  --color-muted: var(--line);
+  --color-muted-foreground: var(--fg-2);
+}
+
+:root,
+[data-tom="carvao"] {
+  --bg: #0b0f0e;
+  --fg: #f6f7f5;
+  --fg-2: #9ca3af;
+  --line: rgba(156, 163, 175, 0.25);
+}
+
+[data-tom="neutro"] {
+  --bg: #f6f7f5;
+  --fg: #0b0f0e;
+  --fg-2: rgba(11, 15, 14, 0.6);
+  --line: rgba(11, 15, 14, 0.12);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  /* Lenis assume o scroll quando ativo (Fase 2). */
+  html.lenis {
+    scroll-behavior: auto;
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* O body assume o tom da página: header translúcido e texto herdado ficam nas cores certas. */
+  body:has(main[data-tom="neutro"]) {
+    --bg: #f6f7f5;
+    --fg: #0b0f0e;
+    --fg-2: rgba(11, 15, 14, 0.6);
+    --line: rgba(11, 15, 14, 0.12);
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  p,
+  li {
+    text-wrap: pretty;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+  a:hover {
+    color: var(--color-verde);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-verde);
+    outline-offset: 3px;
+  }
+  img {
+    display: block;
+  }
+  [data-nocursor],
+  [data-nocursor] * {
+    cursor: none !important;
+  }
+
+  /* Barras do mockup Spotlite começam em zero só enquanto o contador está "armado" (JS ligado, fora da viewport). */
+  [data-armado] [data-barra] {
+    width: 0 !important;
+    transition: none !important;
+  }
+
+  /* Sem movimento (reduced-motion do SO ou movimento=false) o site é estático: tudo já no estado final. */
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    /* Regras separadas de propósito: o minificador funde transform+scale num só transform e perde o scale. */
+    [data-line],
+    [data-ul] {
+      scale: none !important;
+    }
+    [data-porta],
+    [data-magnetic] {
+      transform: none !important;
+    }
+    [data-bar="verde"] {
+      background: var(--color-verde) !important;
+    }
+    [data-stick] {
+      position: relative !important;
+      top: auto !important;
+    }
+    [data-wipe] {
+      clip-path: none !important;
+    }
+  }
+  html[data-movimento="false"] [data-line],
+  html[data-movimento="false"] [data-ul] {
+    scale: none !important;
+  }
+  html[data-movimento="false"] [data-porta],
+  html[data-movimento="false"] [data-magnetic] {
+    transform: none !important;
+  }
+  html[data-movimento="false"] [data-bar="verde"] {
+    background: var(--color-verde) !important;
+  }
+  html[data-movimento="false"] [data-stick] {
+    position: relative !important;
+    top: auto !important;
+  }
+  html[data-movimento="false"] [data-wipe] {
+    clip-path: none !important;
+  }
+}
+
+/* Utilitários do layout do handoff. */
+@utility gutter {
+  padding-inline: 6vw;
+}
+@utility container-site {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+}
+@utility eyebrow {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+@utility display-h2 {
+  font-weight: 700;
+  font-size: clamp(36px, 4.6vw, 64px);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reset IA — Treinamento de IA para equipes | IA sem hype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+html{scroll-behavior:smooth}body{margin:0;background:#0B0F0E;color:#F6F7F5;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}a{color:inherit;text-decoration:none}a:hover{color:#00E676}
+:focus-visible{outline:2px solid #00E676;outline-offset:3px}
+[data-nocursor],[data-nocursor] *{cursor:none!important}
+#dc-root,.sc-host{height:auto!important;min-height:100vh;overflow:visible!important}
+@media (max-width:860px){[data-nav]{display:none!important}[data-hero]{grid-template-columns:1fr!important}[data-manifesto]{display:none!important}[data-ato4]{grid-template-columns:1fr!important}[data-ato4-img]{min-height:320px!important}[data-row]{grid-template-columns:1fr!important;gap:8px!important}[data-desc]{grid-template-rows:1fr!important}[data-two]{grid-template-columns:1fr!important}[data-vline]{display:none!important}[data-foot]{grid-template-columns:1fr 1fr!important}[data-spot]{grid-template-columns:1fr!important}[data-hdr-cta]{display:none!important}}
+</style>
+</helmet>
+
+<div data-cur="dot" style="position:fixed;left:0;top:0;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#F6F7F5;pointer-events:none;z-index:9999;display:none;mix-blend-mode:difference"></div>
+<div data-cur="ring" style="position:fixed;left:0;top:0;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;border:1.5px solid rgba(246,247,245,.7);pointer-events:none;z-index:9999;display:none;transition:width .25s,height .25s,margin .25s,border-color .25s,border-radius .25s;align-items:center;justify-content:center">
+</div>
+
+<header style="position:fixed;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:0 6vw;height:72px;background:{{ hdrBg }};backdrop-filter:{{ hdrBlur }};transform:translateY({{ hdrY }});transition:transform .35s ease,background .35s ease;border-bottom:1px solid {{ hdrLine }}">
+  <a href="home.dc.html" aria-label="Reset IA" style="display:flex;align-items:center;gap:10px">
+    <img src="brand/logo-dark.png" alt="Reset IA — IA sem hype. Resultado na prática." style="height:40px;width:auto;display:block">
+  </a>
+  <nav data-nav style="display:flex;gap:36px;font-size:15px;font-weight:500">
+    <a href="solucoes.dc.html" style="padding:6px 0;border-bottom:2px solid transparent" style-hover="border-bottom-color:#00E676;color:#F6F7F5">Soluções</a>
+    <a href="spotlite.dc.html" style="padding:6px 0;border-bottom:2px solid transparent" style-hover="border-bottom-color:#00E676;color:#F6F7F5">Spotlite</a>
+    <a href="sobre.dc.html" style="padding:6px 0;border-bottom:2px solid transparent" style-hover="border-bottom-color:#00E676;color:#F6F7F5">Sobre</a>
+  </nav>
+  <a data-hdr-cta data-magnetic href="{{ waUrl }}" target="_blank" rel="noopener" style="background:#00E676;color:#0B0F0E;font-weight:600;font-size:14px;padding:10px 18px;border-radius:999px;display:inline-flex;align-items:center;gap:8px;transition:transform .2s" style-hover="color:#0B0F0E">Fale conosco</a>
+</header>
+
+<!-- ATO 1 + 2 · Hero (carvão) -->
+<section data-stick data-screen-label="Ato 1 Hero" style="position:sticky;top:0;z-index:0;background:#0B0F0E;color:#F6F7F5;min-height:100vh;display:flex;flex-direction:column;overflow:hidden">
+  <div style="position:absolute;right:-10vw;top:-20vh;width:60vw;height:60vw;max-width:900px;max-height:900px;border-radius:50%;background:radial-gradient(circle,rgba(0,230,118,.16) 0%,rgba(0,230,118,0) 65%);pointer-events:none"></div>
+  <div data-hero style="position:relative;flex:1;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);gap:40px;padding:150px 6vw 80px;align-items:center">
+    <div style="max-width:720px">
+      <h1 data-decode="hero" style="margin:0 0 28px;font-weight:700;font-size:clamp(42px,7vw,96px);line-height:.95;letter-spacing:-0.03em;text-wrap:balance">
+        <span data-dl style="display:block">IA sem hype.</span>
+        <span data-dl style="display:block">Resultado na prática.</span>
+      </h1>
+      <p style="margin:0 0 40px;font-size:20px;line-height:1.6;color:#9CA3AF;max-width:560px;text-wrap:pretty">Treinamos equipes para usar inteligência artificial no trabalho de verdade. Diagnóstico antes, prática durante, medição depois.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:14px">
+        <a data-magnetic href="{{ waUrl }}" target="_blank" rel="noopener" style="background:#00E676;color:#0B0F0E;font-weight:600;font-size:16px;padding:16px 26px;border-radius:999px;display:inline-flex;align-items:center;gap:0;transition:transform .2s" style-hover="color:#0B0F0E"><span data-btxt style="display:inline-block;transition:transform .25s">Falar com um especialista</span><span data-arrow style="display:inline-block;width:0;opacity:0;transform:translateX(-6px);transition:all .25s;overflow:hidden">→</span></a>
+        <a href="#como-funciona" style="border:1.5px solid rgba(246,247,245,.4);color:#F6F7F5;font-weight:500;font-size:16px;padding:16px 26px;border-radius:999px;display:inline-flex;align-items:center;transition:border-color .2s" style-hover="border-color:#F6F7F5;color:#F6F7F5">Ver como funciona</a>
+      </div>
+    </div>
+    <div style="position:relative;min-height:420px;height:100%;overflow:hidden">
+      <img data-porta src="brand/porta.png" alt="Corredor escuro com uma porta aberta de onde sai luz verde" style="position:absolute;inset:-6% 0;width:100%;height:112%;object-fit:cover;object-position:60% 50%;will-change:transform">
+      <ul data-manifesto style="position:absolute;right:20px;top:20px;margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:14px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#F6F7F5;text-align:right">
+        <li>Estratégia</li><li>Tecnologia</li><li>Pessoas</li><li>Resultados</li>
+        <li aria-hidden="true" style="width:28px;height:2px;background:#00E676;align-self:flex-end;margin-top:6px"></li>
+      </ul>
+    </div>
+  </div>
+  <div data-screen-label="Ato 2 Prova" style="position:relative;padding:32px 6vw 40px">
+    <div data-line style="height:1px;background:rgba(156,163,175,.25);transform:scaleX(0);transform-origin:left;transition:transform .5s ease;margin-bottom:28px"></div>
+    <p style="margin:0;font-size:17px;line-height:1.6;color:#9CA3AF;max-width:760px;text-wrap:pretty">Equipes treinadas em empresas como <strong style="color:#F6F7F5;font-weight:600">IEL</strong>, <strong style="color:#F6F7F5;font-weight:600">Fortes Tecnologia</strong>, <strong style="color:#F6F7F5;font-weight:600">FortesPay</strong>, <strong style="color:#F6F7F5;font-weight:600">Longevidade Saudável</strong>, entre outras.</p>
+  </div>
+</section>
+
+<!-- ATO 3 · O problema (neutro) -->
+<section data-wipe id="como-funciona" data-screen-label="Ato 3 Problema" style="position:relative;z-index:1;background:#F6F7F5;color:#0B0F0E;padding:140px 6vw 120px">
+  <div style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:64px">
+    <h2 style="margin:0;font-weight:700;font-size:clamp(36px,4.6vw,64px);line-height:.98;letter-spacing:-0.03em;text-wrap:balance">Sua empresa já usa IA.<br>Só não sabe como.</h2>
+    <div style="display:flex;flex-direction:column;gap:40px">
+      <div style="display:grid;grid-template-columns:3px 1fr;gap:24px"><div data-glow style="background:rgba(11,15,14,.12);transition:background .6s ease"></div><p style="margin:0;font-size:18px;line-height:1.6;color:rgba(11,15,14,.6);max-width:60ch;text-wrap:pretty"><strong style="color:#0B0F0E;font-weight:600">Licença parada.</strong> O Gemini, o Copilot ou o ChatGPT corporativo estão contratados. Metade do time abriu uma vez.</p></div>
+      <div style="display:grid;grid-template-columns:3px 1fr;gap:24px"><div data-glow style="background:rgba(11,15,14,.12);transition:background .6s ease"></div><p style="margin:0;font-size:18px;line-height:1.6;color:rgba(11,15,14,.6);max-width:60ch;text-wrap:pretty"><strong style="color:#0B0F0E;font-weight:600">Uso escondido.</strong> A outra metade usa IA no celular pessoal, com dado da empresa, sem ninguém saber. Isso tem nome: shadow AI.</p></div>
+      <div style="display:grid;grid-template-columns:3px 1fr;gap:24px"><div data-glow style="background:rgba(11,15,14,.12);transition:background .6s ease"></div><p style="margin:0;font-size:18px;line-height:1.6;color:rgba(11,15,14,.6);max-width:60ch;text-wrap:pretty"><strong style="color:#0B0F0E;font-weight:600">Prompt ruim, resultado ruim.</strong> Quem tentou, pediu "faça um e-mail" e desistiu na segunda resposta. A ferramenta não é o problema. O método é.</p></div>
+      <div data-line style="height:1px;background:rgba(11,15,14,.12);transform:scaleX(0);transform-origin:left;transition:transform .5s ease"></div>
+      <p style="margin:0;font-size:22px;line-height:1.4;font-weight:600;letter-spacing:-0.01em;max-width:30ch;text-wrap:balance">Treinamento de IA não é mostrar ferramenta. É mudar o jeito que a equipe trabalha.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ATO 4 · Como funciona (neutro) -->
+<section data-stick data-screen-label="Ato 4 Como funciona" style="position:sticky;top:0;z-index:0;background:#F6F7F5;color:#0B0F0E;padding:140px 6vw 120px">
+  <div data-ato4 style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:64px;align-items:stretch">
+    <div data-ato4-img style="position:relative;align-self:start;position:sticky;top:120px;aspect-ratio:2/3;max-height:520px;overflow:hidden;background:#0B0F0E">
+      <img src="brand/bussola.png" alt="Bússola com a agulha verde apontando a direção" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center">
+    </div>
+    <div>
+      <h2 style="margin:0 0 56px;font-weight:700;font-size:clamp(36px,4.6vw,64px);line-height:.98;letter-spacing:-0.03em;text-wrap:balance">Diagnóstico. Treino. Medição.<br>Nessa ordem.</h2>
+      <div style="display:flex;flex-direction:column">
+        <div style="display:grid;grid-template-columns:64px 1fr;gap:24px;padding:28px 0;border-top:1px solid rgba(11,15,14,.12)">
+          <span style="font-weight:700;font-size:32px;letter-spacing:-0.03em;line-height:1;color:#00E676">01</span>
+          <div><h3 style="margin:0 0 10px;font-size:24px;font-weight:600;letter-spacing:-0.02em;line-height:1.1">Diagnóstico com o Spotlite</h3><p style="margin:0;font-size:17px;line-height:1.6;color:rgba(11,15,14,.6);max-width:58ch;text-wrap:pretty">Antes da primeira aula, cada pessoa responde ao Spotlite, nossa ferramenta de diagnóstico. Ela mede o nível de uso de IA, automação e processos de cada setor e aponta onde está o ganho. O treinamento é montado em cima desse resultado, não de uma ementa genérica.</p></div>
+        </div>
+        <div style="display:grid;grid-template-columns:64px 1fr;gap:24px;padding:28px 0;border-top:1px solid rgba(11,15,14,.12)">
+          <span style="font-weight:700;font-size:32px;letter-spacing:-0.03em;line-height:1;color:#00E676">02</span>
+          <div><h3 style="margin:0 0 10px;font-size:24px;font-weight:600;letter-spacing:-0.02em;line-height:1.1">Treinamento direcionado</h3><p style="margin:0;font-size:17px;line-height:1.6;color:rgba(11,15,14,.6);max-width:58ch;text-wrap:pretty">Sessões online de 90 minutos, 75% prática. Os exercícios usam documentos, planilhas e e-mails reais da própria área. Nada fictício. Toda sessão termina com algo pronto para usar no dia seguinte.</p></div>
+        </div>
+        <div style="display:grid;grid-template-columns:64px 1fr;gap:24px;padding:28px 0;border-top:1px solid rgba(11,15,14,.12);border-bottom:1px solid rgba(11,15,14,.12)">
+          <span style="font-weight:700;font-size:32px;letter-spacing:-0.03em;line-height:1;color:#00E676">03</span>
+          <div><h3 style="margin:0 0 10px;font-size:24px;font-weight:600;letter-spacing:-0.02em;line-height:1.1">Medição antes × depois</h3><p style="margin:0;font-size:17px;line-height:1.6;color:rgba(11,15,14,.6);max-width:58ch;text-wrap:pretty">Ao final, o Spotlite roda de novo. O gestor recebe o comparativo: nota de maturidade, atividades que passaram a ser automatizadas e horas economizadas por mês. Resultado é número, não impressão.</p></div>
+        </div>
+      </div>
+      <div style="margin-top:40px"><a href="spotlite.dc.html" style="font-size:15px;font-weight:500;color:rgba(11,15,14,.6);border-bottom:1px solid rgba(11,15,14,.3);padding-bottom:3px" style-hover="color:#0B0F0E;border-bottom-color:#00E676">Conhecer o Spotlite →</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ATO 5 · Treinamentos (carvão) -->
+<section data-wipe data-screen-label="Ato 5 Treinamentos" style="position:relative;z-index:1;background:#0B0F0E;color:#F6F7F5;padding:140px 6vw 120px">
+  <div style="max-width:1200px;margin:0 auto">
+    <h2 style="margin:0 0 64px;font-weight:700;font-size:clamp(36px,4.6vw,64px);line-height:.98;letter-spacing:-0.03em;max-width:16ch;text-wrap:balance">Um programa para cada ponto da empresa.</h2>
+    <div data-row style="display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:32px;padding:0 0 14px 24px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#9CA3AF"><span>Programa</span><span>Para quem</span><span>Formato</span></div>
+    <div data-line style="height:1px;background:rgba(156,163,175,.25);transform:scaleX(0);transform-origin:left;transition:transform .5s ease"></div>
+    <sc-for list="{{ programas }}" as="r" hint-placeholder-count="5">
+      <div onMouseEnter="{{ r.enter }}" onMouseLeave="{{ r.leave }}" style="position:relative;padding:28px 0 28px 24px;border-bottom:1px solid rgba(156,163,175,.25)">
+        <span aria-hidden="true" style="position:absolute;left:0;top:28px;bottom:28px;width:2px;background:{{ r.bar }};transition:background .3s"></span>
+        <div data-row style="display:grid;grid-template-columns:1.1fr 1.4fr 1fr;gap:32px;align-items:baseline">
+          <h3 style="margin:0;font-size:22px;font-weight:600;letter-spacing:-0.02em;line-height:1.2">{{ r.nome }}</h3>
+          <p style="margin:0;font-size:16px;line-height:1.5;color:#9CA3AF;text-wrap:pretty">{{ r.quem }}</p>
+          <p style="margin:0;font-size:15px;line-height:1.5;color:#F6F7F5;text-wrap:pretty">{{ r.formato }}</p>
+        </div>
+        <div data-desc style="display:grid;grid-template-rows:{{ r.rows }};transition:grid-template-rows .35s ease"><div style="overflow:hidden"><p style="margin:16px 0 0;font-size:16px;line-height:1.6;color:rgba(246,247,245,.7);max-width:68ch;text-wrap:pretty">{{ r.desc }}</p></div></div>
+      </div>
+    </sc-for>
+    <div style="margin-top:40px"><a href="solucoes.dc.html" style="font-size:15px;font-weight:500;color:#9CA3AF;border-bottom:1px solid rgba(156,163,175,.4);padding-bottom:3px" style-hover="color:#F6F7F5;border-bottom-color:#00E676">Ver os programas em detalhe →</a></div>
+  </div>
+</section>
+
+<!-- ATO 6 · Spotlite (carvão, glow) -->
+<section data-stick data-screen-label="Ato 6 Spotlite" style="position:sticky;top:0;z-index:0;background:#0B0F0E;color:#F6F7F5;padding:120px 6vw 140px;overflow:hidden;min-height:100vh;display:flex;align-items:center">
+  <div style="position:absolute;left:-10vw;bottom:-30vh;width:60vw;height:60vw;max-width:900px;max-height:900px;border-radius:50%;background:radial-gradient(circle,rgba(0,230,118,.14) 0%,rgba(0,230,118,0) 65%);pointer-events:none"></div>
+  <div data-spot style="position:relative;max-width:1200px;width:100%;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:center">
+    <div>
+      <h2 style="margin:0 0 28px;font-weight:700;font-size:clamp(36px,4.6vw,64px);line-height:.98;letter-spacing:-0.03em;text-wrap:balance">Spotlite.<br>O diagnóstico que direciona tudo.</h2>
+      <p style="margin:0 0 40px;font-size:18px;line-height:1.6;color:#9CA3AF;max-width:60ch;text-wrap:pretty">Ferramenta própria da Reset IA. Mede, pessoa a pessoa e setor a setor, o nível real de uso de inteligência artificial, automação e processos. Entrega ao gestor uma nota de maturidade, a lista de atividades automatizáveis e a economia estimada em reais. Roda antes e depois do treinamento.</p>
+      <a data-magnetic href="{{ waSpotUrl }}" target="_blank" rel="noopener" style="background:#00E676;color:#0B0F0E;font-weight:600;font-size:16px;padding:16px 26px;border-radius:999px;display:inline-flex;align-items:center;transition:transform .2s" style-hover="color:#0B0F0E"><span data-btxt style="display:inline-block;transition:transform .25s">Pedir o diagnóstico do meu setor</span><span data-arrow style="display:inline-block;width:0;opacity:0;transform:translateX(-6px);transition:all .25s;overflow:hidden">→</span></a>
+    </div>
+    <div data-count style="border:1px solid rgba(156,163,175,.25);padding:36px;display:flex;flex-direction:column;gap:32px;background:rgba(246,247,245,.02)">
+      <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#9CA3AF"><span>Setor: Financeiro</span><span>exemplo</span></div>
+      <div style="display:flex;align-items:flex-end;gap:20px">
+        <span style="font-weight:700;font-size:clamp(64px,8vw,112px);line-height:.9;letter-spacing:-0.04em;color:#F6F7F5">{{ notaFmt }}</span>
+        <div style="padding-bottom:10px;color:#9CA3AF;font-size:15px;line-height:1.4">nota de maturidade<br><span style="color:#F6F7F5">antes: 3,4</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;font-size:14px;color:#9CA3AF"><span>Conciliação bancária</span><span style="color:#F6F7F5">alto ganho</span></div>
+        <div style="height:2px;background:rgba(156,163,175,.2)"><div style="height:100%;width:{{ b1 }}%;background:#00E676;transition:width 1.2s ease-out"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;color:#9CA3AF"><span>Relatórios mensais</span><span style="color:#F6F7F5">médio</span></div>
+        <div style="height:2px;background:rgba(156,163,175,.2)"><div style="height:100%;width:{{ b2 }}%;background:#00E676;transition:width 1.2s ease-out .15s"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;color:#9CA3AF"><span>Respostas a fornecedores</span><span style="color:#F6F7F5">médio</span></div>
+        <div style="height:2px;background:rgba(156,163,175,.2)"><div style="height:100%;width:{{ b3 }}%;background:#00E676;transition:width 1.2s ease-out .3s"></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1px solid rgba(156,163,175,.25);padding-top:24px">
+        <div><div style="font-weight:700;font-size:36px;letter-spacing:-0.03em;line-height:1">{{ ativ }}</div><div style="color:#9CA3AF;font-size:14px;margin-top:6px">atividades automatizáveis</div></div>
+        <div><div style="font-weight:700;font-size:36px;letter-spacing:-0.03em;line-height:1">{{ horas }} <span style="font-size:18px;font-weight:500;color:#00E676">h/mês</span></div><div style="color:#9CA3AF;font-size:14px;margin-top:6px">economia estimada</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ATO 7 · Depois do treinamento (neutro) -->
+<section data-wipe data-screen-label="Ato 7 Depois" style="position:relative;z-index:1;background:#F6F7F5;color:#0B0F0E;padding:140px 6vw 120px">
+  <div style="max-width:1200px;margin:0 auto">
+    <h2 style="margin:0 0 64px;font-weight:700;font-size:clamp(36px,4.6vw,64px);line-height:.98;letter-spacing:-0.03em">Treinar é o começo.</h2>
+    <div data-two style="display:grid;grid-template-columns:1fr 1px 1fr;gap:56px">
+      <div>
+        <h3 style="margin:0 0 16px;font-size:28px;font-weight:600;letter-spacing:-0.02em;line-height:1.1">Governança de IA</h3>
+        <p style="margin:0;font-size:18px;line-height:1.6;color:rgba(11,15,14,.6);text-wrap:pretty">Política de uso, comitê multidisciplinar, rito de homologação de ferramentas e um painel de demandas. Tudo desenhado em processo, em linguagem que o jurídico, a TI e o negócio entendem. Montado junto com os Champions formados no treinamento.</p>
+      </div>
+      <div data-vline data-line="y" style="background:rgba(11,15,14,.12);transform:scaleY(0);transform-origin:top;transition:transform .5s ease"></div>
+      <div>
+        <h3 style="margin:0 0 16px;font-size:28px;font-weight:600;letter-spacing:-0.02em;line-height:1.1">Fábrica de Agentes</h3>
+        <p style="margin:0;font-size:18px;line-height:1.6;color:rgba(11,15,14,.6);text-wrap:pretty">Um portal interno onde cada colaborador acessa agentes de IA da própria empresa: triagem de demandas, políticas internas, suporte, processos. Construído sobre a governança, com guardrails e log de tudo.</p>
+      </div>
+    </div>
+    <div data-line style="height:1px;background:rgba(11,15,14,.12);transform:scaleX(0);transform-origin:left;transition:transform .5s ease;margin:64px 0 24px"></div>
+    <p style="margin:0;font-size:16px;color:rgba(11,15,14,.6)">Essas frentes entram depois que a equipe está treinada. Nunca antes.</p>
+  </div>
+</section>
+
+<!-- ATO 8 · Fecho (carvão) -->
+<section data-screen-label="Ato 8 Fecho" style="position:relative;z-index:1;background:#0B0F0E;color:#F6F7F5;padding:180px 6vw 160px;text-align:center">
+  <h2 data-decode="fecho" style="margin:0 auto 32px;font-weight:700;font-size:clamp(40px,6.4vw,88px);line-height:.95;letter-spacing:-0.03em;max-width:14ch;text-wrap:balance">
+    <span data-dl style="display:block;color:#9CA3AF">Reprogramar hoje</span>
+    <span style="display:block">para um <span style="position:relative;display:inline-block"><span data-dl>amanhã maior.</span><span data-ul aria-hidden="true" style="position:absolute;left:0;right:0;bottom:-6px;height:4px;background:#00E676;transform:scaleX(0);transform-origin:left;transition:transform .6s ease .2s"></span></span></span>
+  </h2>
+  <p style="margin:0 auto 40px;font-size:20px;line-height:1.6;color:#9CA3AF;max-width:40ch">Um novo ciclo começa com uma conversa de 30 minutos.</p>
+  <a data-magnetic href="{{ waUrl }}" target="_blank" rel="noopener" style="background:#00E676;color:#0B0F0E;font-weight:600;font-size:16px;padding:16px 26px;border-radius:999px;display:inline-flex;align-items:center;transition:transform .2s" style-hover="color:#0B0F0E"><span data-btxt style="display:inline-block;transition:transform .25s">Falar com um especialista</span><span data-arrow style="display:inline-block;width:0;opacity:0;transform:translateX(-6px);transition:all .25s;overflow:hidden">→</span></a>
+</section>
+
+<footer style="position:relative;z-index:1;background:#0B0F0E;color:#9CA3AF;padding:64px 6vw 40px;border-top:1px solid rgba(156,163,175,.25)">
+  <div data-foot style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;font-size:15px;line-height:1.6">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;color:#F6F7F5;margin-bottom:12px"><img src="brand/logo-dark.png" alt="Reset IA — IA sem hype. Resultado na prática." style="height:44px;width:auto;display:block"></div>
+      <p style="margin:0">Um novo ciclo de possibilidades.</p>
+    </div>
+    <div><p style="margin:0 0 12px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase">Navegação</p><div style="display:flex;flex-direction:column;gap:8px;color:#F6F7F5"><a href="solucoes.dc.html">Soluções</a><a href="spotlite.dc.html">Spotlite</a><a href="sobre.dc.html">Sobre</a></div></div>
+    <div><p style="margin:0 0 12px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase">Contato</p><div style="display:flex;flex-direction:column;gap:8px;color:#F6F7F5"><a href="{{ waUrl }}" target="_blank" rel="noopener">+55 11 91617-0606</a><a href="mailto:contato@resetia.com.br">contato@resetia.com.br</a></div></div>
+    <div><p style="margin:0 0 12px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase">Redes</p><div style="display:flex;flex-direction:column;gap:8px;color:#F6F7F5"><a href="https://www.linkedin.com/company/resetia" target="_blank" rel="noopener">LinkedIn Reset IA</a><a href="https://www.linkedin.com/in/diegonogueira1" target="_blank" rel="noopener">LinkedIn Diego</a><a href="https://www.instagram.com/odiegonog" target="_blank" rel="noopener">Instagram</a></div></div>
+  </div>
+  <div style="max-width:1200px;margin:48px auto 0;padding-top:24px;border-top:1px solid rgba(156,163,175,.25);font-size:13px;display:flex;flex-wrap:wrap;gap:8px 24px">
+    <span>© 2026 Reset IA</span><span>CNPJ [FALTA]</span><span>Fortaleza e Campinas, Brasil</span><span>Política de privacidade [FALTA]</span>
+  </div>
+</footer>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;movimento&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Movimento&quot;},&quot;cursorPersonalizado&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Movimento&quot;}}">
+class Component extends DCLogic {
+  state = { scrolled: false, hidden: false, hover: -1, nota: 0, ativ: 0, horas: 0, counted: false };
+  wa = '5511916170606';
+  msg = 'Olá! Vim pelo site da Reset IA e quero conversar sobre treinamento de IA para a minha equipe.';
+  msgSpot = 'Olá! Vim pelo site da Reset IA e quero fazer o diagnóstico Spotlite do meu setor.';
+  programas = [
+    { nome: 'Letramento em IA', quem: 'Equipes de qualquer área: RH, financeiro, marketing, suporte, operações', formato: '5 módulos · 11 sessões online · mentoria individual', desc: 'Fundamentos e prompt, como as IAs funcionam, panorama de ferramentas, IA aplicada ao setor, uso seguro. Com os métodos próprios CLARO, CONFERE e PACEF.' },
+    { nome: 'Champions de IA', quem: 'Líderes e multiplicadores que vão levar IA para o resto da empresa', formato: '7 módulos · projeto real apresentado à diretoria · certificação', desc: 'Discovery de problemas, mapeamento de processos, prototipagem com IA, agentes dentro das plataformas e Claude Code em nível de uso, não de programação.' },
+    { nome: 'Workshops por ferramenta', quem: 'Times que já têm Gemini Workspace, Claude ou ChatGPT contratado e usam pouco', formato: '3 a 6 encontros de 2h · 100% na ferramenta da casa', desc: 'Gems, Gemini no Docs, Sheets e Gmail, Notebook. Ou Claude Projetos, Design e Cowork. O time sai sabendo criar o próprio agente.' },
+    { nome: 'Claude Code para times de tecnologia', quem: 'Desenvolvedores e analistas que querem construir com agentes de código', formato: 'Aulas guiadas · a equipe sai com a fundação de um projeto de pé', desc: 'Setup, CLAUDE.md, skills, banco de dados e TDD, no ritmo real de produção de código.' },
+    { nome: 'Uso seguro de IA e LGPD', quem: 'Toda a empresa, antes de assinar a política de IA', formato: 'Encontro dedicado · guia de uso seguro da área', desc: 'O que pode e o que não pode, pesquisa segura, dado pessoal, política de IA explicada em linguagem de negócio.' },
+  ];
+
+  renderVals() {
+    const { scrolled, hidden, hover, nota, ativ, horas, counted } = this.state;
+    return {
+      waUrl: `https://wa.me/${this.wa}?text=${encodeURIComponent(this.msg)}`,
+      waSpotUrl: `https://wa.me/${this.wa}?text=${encodeURIComponent(this.msgSpot)}`,
+      hdrBg: scrolled ? 'rgba(11,15,14,.8)' : 'transparent', hdrBlur: scrolled ? 'blur(12px)' : 'none',
+      hdrLine: scrolled ? 'rgba(156,163,175,.15)' : 'transparent', hdrY: hidden ? '-100%' : '0',
+      programas: this.programas.map((p, i) => ({ ...p, enter: () => this.setState({ hover: i }), leave: () => this.setState({ hover: -1 }), rows: hover === i ? '1fr' : '0fr', bar: hover === i ? '#00E676' : 'transparent' })),
+      notaFmt: nota.toFixed(1).replace('.', ','), ativ, horas,
+      b1: counted ? 92 : 0, b2: counted ? 64 : 0, b3: counted ? 48 : 0,
+    };
+  }
+
+  componentDidMount() {
+    this.rm = matchMedia('(prefers-reduced-motion: reduce)').matches || this.props.movimento === false;
+    this.vh = innerHeight;
+    const q = (s) => Array.from(document.querySelectorAll(s));
+    this.sticks = q('[data-stick]'); this.wipes = q('[data-wipe]');
+    this.hero = document.querySelector('[data-stick]'); this.porta = document.querySelector('[data-porta]');
+    if (this.rm) {
+      this.sticks.forEach(el => el.style.position = 'relative');
+      q('[data-line]').forEach(l => l.style.transform = 'none');
+      q('[data-glow]').forEach(g => g.style.background = '#00E676');
+      q('[data-ul]').forEach(u => u.style.transform = 'scaleX(1)');
+    } else {
+      this.layoutSticky(); this.setupLines(); this.decode(document.querySelector('[data-decode="hero"]'));
+      if (this.props.cursorPersonalizado !== false && matchMedia('(pointer: fine)').matches) this.setupCursor();
+      this.setupMagnetic(); this.setupUl();
+    }
+    this.setupCount();
+    this.onScroll = () => { if (!this.ticking) { this.ticking = true; requestAnimationFrame(() => { this.tick(); this.ticking = false; }); } };
+    this.onResize = () => { this.vh = innerHeight; if (!this.rm) this.layoutSticky(); };
+    addEventListener('scroll', this.onScroll, { passive: true }); addEventListener('resize', this.onResize);
+    this.tick();
+  }
+  componentWillUnmount() { removeEventListener('scroll', this.onScroll); removeEventListener('resize', this.onResize); if (this.raf) cancelAnimationFrame(this.raf); document.body.removeAttribute('data-nocursor'); }
+
+  layoutSticky() { this.sticks.forEach(el => { el.style.top = Math.min(0, this.vh - el.offsetHeight) + 'px'; }); }
+
+  tick() {
+    const y = scrollY, vh = this.vh;
+    const scrolled = y > 80, hidden = y > this.lastY && y > 200; this.lastY = y;
+    if (scrolled !== this.state.scrolled || hidden !== this.state.hidden) this.setState({ scrolled, hidden });
+    if (this.rm) return;
+    this.wipes.forEach(el => {
+      const r = el.getBoundingClientRect();
+      const p = Math.max(0, Math.min(1, (vh - r.top) / vh));
+      el.style.clipPath = p >= 1 ? 'none' : `inset(${Math.round((1 - p) * vh * 0.45)}px 0 0 0)`;
+    });
+    if (this.hero) {
+      const sy = -this.hero.getBoundingClientRect().top;
+      if (this.porta) this.porta.style.transform = `translate3d(0,${(sy * 0.08).toFixed(1)}px,0)`;
+    }
+  }
+
+  setupLines() {
+    const io = new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting) return; const el = e.target;
+      if (el.dataset.line !== undefined) el.style.transform = el.dataset.line === 'y' ? 'scaleY(1)' : 'scaleX(1)';
+      if (el.dataset.glow !== undefined) el.style.background = '#00E676';
+      io.unobserve(el); }), { threshold: 0.3 });
+    document.querySelectorAll('[data-line],[data-glow]').forEach(el => io.observe(el));
+  }
+
+  decode(el, done) {
+    if (!el) return; const lines = Array.from(el.querySelectorAll('[data-dl]'));
+    const finals = lines.map(l => l.textContent); const glyphs = '▮▯/\\|'; const dur = 900; const start = performance.now(); let last = 0; let frame = [];
+    const paint = (t) => lines.forEach((l, i) => { const f = finals[i]; const settled = Math.floor(t * (f.length + 3)) ; l.textContent = Array.from(f).map((c, j) => j < settled || c === ' ' ? c : frame[i][j]).join(''); });
+    const randomize = () => frame = finals.map(f => Array.from(f).map(() => glyphs[Math.floor(Math.random() * glyphs.length)]));
+    randomize();
+    const run = (now) => { const t = Math.min(1, (now - start) / dur); if (now - last > 40) { randomize(); last = now; } paint(t); if (t < 1) requestAnimationFrame(run); else { lines.forEach((l, i) => l.textContent = finals[i]); done && done(); } };
+    requestAnimationFrame(run);
+  }
+  setupUl() {
+    const u = document.querySelector('[data-ul]'); if (!u) return;
+    const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { io.disconnect(); u.style.transform = 'scaleX(1)'; } }, { threshold: 0.4 }); io.observe(u.closest('h2'));
+  }
+  setupCount() {
+    const el = document.querySelector('[data-count]'); if (!el) return;
+    const go = () => { this.setState({ counted: true }); if (this.rm) { this.setState({ nota: 7.1, ativ: 11, horas: 46 }); return; }
+      const start = performance.now(), dur = 1400; const ease = t => 1 - Math.pow(1 - t, 3);
+      const run = now => { const t = ease(Math.min(1, (now - start) / dur)); this.setState({ nota: 7.1 * t, ativ: Math.round(11 * t), horas: Math.round(46 * t) }); if (t < 1) requestAnimationFrame(run); };
+      requestAnimationFrame(run); };
+    const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { io.disconnect(); go(); } }, { threshold: 0.4 }); io.observe(el);
+  }
+  setupMagnetic() {
+    document.querySelectorAll('[data-magnetic]').forEach(b => {
+      const txt = b.querySelector('[data-btxt]'), arr = b.querySelector('[data-arrow]');
+      b.addEventListener('mousemove', e => { const r = b.getBoundingClientRect(); const dx = (e.clientX - (r.left + r.width / 2)) / r.width, dy = (e.clientY - (r.top + r.height / 2)) / r.height; b.style.transform = `translate(${(dx * 8).toFixed(1)}px,${(dy * 6).toFixed(1)}px)`; });
+      b.addEventListener('mouseenter', () => { if (txt) txt.style.transform = 'translateX(2px)'; if (arr) { arr.style.width = '22px'; arr.style.opacity = '1'; arr.style.transform = 'translateX(6px)'; } });
+      b.addEventListener('mouseleave', () => { b.style.transform = ''; if (txt) txt.style.transform = ''; if (arr) { arr.style.width = '0'; arr.style.opacity = '0'; arr.style.transform = 'translateX(-6px)'; } });
+    });
+  }
+  setupCursor() {
+    const dot = document.querySelector('[data-cur="dot"]'), ring = document.querySelector('[data-cur="ring"]');
+    if (!dot || !ring) return;
+    document.body.setAttribute('data-nocursor', ''); dot.style.display = 'block'; ring.style.display = 'flex';
+    let mx = innerWidth / 2, my = innerHeight / 2, rx = mx, ry = my, vx = 0, vy = 0;
+    const setMode = (m) => {
+      if (m === 'link') Object.assign(ring.style, { width: '48px', height: '48px', margin: '-24px 0 0 -24px', borderColor: '#00E676', borderRadius: '50%' });
+      else if (m === 'text') Object.assign(ring.style, { width: '2px', height: '26px', margin: '-13px 0 0 -1px', borderColor: 'rgba(246,247,245,.7)', borderRadius: '1px' });
+      else Object.assign(ring.style, { width: '28px', height: '28px', margin: '-14px 0 0 -14px', borderColor: 'rgba(246,247,245,.7)', borderRadius: '50%' });
+      dot.style.opacity = m === 'text' ? '0' : '1';
+    };
+    document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; dot.style.transform = `translate(${mx}px,${my}px)`;
+      const t = e.target; if (!(t instanceof Element)) return;
+      setMode(t.closest('a,button,[data-magnetic]') ? 'link' : t.closest('p,h1,h2,h3,li') ? 'text' : 'default'); });
+    const loop = () => { const k = 0.18, d = 0.72; vx = (vx + (mx - rx) * k) * d; vy = (vy + (my - ry) * k) * d; rx += vx; ry += vy; ring.style.transform = `translate(${rx.toFixed(1)}px,${ry.toFixed(1)}px)`; this.raf = requestAnimationFrame(loop); };
+    loop();
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+name: Deploy
+
+# Só faz deploy quando o CI da main terminou verde. O app spec (.do/app.yaml) tem deploy_on_push: false.
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-producao
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: DigitalOcean App Platform
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    environment:
+      name: producao
+      url: https://www.resetia.com.br
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy (app spec em .do/app.yaml)
+        uses: digitalocean/app_action/deploy@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          app_spec_location: .do/app.yaml
+          print_build_logs: "true"
+          print_deploy_logs: "true"

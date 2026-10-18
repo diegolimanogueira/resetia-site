@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spotlite — diagnóstico de IA, automação e processos | Reset IA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#0B0F0E;color:#F6F7F5;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}*{box-sizing:border-box}
+a{color:inherit;text-decoration:none}a:hover{color:#00E676}:focus-visible{outline:2px solid #00E676;outline-offset:3px}
+@media (max-width:860px){[data-nav]{display:none!important}[data-hdr-cta]{display:none!important}[data-grid2]{grid-template-columns:1fr!important}[data-foot]{grid-template-columns:1fr 1fr!important}}
+</style>
+</helmet>
+
+<header style="position:sticky;top:0;z-index:50;display:flex;align-items:center;justify-content:space-between;padding:0 6vw;height:72px;background:rgba(11,15,14,.8);backdrop-filter:blur(12px);border-bottom:1px solid rgba(156,163,175,.15)">
+  <a href="home.dc.html" aria-label="Reset IA" style="display:flex;align-items:center;gap:10px">
+    <img src="brand/logo-dark.png" alt="Reset IA — IA sem hype. Resultado na prática." style="height:40px;width:auto;display:block">
+  </a>
+  <nav data-nav style="display:flex;gap:36px;font-size:15px;font-weight:500">
+    <a href="solucoes.dc.html" style="padding:6px 0;border-bottom:2px solid transparent" style-hover="border-bottom-color:#00E676;color:#F6F7F5">Soluções</a>
+    <a href="spotlite.dc.html" aria-current="page" style="padding:6px 0;border-bottom:2px solid #00E676">Spotlite</a>
+    <a href="sobre.dc.html" style="padding:6px 0;border-bottom:2px solid transparent" style-hover="border-bottom-color:#00E676;color:#F6F7F5">Sobre</a>
+  </nav>
+  <a data-hdr-cta href="{{ waUrl }}" target="_blank" rel="noopener" style="background:#00E676;color:#0B0F0E;font-weight:600;font-size:14px;padding:10px 18px;border-radius:999px" style-hover="color:#0B0F0E">Fale conosco</a>
+</header>
+
+<section data-screen-label="Hero" style="position:relative;overflow:hidden;padding:140px 6vw 100px">
+  <div style="position:absolute;right:-10vw;top:-30vh;width:60vw;height:60vw;max-width:900px;max-height:900px;border-radius:50%;background:radial-gradient(circle,rgba(0,230,118,.16) 0%,rgba(0,230,118,0) 65%);pointer-events:none"></div>
+  <div data-grid2 style="position:relative;max-width:1200px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);gap:64px;align-items:center">
+    <div>
+      <h1 style="margin:0 0 24px;font-weight:700;font-size:clamp(56px,9vw,128px);line-height:.9;letter-spacing:-0.04em">Spotlite.</h1>
+      <p style="margin:0;font-size:20px;line-height:1.6;color:#9CA3AF;max-width:52ch;text-wrap:pretty">Diagnóstico de inteligência artificial, automação e processos. Por pessoa, por setor, antes e depois.</p>
+    </div>
+    <div style="position:relative;aspect-ratio:4/5;overflow:hidden;background:#0B0F0E"><img src="brand/bussola.png" alt="Bússola com a agulha verde apontando a direção" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"></div>
+  </div>
+</section>
+
+<section data-screen-label="Como funciona" style="background:#F6F7F5;color:#0B0F0E;padding:120px 6vw">
+  <div data-grid2 style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:64px">
+    <h2 style="margin:0;font-weight:700;font-size:clamp(36px,4.6vw,64px);line-height:.98;letter-spacing:-0.03em">Como funciona</h2>
+    <ol style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column">
+      <li style="display:grid;grid-template-columns:64px 1fr;gap:24px;padding:28px 0;border-top:1px solid rgba(11,15,14,.12)"><span style="font-weight:700;font-size:32px;letter-spacing:-0.03em;color:rgba(11,15,14,.25);line-height:1">01</span><p style="margin:0;font-size:18px;line-height:1.6;color:rgba(11,15,14,.6);text-wrap:pretty"><strong style="color:#0B0F0E;font-weight:600">Criamos a empresa e os setores.</strong> Você recebe um link por setor.</p></li>
+      <li style="display:grid;grid-template-columns:64px 1fr;gap:24px;padding:28px 0;border-top:1px solid rgba(11,15,14,.12)"><span style="font-weight:700;font-size:32px;letter-spacing:-0.03em;color:rgba(11,15,14,.25);line-height:1">02</span><p style="margin:0;font-size:18px;line-height:1.6;color:rgba(11,15,14,.6);text-wrap:pretty"><strong style="color:#0B0F0E;font-weight:600">A equipe responde.</strong> Cada pessoa leva poucos minutos. Ninguém vê a resposta do outro.</p></li>
+      <li style="display:grid;grid-template-columns:64px 1fr;gap:24px;padding:28px 0;border-top:1px solid rgba(11,15,14,.12)"><span style="font-weight:700;font-size:32px;letter-spacing:-0.03em;color:rgba(11,15,14,.25);line-height:1">03</span><p style="margin:0;font-size:18px;line-height:1.6;color:rgba(11,15,14,.6);text-wrap:pretty"><strong style="color:#0B0F0E;font-weight:600">A IA gera o relatório do setor.</strong> Nota de maturidade, atividades automatizáveis, economia estimada em reais. Um consultor revisa antes de chegar ao gestor.</p></li>
+      <li style="display:grid;grid-template-columns:64px 1fr;gap:24px;padding:28px 0;border-top:1px solid rgba(11,15,14,.12);border-bottom:1px solid rgba(11,15,14,.12)"><span style="font-weight:700;font-size:32px;letter-spacing:-0.03em;color:rgba(11,15,14,.25);line-height:1">04</span><p style="margin:0;font-size:18px;line-height:1.6;color:rgba(11,15,14,.6);text-wrap:pretty"><strong style="color:#0B0F0E;font-weight:600">Antes e depois.</strong> Ao fim do treinamento, a rodada roda de novo e o comparativo mostra o que mudou.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section data-screen-label="O que o gestor recebe" style="padding:120px 6vw">
+  <div data-grid2 style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:64px;align-items:start">
+    <div>
+      <h2 style="margin:0 0 48px;font-weight:700;font-size:clamp(36px,4.6vw,64px);line-height:.98;letter-spacing:-0.03em;text-wrap:balance">O que o gestor recebe</h2>
+      <div style="display:flex;flex-direction:column;gap:28px">
+        <div style="display:grid;grid-template-columns:3px 1fr;gap:24px"><div style="background:#00E676"></div><p style="margin:0;font-size:18px;line-height:1.6;color:#9CA3AF;text-wrap:pretty"><strong style="color:#F6F7F5;font-weight:600">Nota de maturidade</strong> de 0 a 10. A régua é exigente: 10 é um setor que já opera com IA e automação no dia a dia.</p></div>
+        <div style="display:grid;grid-template-columns:3px 1fr;gap:24px"><div style="background:#00E676"></div><p style="margin:0;font-size:18px;line-height:1.6;color:#9CA3AF;text-wrap:pretty"><strong style="color:#F6F7F5;font-weight:600">Atividades automatizáveis</strong>, ranqueadas por ganho.</p></div>
+        <div style="display:grid;grid-template-columns:3px 1fr;gap:24px"><div style="background:#00E676"></div><p style="margin:0;font-size:18px;line-height:1.6;color:#9CA3AF;text-wrap:pretty"><strong style="color:#F6F7F5;font-weight:600">Economia estimada</strong> em horas e reais por mês.</p></div>
+        <div style="display:grid;grid-template-columns:3px 1fr;gap:24px"><div style="background:rgba(156,163,175,.25)"></div><p style="margin:0;font-size:18px;line-height:1.6;color:#9CA3AF;text-wrap:pretty">Uso escondido de IA aparece de forma agregada, sem expor ninguém.</p></div>
+      </div>
+    </div>
+    <div data-count style="border:1px solid rgba(156,163,175,.25);padding:40px;display:flex;flex-direction:column;gap:36px;background:rgba(246,247,245,.02)">
+      <div style="display:flex;justify-content:space-between;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:#9CA3AF"><span>Setor: Financeiro</span><span>exemplo</span></div>
+      <div style="display:flex;align-items:flex-end;gap:20px">
+        <span style="font-weight:700;font-size:clamp(72px,9vw,128px);line-height:.9;letter-spacing:-0.04em">{{ notaFmt }}</span>
+        <div style="padding-bottom:10px;color:#9CA3AF;font-size:15px;line-height:1.4">nota de maturidade<br><span style="color:#F6F7F5">antes: 3,4</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;justify-content:space-between;font-size:14px;color:#9CA3AF"><span>Conciliação bancária</span><span style="color:#F6F7F5">alto ganho</span></div>
+        <div style="height:2px;background:rgba(156,163,175,.2)"><div style="height:100%;width:{{ b1 }}%;background:#00E676;transition:width 1.2s ease-out"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;color:#9CA3AF"><span>Relatórios mensais</span><span style="color:#F6F7F5">médio</span></div>
+        <div style="height:2px;background:rgba(156,163,175,.2)"><div style="height:100%;width:{{ b2 }}%;background:#00E676;transition:width 1.2s ease-out .15s"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:14px;color:#9CA3AF"><span>Respostas a fornecedores</span><span style="color:#F6F7F5">médio</span></div>
+        <div style="height:2px;background:rgba(156,163,175,.2)"><div style="height:100%;width:{{ b3 }}%;background:#00E676;transition:width 1.2s ease-out .3s"></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;border-top:1px solid rgba(156,163,175,.25);padding-top:28px">
+        <div><div style="font-weight:700;font-size:40px;letter-spacing:-0.03em;line-height:1">{{ ativ }}</div><div style="color:#9CA3AF;font-size:14px;margin-top:6px">atividades automatizáveis</div></div>
+        <div><div style="font-weight:700;font-size:40px;letter-spacing:-0.03em;line-height:1">{{ horas }} <span style="font-size:18px;font-weight:500;color:#00E676">h/mês</span></div><div style="color:#9CA3AF;font-size:14px;margin-top:6px">economia estimada</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section data-screen-label="Para quem" style="background:#F6F7F5;color:#0B0F0E;padding:120px 6vw">
+  <div data-grid2 style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.4fr);gap:64px">
+    <h2 style="margin:0;font-weight:700;font-size:clamp(36px,4.6vw,64px);line-height:.98;letter-spacing:-0.03em">Para quem</h2>
+    <ul style="margin:0;padding:0;list-style:none;display:flex;flex-direction:column">
+      <li style="padding:24px 0;border-top:1px solid rgba(11,15,14,.12);font-size:22px;font-weight:600;letter-spacing:-0.01em;line-height:1.3">Gestor que quer saber por onde começar.</li>
+      <li style="padding:24px 0;border-top:1px solid rgba(11,15,14,.12);font-size:22px;font-weight:600;letter-spacing:-0.01em;line-height:1.3">Empresa que vai contratar treinamento e não quer ementa genérica.</li>
+      <li style="padding:24px 0;border-top:1px solid rgba(11,15,14,.12);border-bottom:1px solid rgba(11,15,14,.12);font-size:22px;font-weight:600;letter-spacing:-0.01em;line-height:1.3">Área que já treinou e quer medir se mudou alguma coisa.</li>
+    </ul>
+  </div>
+</section>
+
+<section data-screen-label="CTA" style="padding:140px 6vw;text-align:center">
+  <h2 style="margin:0 auto 32px;font-weight:700;font-size:clamp(36px,5vw,72px);line-height:.95;letter-spacing:-0.03em;max-width:18ch;text-wrap:balance">Comece pelo diagnóstico.</h2>
+  <a href="{{ waUrl }}" target="_blank" rel="noopener" style="background:#00E676;color:#0B0F0E;font-weight:600;font-size:16px;padding:16px 26px;border-radius:999px;display:inline-flex" style-hover="color:#0B0F0E">Pedir o diagnóstico do meu setor</a>
+</section>
+
+<footer style="color:#9CA3AF;padding:64px 6vw 40px;border-top:1px solid rgba(156,163,175,.25)">
+  <div data-foot style="max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;font-size:15px;line-height:1.6">
+    <div><div style="display:flex;align-items:center;gap:10px;color:#F6F7F5;margin-bottom:12px"><img src="brand/logo-dark.png" alt="Reset IA — IA sem hype. Resultado na prática." style="height:44px;width:auto;display:block"></div><p style="margin:0">Um novo ciclo de possibilidades.</p></div>
+    <div><p style="margin:0 0 12px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase">Navegação</p><div style="display:flex;flex-direction:column;gap:8px;color:#F6F7F5"><a href="solucoes.dc.html">Soluções</a><a href="spotlite.dc.html">Spotlite</a><a href="sobre.dc.html">Sobre</a></div></div>
+    <div><p style="margin:0 0 12px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase">Contato</p><div style="display:flex;flex-direction:column;gap:8px;color:#F6F7F5"><a href="{{ waGeral }}" target="_blank" rel="noopener">+55 11 91617-0606</a><a href="mailto:contato@resetia.com.br">contato@resetia.com.br</a></div></div>
+    <div><p style="margin:0 0 12px;font-size:12px;font-weight:500;letter-spacing:.18em;text-transform:uppercase">Redes</p><div style="display:flex;flex-direction:column;gap:8px;color:#F6F7F5"><a href="https://www.linkedin.com/company/resetia" target="_blank" rel="noopener">LinkedIn Reset IA</a><a href="https://www.linkedin.com/in/diegonogueira1" target="_blank" rel="noopener">LinkedIn Diego</a><a href="https://www.instagram.com/odiegonog" target="_blank" rel="noopener">Instagram</a></div></div>
+  </div>
+  <div style="max-width:1200px;margin:48px auto 0;padding-top:24px;border-top:1px solid rgba(156,163,175,.25);font-size:13px;display:flex;flex-wrap:wrap;gap:8px 24px"><span>© 2026 Reset IA</span><span>CNPJ [FALTA]</span><span>Fortaleza e Campinas, Brasil</span><span>Política de privacidade [FALTA]</span></div>
+</footer>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  state = { nota: 0, ativ: 0, horas: 0, counted: false };
+  renderVals() {
+    const { nota, ativ, horas, counted } = this.state;
+    return {
+      waUrl: 'https://wa.me/5511916170606?text=' + encodeURIComponent('Olá! Vim pelo site da Reset IA e quero fazer o diagnóstico Spotlite do meu setor.'),
+      waGeral: 'https://wa.me/5511916170606?text=' + encodeURIComponent('Olá! Vim pelo site da Reset IA e quero conversar sobre treinamento de IA para a minha equipe.'),
+      notaFmt: nota.toFixed(1).replace('.', ','), ativ, horas, b1: counted ? 92 : 0, b2: counted ? 64 : 0, b3: counted ? 48 : 0,
+    };
+  }
+  componentDidMount() {
+    const el = document.querySelector('[data-count]'); if (!el) return;
+    const rm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const go = () => { this.setState({ counted: true }); if (rm) return this.setState({ nota: 7.1, ativ: 11, horas: 46 });
+      const start = performance.now(), dur = 1400, ease = t => 1 - Math.pow(1 - t, 3);
+      const run = now => { const t = ease(Math.min(1, (now - start) / dur)); this.setState({ nota: 7.1 * t, ativ: Math.round(11 * t), horas: Math.round(46 * t) }); if (t < 1) requestAnimationFrame(run); };
+      requestAnimationFrame(run); };
+    const io = new IntersectionObserver(es => { if (es[0].isIntersecting) { io.disconnect(); go(); } }, { threshold: 0.4 }); io.observe(el);
+  }
+}
+</script>
+</body>
+</html>
