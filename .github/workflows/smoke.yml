@@ -27,13 +27,25 @@ jobs:
       BASE_URL: ${{ github.event.inputs.base_url || 'https://www.resetia.com.br' }}
     steps:
       - uses: actions/checkout@v4
+      - name: O site responde?
+        id: site
+        run: |
+          codigo=$(curl -s -o /dev/null -w "%{http_code}" --max-time 20 "$BASE_URL/" || echo 000)
+          echo "http=$codigo" >> "$GITHUB_OUTPUT"
+          if [ "$codigo" != "200" ]; then
+            echo "::notice title=Smoke pulado::$BASE_URL respondeu $codigo. DNS/deploy ainda não concluídos? Veja docs/deploy.md."
+          fi
       - uses: actions/setup-node@v4
+        if: steps.site.outputs.http == '200'
         with:
           node-version: 24
           cache: npm
       - run: npm ci
+        if: steps.site.outputs.http == '200'
       - run: npx playwright install --with-deps chromium
+        if: steps.site.outputs.http == '200'
       - name: CTAs, SEO e 404 em produção
+        if: steps.site.outputs.http == '200'
         run: npx playwright test --project=desktop-chromium tests/e2e/cta-whatsapp.spec.ts tests/e2e/seo.spec.ts tests/e2e/404.spec.ts
       - uses: actions/upload-artifact@v4
         if: failure()

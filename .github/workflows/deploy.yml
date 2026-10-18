@@ -25,7 +25,19 @@ jobs:
       url: https://www.resetia.com.br
     steps:
       - uses: actions/checkout@v4
+      - name: Verificar token da DigitalOcean
+        id: token
+        env:
+          TOKEN: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::notice title=Deploy pulado::Secret DIGITALOCEAN_ACCESS_TOKEN ausente. Veja docs/deploy.md."
+            echo "pronto=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "pronto=true" >> "$GITHUB_OUTPUT"
+          fi
       - name: Deploy (app spec em .do/app.yaml)
+        if: steps.token.outputs.pronto == 'true'
         uses: digitalocean/app_action/deploy@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
