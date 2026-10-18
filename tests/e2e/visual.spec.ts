@@ -18,13 +18,31 @@ for (const rota of [...rotas, { nome: "404", caminho: "/rota-que-nao-existe/" }]
     test.skip(process.platform !== "linux", "baselines são Linux (mesma imagem do CI)");
     await page.goto(rota.caminho);
     await page.evaluate(() => document.fonts.ready);
+    // Rola a página inteira para disparar as imagens lazy (fullPage não rola), volta ao topo e espera as imagens.
     await page.evaluate(async () => {
-      await Promise.all(
-        Array.from(document.images)
-          .filter((img) => !img.complete)
-          .map((img) => new Promise((ok) => img.addEventListener("load", ok, { once: true }))),
-      );
+      for (let y = 0; y < document.documentElement.scrollHeight; y += 600) {
+        window.scrollTo(0, y);
+        await new Promise((ok) => setTimeout(ok, 40));
+      }
+      window.scrollTo(0, 0);
     });
+    await page.evaluate(() =>
+      Promise.race([
+        Promise.all(
+          Array.from(document.images)
+            .filter((img) => !img.complete)
+            .map(
+              (img) =>
+                new Promise((ok) => {
+                  img.addEventListener("load", ok, { once: true });
+                  img.addEventListener("error", ok, { once: true });
+                }),
+            ),
+        ),
+        new Promise((ok) => setTimeout(ok, 5000)),
+      ]),
+    );
+    await page.waitForTimeout(200);
     await expect(page).toHaveScreenshot(`${rota.nome}.png`, { fullPage: true });
   });
 }
