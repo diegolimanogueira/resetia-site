@@ -1,5 +1,5 @@
 import { site } from "./site";
-import type { CardSpotlite, CtaFinal, Passo, Ponto } from "./types";
+import type { CardSpotlite, CtaFinal, Passo } from "./types";
 
 /**
  * Mockup do relatório. Espelha a estrutura real do relatório da Spotlite (spotlite.com.br):
@@ -132,18 +132,6 @@ export const spotlite = {
       "Área que já treinou e quer provar o que mudou, em horas e reais.",
     ],
     nota: "Em breve: diagnóstico individual gratuito, direto em spotlite.com.br.",
-  },
-  fluxa: {
-    titulo: "Também da Reset IA: Fluxa BPM",
-    texto:
-      "Gestão de processos com IA, em português. Você conta como o trabalho é feito; a IA desenha o processo, escreve o passo a passo, mostra onde ele trava e propõe a melhoria, com custo e economia estimados em reais. Sai em PDF e Word. Comece grátis, sem cartão.",
-    pontos: [
-      { destaque: "Hoje.", texto: "O fluxo por área, com decisões e caminhos alternativos." },
-      { destaque: "Passo a passo.", texto: "Resumo do processo, procedimento das etapas e quem faz o quê." },
-      { destaque: "Pontos de atenção.", texto: "Onde trava, se repete ou corre risco, e o que fazer." },
-      { destaque: "Proposta.", texto: "O processo redesenhado, com impacto e esforço de cada mudança." },
-    ] satisfies Ponto[],
-    link: { label: site.ctaFluxaSite, href: site.ferramentas.fluxa },
   },
   cta: {
     titulo: "Comece pelo diagnóstico.",

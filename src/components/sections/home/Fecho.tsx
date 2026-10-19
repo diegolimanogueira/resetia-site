@@ -25,6 +25,7 @@ export function Fecho() {
       <Botao href={waGeral()} origem="fecho">
         {s.cta}
       </Botao>
+      <p className="text-cinza mt-4 text-[14px]">{s.semFormulario}</p>
     </Section>
   );
 }

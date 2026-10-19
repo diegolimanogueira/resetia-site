@@ -8,10 +8,10 @@ test.describe("navegação", () => {
     await page.goto("/solucoes/");
     const nav = page.getByRole("navigation", { name: "Principal" });
     await expect(nav.getByRole("link", { name: "Soluções" })).toHaveAttribute("aria-current", "page");
-    await expect(nav.getByRole("link", { name: "Spotlite" })).not.toHaveAttribute("aria-current", /.*/);
-    await nav.getByRole("link", { name: "Spotlite" }).click();
-    await expect(page).toHaveURL(/\/spotlite\/$/);
-    await expect(nav.getByRole("link", { name: "Spotlite" })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link", { name: "Produtos" })).not.toHaveAttribute("aria-current", /.*/);
+    await nav.getByRole("link", { name: "Produtos" }).click();
+    await expect(page).toHaveURL(/\/produtos\/$/);
+    await expect(nav.getByRole("link", { name: "Produtos" })).toHaveAttribute("aria-current", "page");
     await page.getByRole("link", { name: site.nome, exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
   });

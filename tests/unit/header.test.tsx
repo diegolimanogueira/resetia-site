@@ -30,12 +30,12 @@ describe("Header", () => {
     expect(header.getAttribute("data-tom")).toBe("neutro");
     expect(header.className).toContain("sticky");
     expect(screen.getByRole("link", { name: "Soluções" }).getAttribute("aria-current")).toBe("page");
-    expect(screen.getByRole("link", { name: "Spotlite" }).getAttribute("aria-current")).toBeNull();
+    expect(screen.getByRole("link", { name: "Produtos" }).getAttribute("aria-current")).toBeNull();
   });
 
   it("aceita a rota com barra final", () => {
-    const { container } = renderHeader("/spotlite/");
+    const { container } = renderHeader("/produtos/");
     expect(container.querySelector("header")!.getAttribute("data-tom")).toBe("carvao");
-    expect(screen.getByRole("link", { name: "Spotlite" }).getAttribute("aria-current")).toBe("page");
+    expect(screen.getByRole("link", { name: "Produtos" }).getAttribute("aria-current")).toBe("page");
   });
 });

@@ -46,6 +46,10 @@ A home carrega ~250 KB (transfer) de JS: React 19 + runtime do Next 16 (~150 KB)
 
 A pedido do Diego, o site passou a descrever a Spotlite pelo que o produto é em spotlite.com.br: diagnóstico com IA, equipe inteira responde, nota de 0 a 10 por regra fixa em cinco dimensões, mapa de horas por semana, oportunidades em reais sempre como estimativa, Shadow AI só agregado, revisão da Reset IA, referências públicas (Gartner, MIT CISR, BCG, NIST AI RMF 1.0, ISO/IEC 42001:2023). O mockup do relatório espelha a estrutura do relatório real, com dados fictícios. A Fluxa BPM (fluxabpm.com.br) entra como segunda ferramenta: gestão de processos com IA. Todo link para as ferramentas aponta para os sites dos produtos. Saíram: tempos e quantidade de módulos dos treinamentos, CNPJ e LinkedIn (perfil da Reset IA ainda não existe). Mensagem transversal: foco em empresas e colaboradores, retorno e geração de valor.
 
+## 2026-10-19 · Aba Produtos, Fluxa com o mesmo peso e processo com as duas ferramentas
+
+A aba "Spotlite" virou "Produtos" (`/produtos`): Spotlite e Fluxa BPM lado a lado, cada uma com mockup, CTAs externos e WhatsApp com mensagem própria. A rota `/spotlite` ficou como redirecionamento no cliente (noindex, canonical em `/produtos`). O processo da consultoria na home passou a quatro passos, com a Spotlite no diagnóstico e na medição e a Fluxa no redesenho dos processos. Elementos de conversão adicionados sem sair da identidade: barra fixa de WhatsApp no celular (aparece depois do hero, `inert` enquanto escondida), microcopy "WhatsApp direto, sem formulário" sob os CTAs, prova social com a trilha de Champions da Unimed (fato que já estava na página Sobre). Política de privacidade geral, no padrão LGPD, publicada em `/privacidade`; o último `[FALTA]` visível é a foto do Diego.
+
 ## 2026-10-19 · Cores das ferramentas só como marca
 
 As ferramentas têm identidade própria (Spotlite: ponto laranja `#FF7A45` sobre fundo quente; Fluxa: verde `#0B7A4F`). No site da Reset IA elas aparecem só como um ponto na cor da marca ao lado do nome (`MarcaFerramenta`). Nenhum fundo, botão ou traço do site usa essas cores: o verde Reset continua sendo o único acento.

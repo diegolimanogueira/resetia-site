@@ -1,6 +1,6 @@
 import { site } from "./site";
 import { cardExemplo } from "./spotlite";
-import type { Bloco, Link, Passo, Ponto, ProgramaResumo } from "./types";
+import type { Bloco, Ferramenta, Link, Passo, Ponto, ProgramaResumo } from "./types";
 
 export const depois = {
   titulo: "Treinar é o começo.",
@@ -20,12 +20,15 @@ export const depois = {
   nota: "Essas frentes entram depois que a equipe está treinada. Nunca antes.",
 };
 
+export type PassoProcesso = Passo & { ferramenta?: Ferramenta };
+
 export const home = {
   hero: {
     titulo: ["IA sem hype.", "Resultado na prática."],
     lead: "Treinamos equipes para usar inteligência artificial no trabalho de verdade. Diagnóstico antes, prática durante, medição depois.",
     ctaPrimario: "Falar com um especialista",
     ctaSecundario: { label: "Ver como funciona", href: "#como-funciona" } satisfies Link,
+    semFormulario: site.semFormulario,
     manifesto: ["Estratégia", "Tecnologia", "Pessoas", "Resultados"],
     imagemAlt: "Corredor escuro com uma porta aberta de onde sai luz verde",
   },
@@ -33,6 +36,8 @@ export const home = {
     antes: "Equipes treinadas em empresas como",
     empresas: ["IEL", "Fortes Tecnologia", "FortesPay", "Longevidade Saudável"],
     depois: "entre outras.",
+    extra:
+      "Na Unimed Nacional, a trilha de Champions de IA conduzida pelo nosso fundador já formou mais de 250 líderes do sistema Unimed.",
   },
   problema: {
     titulo: ["Sua empresa já usa IA.", "Só não sabe como."],
@@ -55,14 +60,15 @@ export const home = {
     fecho: "Treinamento de IA não é mostrar ferramenta. É mudar o jeito que a equipe trabalha.",
   },
   comoFunciona: {
-    titulo: ["Diagnóstico. Treino. Medição.", "Nessa ordem."],
+    titulo: ["Diagnóstico. Treino. Processos. Medição.", "Nessa ordem."],
     imagemAlt: "Bússola com a agulha verde apontando a direção",
     passos: [
       {
         numero: "01",
         titulo: "Diagnóstico com a Spotlite",
+        ferramenta: "spotlite",
         texto:
-          "Antes da primeira aula, a equipe inteira responde à Spotlite, nossa ferramenta de diagnóstico com IA. Ela mapeia onde as horas da semana estão indo, o que cabe em IA ou automação e quanto isso vale, em reais estimados. O treinamento é montado em cima desse resultado, não de uma ementa genérica.",
+          "Antes da primeira aula, a equipe inteira responde à Spotlite. A IA mapeia onde as horas da semana estão indo, o que cabe em IA ou automação e quanto isso vale, em reais estimados. O treinamento é montado em cima desse resultado, não de uma ementa genérica.",
       },
       {
         numero: "02",
@@ -72,12 +78,20 @@ export const home = {
       },
       {
         numero: "03",
-        titulo: "Medição antes × depois",
+        titulo: "Processos desenhados na Fluxa BPM",
+        ferramenta: "fluxa",
+        texto:
+          "Onde a IA entra, o processo muda. A equipe conta como o trabalho é feito e a Fluxa desenha o fluxo de hoje, mostra onde trava e propõe o redesenho, com custo e economia estimados em reais. Sai em PDF e Word, pronto para virar o padrão da área.",
+      },
+      {
+        numero: "04",
+        titulo: "Medição antes × depois, com a Spotlite",
+        ferramenta: "spotlite",
         texto:
           "Ao final, a Spotlite roda de novo. O gestor recebe o comparativo: nota de maturidade por dimensão, atividades que passaram a ser automatizadas e horas economizadas por mês. Resultado é número, não impressão.",
       },
-    ] satisfies Passo[],
-    link: { label: site.ctaSpotliteSite, href: site.ferramentas.spotlite } satisfies Link,
+    ] satisfies PassoProcesso[],
+    link: { label: "Ver os produtos", href: "/produtos" } satisfies Link,
   },
   treinamentos: {
     titulo: "Um programa para cada ponto da empresa.",
@@ -116,21 +130,29 @@ export const home = {
     ] satisfies ProgramaResumo[],
     link: { label: "Ver os programas em detalhe", href: "/solucoes" } satisfies Link,
   },
-  spotlite: {
-    titulo: ["Spotlite.", "O diagnóstico que direciona tudo."],
-    texto:
-      "Ferramenta própria da Reset IA. A equipe inteira responde pelo link da rodada; a IA mapeia onde as horas da semana estão indo, o que cabe em IA ou automação e quanto isso vale, em reais estimados. A nota de 0 a 10 sai por regra fixa, em cinco dimensões, e a Reset IA revisa cada relatório antes de ele chegar à gestão.",
-    valor:
-      "Feita para empresas e para quem trabalha nelas. Mede retorno e geração de valor antes de qualquer promessa.",
-    ctaSite: { label: site.ctaSpotliteSite, href: site.ferramentas.spotlite } satisfies Link,
-    ctaWhatsapp: site.ctaSpotlite,
-    card: cardExemplo,
-    fluxa: {
-      nome: "Fluxa BPM",
+  produtos: {
+    titulo: ["Duas ferramentas próprias.", "Um só objetivo: resultado medido."],
+    spotlite: {
+      eyebrow: "Diagnóstico com IA",
+      titulo: "Spotlite. O diagnóstico que direciona tudo.",
       texto:
-        "Nossa outra ferramenta: gestão de processos com IA, em português. Você conta como o trabalho é feito; a IA desenha o processo, escreve o passo a passo, mostra onde ele trava e propõe a melhoria, com custo e economia estimados em reais. Sai em PDF e Word. Comece grátis, sem cartão.",
-      link: { label: site.ctaFluxaSite, href: site.ferramentas.fluxa } satisfies Link,
+        "A equipe inteira responde pelo link da rodada; a IA mapeia onde as horas da semana estão indo, o que cabe em IA ou automação e quanto isso vale, em reais estimados. Nota de 0 a 10 por regra fixa, em cinco dimensões. A Reset IA revisa cada relatório antes de ele chegar à gestão.",
+      valor:
+        "Feita para empresas e para quem trabalha nelas. Mede retorno e geração de valor antes de qualquer promessa.",
+      ctaSite: { label: site.ctaSpotliteSite, href: site.ferramentas.spotlite } satisfies Link,
+      ctaWhatsapp: site.ctaSpotlite,
+      card: cardExemplo,
     },
+    fluxa: {
+      eyebrow: "Gestão de processos com IA",
+      titulo: "Fluxa BPM. O processo desenhado antes de automatizar.",
+      texto:
+        "Você conta como o trabalho é feito; a IA desenha o processo, escreve o passo a passo, mostra onde ele trava e propõe a melhoria, com custo e economia estimados em reais. Em português, em PDF e Word. Comece grátis, sem cartão.",
+      valor: "Processo claro é onde a IA para de ser demonstração e vira rotina.",
+      ctaGratis: { label: site.ctaFluxaGratis, href: site.ferramentas.fluxaGratis } satisfies Link,
+      ctaSite: { label: site.ctaFluxaSite, href: site.ferramentas.fluxa } satisfies Link,
+    },
+    link: { label: "Ver os produtos em detalhe", href: "/produtos" } satisfies Link,
   },
   depois,
   fecho: {
@@ -139,5 +161,6 @@ export const home = {
     linha2Destaque: "amanhã maior.",
     apoio: "Um novo ciclo começa com uma conversa de 30 minutos.",
     cta: "Falar com um especialista",
+    semFormulario: site.semFormulario,
   },
 };

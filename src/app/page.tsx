@@ -4,7 +4,7 @@ import { Depois } from "@/components/sections/home/Depois";
 import { Fecho } from "@/components/sections/home/Fecho";
 import { Hero } from "@/components/sections/home/Hero";
 import { Problema } from "@/components/sections/home/Problema";
-import { SpotliteDestaque } from "@/components/sections/home/SpotliteDestaque";
+import { Produtos } from "@/components/sections/home/Produtos";
 import { Treinamentos } from "@/components/sections/home/Treinamentos";
 import { WipeStack } from "@/components/motion/WipeStack";
 import { seo } from "@/content/site";
@@ -23,7 +23,7 @@ export default function Home() {
         <Problema />
         <ComoFunciona />
         <Treinamentos />
-        <SpotliteDestaque />
+        <Produtos />
         <Depois />
         <Fecho />
       </WipeStack>

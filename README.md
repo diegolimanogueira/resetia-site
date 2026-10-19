@@ -8,7 +8,7 @@
 
 **Staging (GitHub Pages, noindex):** https://diegolimanogueira.github.io/resetia-site/ · **Produção:** https://www.resetia.com.br
 
-Site de [www.resetia.com.br](https://www.resetia.com.br): consultoria de inteligência artificial para negócios, com foco em treinamento de equipes. Quatro páginas (`/`, `/solucoes`, `/spotlite`, `/sobre`), um objetivo: gerar conversa no WhatsApp.
+Site de [www.resetia.com.br](https://www.resetia.com.br): consultoria de inteligência artificial para negócios, com foco em treinamento de equipes. Páginas `/`, `/solucoes`, `/produtos` (Spotlite e Fluxa BPM), `/sobre` e `/privacidade`, um objetivo: gerar conversa no WhatsApp.
 
 ## Stack
 
@@ -47,13 +47,16 @@ O único evento de analytics que importa é `cta_whatsapp`, disparado em todo cl
 
 Todo texto do site está em `src/content/`:
 
-| Arquivo       | O quê                                                                                 |
-| ------------- | ------------------------------------------------------------------------------------- |
-| `site.ts`     | nome, tagline, WhatsApp e mensagens, e-mail, redes, navegação, rodapé, títulos de SEO |
-| `home.ts`     | os oito atos da home                                                                  |
-| `solucoes.ts` | os cinco programas, FAQ e CTA                                                         |
-| `spotlite.ts` | passos, entregas, mockup de exemplo, para quem                                        |
-| `sobre.ts`    | bio do Diego, princípios, métodos                                                     |
+| Arquivo          | O quê                                                                                 |
+| ---------------- | ------------------------------------------------------------------------------------- |
+| `site.ts`        | nome, tagline, WhatsApp e mensagens, e-mail, redes, navegação, rodapé, títulos de SEO |
+| `home.ts`        | os oito atos da home                                                                  |
+| `solucoes.ts`    | os cinco programas, FAQ e CTA                                                         |
+| `spotlite.ts`    | Spotlite: passos, entregas, método, mockup de exemplo, para quem                      |
+| `fluxa.ts`       | Fluxa BPM: entregas, o que vem junto, serviço, exemplo                                |
+| `produtos.ts`    | hero e CTA da página Produtos                                                         |
+| `privacidade.ts` | política de privacidade                                                               |
+| `sobre.ts`       | bio do Diego, princípios, métodos                                                     |
 
 Pendências usam a constante `FALTA` (`"[FALTA]"`): `npm run check:falta` lista onde elas aparecem no HTML gerado. Não invente copy: o que falta é fornecido pelo Diego (ver `docs/decisions.md`).
 

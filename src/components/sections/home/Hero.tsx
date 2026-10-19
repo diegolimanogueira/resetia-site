@@ -38,6 +38,7 @@ export function Hero() {
               {h.ctaSecundario.label}
             </Botao>
           </div>
+          <p className="text-cinza mt-4 text-[14px]">{h.semFormulario}</p>
         </div>
         <div className="relative h-full min-h-[420px] overflow-hidden">
           <picture>
@@ -76,6 +77,7 @@ export function Hero() {
           ))}
           {p.depois}
         </p>
+        <p className="text-cinza mt-3 max-w-[760px] text-[17px] leading-[1.6]">{p.extra}</p>
       </div>
     </Section>
   );

@@ -1,3 +1,4 @@
+import { MarcaFerramenta } from "@/components/brand/MarcaFerramenta";
 import { Imagem } from "@/components/ui/imagem";
 import { LinkSeta } from "@/components/ui/link-seta";
 import { Section } from "@/components/ui/section";
@@ -45,7 +46,10 @@ export function ComoFunciona() {
                   {p.numero}
                 </span>
                 <div>
-                  <h3 className="mb-2.5 text-[24px] leading-[1.1] font-semibold tracking-[-0.02em]">{p.titulo}</h3>
+                  <h3 className="mb-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[24px] leading-[1.1] font-semibold tracking-[-0.02em]">
+                    {p.titulo}
+                    {p.ferramenta ? <MarcaFerramenta qual={p.ferramenta} className="text-[15px]" /> : null}
+                  </h3>
                   <p className="text-fg-2 max-w-[58ch] text-[17px] leading-[1.6]">{p.texto}</p>
                 </div>
               </li>

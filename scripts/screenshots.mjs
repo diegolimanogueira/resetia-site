@@ -7,8 +7,9 @@ const base = process.argv[2] ?? "http://localhost:4173";
 const rotas = [
   ["home", "/"],
   ["solucoes", "/solucoes/"],
-  ["spotlite", "/spotlite/"],
+  ["produtos", "/produtos/"],
   ["sobre", "/sobre/"],
+  ["privacidade", "/privacidade/"],
   ["404", "/rota-que-nao-existe/"],
 ];
 const viewports = [

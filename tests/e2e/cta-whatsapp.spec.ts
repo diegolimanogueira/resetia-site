@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { site } from "@/content/site";
-import { waGeral, waSpotlite } from "@/lib/whatsapp";
+import { waFluxa, waGeral, waSpotlite } from "@/lib/whatsapp";
 import { rotas } from "./rotas";
 
 /** O site existe para gerar conversa no WhatsApp: todo CTA precisa apontar para o número e a mensagem certos. */
@@ -15,7 +15,7 @@ test.describe("CTAs de WhatsApp", () => {
         const a = links.nth(i);
         const href = (await a.getAttribute("href"))!;
         const origem = (await a.getAttribute("data-cta")) ?? "";
-        const esperado = /spotlite/.test(origem) ? waSpotlite() : waGeral();
+        const esperado = /fluxa/.test(origem) ? waFluxa() : /spotlite/.test(origem) ? waSpotlite() : waGeral();
         expect.soft(href, `CTA ${origem || "sem origem"} em ${rota.caminho}`).toBe(esperado);
         await expect.soft(a).toHaveAttribute("target", "_blank");
         expect.soft(await a.getAttribute("rel")).toContain("noopener");
@@ -23,13 +23,22 @@ test.describe("CTAs de WhatsApp", () => {
     });
   }
 
-  test("a página Spotlite usa a mensagem do diagnóstico nos CTAs principais", async ({ page }) => {
-    await page.goto("/spotlite/");
-    const principais = page.locator("a[data-cta='spotlite'], a[data-cta='spotlite-final']");
-    await expect(principais).toHaveCount(2);
-    for (const a of await principais.all()) await expect(a).toHaveAttribute("href", waSpotlite());
+  test("a página Produtos: Spotlite e Fluxa com as mensagens e os links certos", async ({ page }) => {
+    await page.goto("/produtos/");
     await expect(page.locator("a[data-cta='spotlite-site']")).toHaveAttribute("href", site.ferramentas.spotlite);
+    await expect(page.locator("a[data-cta='fluxa-gratis']")).toHaveAttribute("href", site.ferramentas.fluxaGratis);
+    await expect(page.locator("a[data-cta='produtos-spotlite']")).toHaveAttribute("href", waSpotlite());
+    await expect(page.locator("a[data-cta='produtos-fluxa']")).toHaveAttribute("href", waFluxa());
+    await expect(page.locator("a[data-cta='produtos-spotlite-final']")).toHaveAttribute("href", waSpotlite());
     await expect(page.locator("a[data-cta='footer']")).toHaveAttribute("href", waGeral());
+  });
+
+  test("na home, Spotlite e Fluxa têm o mesmo peso: cada uma com CTA externo e WhatsApp próprio", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator("a[data-cta='home-spotlite-site']")).toHaveAttribute("href", site.ferramentas.spotlite);
+    await expect(page.locator("a[data-cta='home-fluxa-gratis']")).toHaveAttribute("href", site.ferramentas.fluxaGratis);
+    await expect(page.locator("a[data-cta='home-spotlite']")).toHaveAttribute("href", waSpotlite());
+    await expect(page.locator("a[data-cta='home-fluxa']")).toHaveAttribute("href", waFluxa());
   });
 
   test("a mensagem decodificada é a do conteúdo", async ({ page }) => {

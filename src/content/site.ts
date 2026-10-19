@@ -13,6 +13,7 @@ export const site = {
   mensagens: {
     geral: "Olá! Vim pelo site da Reset IA e quero conversar sobre treinamento de IA para a minha equipe.",
     spotlite: "Olá! Vim pelo site da Reset IA e quero fazer o diagnóstico Spotlite do meu setor.",
+    fluxa: "Olá! Vim pelo site da Reset IA e quero que vocês mapeiem um processo da minha empresa com a Fluxa BPM.",
   },
   email: "contato@resetia.com.br",
   redes: {
@@ -21,21 +22,28 @@ export const site = {
   /** Produtos da Reset IA. Sempre que o site fala deles, aponta para cá. */
   ferramentas: {
     spotlite: "https://www.spotlite.com.br/",
+    spotlitePrivacidade: "https://www.spotlite.com.br/privacidade",
     fluxa: "https://www.fluxabpm.com.br/",
+    fluxaGratis: "https://www.fluxabpm.com.br/signup",
+    fluxaPrivacidade: "https://www.fluxabpm.com.br/privacidade",
   },
   cidades: "Fortaleza e Campinas, Brasil",
-  politicaPrivacidade: FALTA,
   ano: 2026,
   ctaHeader: "Fale conosco",
   ctaGeral: "Falar com um especialista",
   ctaSpotlite: "Pedir o diagnóstico do meu setor",
   ctaSpotliteSite: "Conhecer a Spotlite",
   ctaFluxaSite: "Conhecer a Fluxa BPM",
+  ctaFluxaGratis: "Mapear um processo grátis",
+  ctaFluxaServico: "Pedir para a Reset IA mapear um processo",
+  /** Microcopy sob os botões: tira a fricção de "vai cair num formulário". */
+  semFormulario: "WhatsApp direto, sem formulário.",
+  barraMobile: "Falar no WhatsApp",
 } as const;
 
 export const nav: Link[] = [
   { label: "Soluções", href: "/solucoes" },
-  { label: "Spotlite", href: "/spotlite" },
+  { label: "Produtos", href: "/produtos" },
   { label: "Sobre", href: "/sobre" },
 ];
 
@@ -43,8 +51,10 @@ export const nav: Link[] = [
 export const tomPorRota: Record<string, Tom> = {
   "/": "carvao",
   "/solucoes": "neutro",
+  "/produtos": "carvao",
   "/spotlite": "carvao",
   "/sobre": "neutro",
+  "/privacidade": "neutro",
 };
 
 export const footer = {
@@ -59,7 +69,8 @@ export const footer = {
     { label: "Spotlite", href: site.ferramentas.spotlite },
     { label: "Fluxa BPM", href: site.ferramentas.fluxa },
   ] satisfies Link[],
-  legal: [`© ${site.ano} Reset IA`, site.cidades, `Política de privacidade ${site.politicaPrivacidade}`],
+  legal: [`© ${site.ano} Reset IA`, site.cidades],
+  privacidade: { label: "Política de privacidade", href: "/privacidade" } satisfies Link,
 };
 
 export const seo = {
@@ -73,15 +84,23 @@ export const seo = {
     description:
       "Letramento em IA, Champions de IA, workshops por ferramenta, Claude Code e uso seguro de IA. Todos online, com exercícios sobre o trabalho real de cada pessoa.",
   },
-  spotlite: {
-    title: "Spotlite — diagnóstico de IA, automação e processos | Reset IA",
+  produtos: {
+    title: "Produtos — Spotlite e Fluxa BPM | Reset IA",
     description:
-      "Spotlite, diagnóstico com IA da Reset IA: a equipe inteira responde, a IA mapeia onde as horas vão e quanto IA e automação valem em reais. Nota de 0 a 10 por regra.",
+      "Duas ferramentas próprias da Reset IA. Spotlite: diagnóstico com IA que mostra onde a IA vale a pena, em horas e reais. Fluxa BPM: a IA desenha e melhora os processos.",
+  },
+  spotlite: {
+    title: "Spotlite — diagnóstico de IA | Reset IA",
+    description: "A Spotlite agora está na página Produtos da Reset IA.",
   },
   sobre: {
     title: "Quem está por trás da Reset IA",
     description:
       "Diego Nogueira, arquiteto de IA e consultor de inovação. Muita prática, pouca teoria. Como a Reset IA trabalha, seus métodos e ferramentas próprias.",
+  },
+  privacidade: {
+    title: "Política de privacidade | Reset IA",
+    description: "Como a Reset IA trata os dados de quem visita o site e entra em contato por WhatsApp ou e-mail.",
   },
   naoEncontrada: {
     title: "Página não encontrada | Reset IA",

@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Analytics } from "@/components/analytics/Analytics";
+import { BarraMobile } from "@/components/layout/BarraMobile";
 import { Cursor } from "@/components/motion/Cursor";
 import { LenisProvider } from "@/components/motion/LenisProvider";
 import { MotionProvider } from "@/components/motion/MotionProvider";
@@ -44,6 +45,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <Header />
           {children}
           <Footer />
+          <BarraMobile />
           <Analytics />
         </MotionProvider>
         <JsonLd />

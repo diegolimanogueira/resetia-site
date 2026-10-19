@@ -4,6 +4,8 @@ import { FALTA, footer, nav, seo, site, tomPorRota } from "@/content/site";
 import { sobre } from "@/content/sobre";
 import { solucoes } from "@/content/solucoes";
 import { spotlite } from "@/content/spotlite";
+import { fluxa } from "@/content/fluxa";
+import { privacidade } from "@/content/privacidade";
 
 const semVazio = (obj: Record<string, unknown>) =>
   Object.values(obj).forEach((v) => {
@@ -42,9 +44,19 @@ describe("conteúdo do site", () => {
   it("Spotlite e Fluxa apontam para os sites dos produtos", () => {
     expect(site.ferramentas.spotlite).toBe("https://www.spotlite.com.br/");
     expect(site.ferramentas.fluxa).toBe("https://www.fluxabpm.com.br/");
-    expect(home.comoFunciona.link.href).toBe(site.ferramentas.spotlite);
+    expect(home.comoFunciona.link.href).toBe("/produtos");
     expect(spotlite.hero.ctaSite.href).toBe(site.ferramentas.spotlite);
-    expect(home.spotlite.fluxa.link.href).toBe(site.ferramentas.fluxa);
+    expect(home.produtos.spotlite.ctaSite.href).toBe(site.ferramentas.spotlite);
+    expect(home.produtos.fluxa.ctaGratis.href).toBe(site.ferramentas.fluxaGratis);
+    expect(fluxa.links.site.href).toBe(site.ferramentas.fluxa);
+    expect(nav.map((l) => l.label)).toEqual(["Soluções", "Produtos", "Sobre"]);
+  });
+
+  it("o processo da consultoria usa as duas ferramentas e a política de privacidade está completa", () => {
+    expect(home.comoFunciona.passos).toHaveLength(4);
+    expect(home.comoFunciona.passos.map((p) => p.ferramenta)).toEqual(["spotlite", undefined, "fluxa", "spotlite"]);
+    expect(privacidade.secoes.length).toBeGreaterThanOrEqual(6);
+    privacidade.secoes.forEach((s) => expect(s.paragrafos.join(" ")).not.toContain(FALTA));
   });
 
   it("rodapé sem CNPJ e sem LinkedIn", () => {
@@ -69,13 +81,13 @@ describe("conteúdo do site", () => {
 
   it("as pendências [FALTA] são exatamente as conhecidas", () => {
     const pendentes: string[] = [];
-    if (site.politicaPrivacidade === FALTA) pendentes.push("site.politicaPrivacidade");
     if (sobre.diego.fotoPlaceholder.includes(FALTA)) pendentes.push("sobre.diego.foto");
-    expect(pendentes).toEqual(["site.politicaPrivacidade", "sobre.diego.foto"]);
+    expect(pendentes).toEqual(["sobre.diego.foto"]);
+    expect(footer.legal.join(" ")).not.toContain(FALTA);
   });
 
   it("o mockup da Spotlite é rotulado como exemplo", () => {
     expect(spotlite.cardExemplo.tag).toMatch(/exemplo/);
-    expect(home.spotlite.card).toBe(spotlite.cardExemplo);
+    expect(home.produtos.spotlite.card).toBe(spotlite.cardExemplo);
   });
 });

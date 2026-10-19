@@ -7,3 +7,4 @@ export function waUrl(mensagem: string = site.mensagens.geral, numero: string = 
 
 export const waGeral = () => waUrl(site.mensagens.geral);
 export const waSpotlite = () => waUrl(site.mensagens.spotlite);
+export const waFluxa = () => waUrl(site.mensagens.fluxa);

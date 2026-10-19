@@ -19,12 +19,12 @@ O site tem um objetivo: gerar conversa no WhatsApp. A pirâmide abaixo protege i
 
 ## Projetos do Playwright
 
-| Projeto                 | Navegador / viewport      | Roda                                              |
-| ----------------------- | ------------------------- | ------------------------------------------------- |
-| `desktop-chromium`      | Chrome 1440×900           | tudo, inclusive `home-movimento.spec.ts`          |
-| `mobile-webkit`         | iPhone 14 (WebKit, 390)   | tudo menos movimento (sem ponteiro fino) e visual |
-| `reduced-motion`        | Chrome 1440×900, reduzido | `reduced.spec.ts` e `visual.spec.ts`              |
-| `reduced-motion-mobile` | iPhone 14, reduzido       | `visual.spec.ts`                                  |
+| Projeto                 | Navegador / viewport      | Roda                                                          |
+| ----------------------- | ------------------------- | ------------------------------------------------------------- |
+| `desktop-chromium`      | Chrome 1440×900           | tudo, inclusive `home-movimento.spec.ts` e `redirect.spec.ts` |
+| `mobile-webkit`         | iPhone 14 (WebKit, 390)   | tudo menos movimento (sem ponteiro fino) e visual             |
+| `reduced-motion`        | Chrome 1440×900, reduzido | `reduced.spec.ts` e `visual.spec.ts`                          |
+| `reduced-motion-mobile` | iPhone 14, reduzido       | `visual.spec.ts`                                              |
 
 Os testes rodam contra `out/` servido estaticamente (`npx serve out`), não contra o dev server: o que se testa é o que o DigitalOcean serve. Com `BASE_URL` definido, nenhum servidor sobe e os mesmos specs rodam contra produção.
 

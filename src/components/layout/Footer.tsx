@@ -8,7 +8,7 @@ export function Footer() {
   return (
     <footer
       data-tom="carvao"
-      className="bg-carvao text-cinza gutter border-cinza/25 relative z-[1] border-t pt-16 pb-10"
+      className="bg-carvao text-cinza gutter border-cinza/25 relative z-[1] border-t pt-16 pb-28 md:pb-10"
     >
       <div className="container-site grid grid-cols-2 gap-10 text-[15px] leading-[1.6] md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="col-span-2 md:col-span-1">
@@ -55,6 +55,9 @@ export function Footer() {
         {footer.legal.map((item) => (
           <span key={item}>{item}</span>
         ))}
+        <Link href={footer.privacidade.href} className="hover:text-neutro">
+          {footer.privacidade.label}
+        </Link>
       </div>
     </footer>
   );

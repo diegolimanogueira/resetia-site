@@ -54,12 +54,16 @@ test.describe("home: movimento", () => {
     await expect(card).toHaveAttribute("data-armado", "");
     await expect(card.locator("[data-nota]")).toHaveText("0,0");
     await page.mouse.move(700, 450);
+    // A página cresceu: rola em passos curtos até o cartão entrar (intervalo fixo, senão o poll espaça demais).
     await expect
-      .poll(async () => {
-        await page.mouse.wheel(0, 600);
-        await page.waitForTimeout(100);
-        return card.getAttribute("data-armado");
-      })
+      .poll(
+        async () => {
+          await page.mouse.wheel(0, 600);
+          await page.waitForTimeout(100);
+          return card.getAttribute("data-armado");
+        },
+        { intervals: [150], timeout: 15_000 },
+      )
       .toBeNull();
     await expect(card.locator("[data-nota]")).toHaveText("3,6", { timeout: 3_000 });
     await expect(card.locator("[data-horas]")).toContainText("4.200");
