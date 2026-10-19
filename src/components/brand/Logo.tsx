@@ -1,5 +1,6 @@
 import { site } from "@/content/site";
 import type { Tom } from "@/content/types";
+import { asset } from "@/lib/asset";
 
 // PLACEHOLDER brand: logos em PNG/WebP exportados do manual. Trocar por SVG quando o Diego enviar.
 const arquivos: Record<Tom, string> = {
@@ -13,9 +14,9 @@ export function Logo({ tom, altura = 40, className }: { tom: Tom; altura?: numbe
   const largura = Math.round(altura * 4.45);
   return (
     <picture className={className}>
-      <source srcSet={`${base}.webp`} type="image/webp" />
+      <source srcSet={asset(`${base}.webp`)} type="image/webp" />
       <img
-        src={`${base}.png`}
+        src={asset(`${base}.png`)}
         alt={site.logoAlt}
         width={largura}
         height={altura}

@@ -8,6 +8,7 @@ import { LenisProvider } from "@/components/motion/LenisProvider";
 import { MotionProvider } from "@/components/motion/MotionProvider";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { seo, site } from "@/content/site";
+import { STAGING } from "@/lib/asset";
 import "lenis/dist/lenis.css";
 import "./globals.css";
 
@@ -29,6 +30,8 @@ export const metadata: Metadata = {
     url: site.dominio,
   },
   twitter: { card: "summary_large_image" },
+  // Staging no GitHub Pages nunca entra no índice; o canonical continua apontando para a produção.
+  ...(STAGING ? { robots: { index: false, follow: false } } : {}),
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

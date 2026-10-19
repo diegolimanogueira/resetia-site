@@ -2,6 +2,10 @@
 
 O site é um export estático (`out/`). Vai para o App Platform como componente `static_site`, no tier gratuito (até 3 apps estáticos, 1 GiB de saída por app/mês; excedente US$ 0,02/GiB). CDN e TLS automáticos. O spec está em `.do/app.yaml`; o deploy é disparado pelo GitHub Actions **só depois que o CI passa** (`deploy.yml`).
 
+## Staging já no ar (GitHub Pages)
+
+`pages.yml` publica a `main` em https://diegolimanogueira.github.io/resetia-site/ depois de cada CI verde. É o mesmo build, com `NEXT_PUBLIC_BASE_PATH=/resetia-site` e `NEXT_PUBLIC_STAGING=true` (robots noindex, `robots.txt` bloqueando tudo). Serve para conferir no celular e mandar para alguém olhar; produção é o DigitalOcean.
+
 ## O que já está pronto no repositório
 
 - `.do/app.yaml`: build (`npm ci && npm run build`), `output_dir: out`, `error_document: 404.html`, domínios `www` (primário) e apex (alias) e redirect 301 apex → www.
@@ -16,7 +20,8 @@ O site é um export estático (`out/`). Vai para o App Platform como componente 
    gh secret set DIGITALOCEAN_ACCESS_TOKEN --repo diegolimanogueira/resetia-site
    ```
 2. **Autorizar o GitHub na DO.** Painel → Apps → Create App → GitHub → autorizar a conta `diegolimanogueira` e o repositório `resetia-site` (pode cancelar a criação depois de autorizar; o spec cria o app).
-3. **Primeiro deploy.** Duas opções:
+3. **Primeiro deploy.** Três opções:
+   - Botão **Deploy to DO** no README (lê `.do/deploy.template.yaml`, cria o app no painel em um clique; adicionar os domínios depois em Settings → Domains ou deixando o `deploy.yml` aplicar o spec completo);
    - GitHub → Actions → "Deploy" → Run workflow (usa o secret e o spec); ou
    - `brew install doctl && doctl auth init && doctl apps create --spec .do/app.yaml`.
      Depois do primeiro deploy, anotar o host padrão (`resetia-site-xxxxx.ondigitalocean.app`).

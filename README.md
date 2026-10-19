@@ -4,6 +4,10 @@
 [![Deploy](https://github.com/diegolimanogueira/resetia-site/actions/workflows/deploy.yml/badge.svg)](https://github.com/diegolimanogueira/resetia-site/actions/workflows/deploy.yml)
 [![Smoke em produção](https://github.com/diegolimanogueira/resetia-site/actions/workflows/smoke.yml/badge.svg)](https://github.com/diegolimanogueira/resetia-site/actions/workflows/smoke.yml)
 
+[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/diegolimanogueira/resetia-site/tree/main)
+
+**Staging (GitHub Pages, noindex):** https://diegolimanogueira.github.io/resetia-site/ · **Produção:** https://www.resetia.com.br
+
 Site de [www.resetia.com.br](https://www.resetia.com.br): consultoria de inteligência artificial para negócios, com foco em treinamento de equipes. Quatro páginas (`/`, `/solucoes`, `/spotlite`, `/sobre`), um objetivo: gerar conversa no WhatsApp.
 
 ## Stack
@@ -68,7 +72,7 @@ A pirâmide completa, o que cada camada pega e como atualizar os baselines visua
 
 ## Deploy
 
-Static Site no DigitalOcean App Platform, spec em `.do/app.yaml`. Passo a passo (token, DNS sem derrubar o e-mail, Uptime, Search Console) em [`docs/deploy.md`](docs/deploy.md).
+Static Site no DigitalOcean App Platform, spec em `.do/app.yaml`. O botão "Deploy to DO" acima cria o app com um clique (template em `.do/deploy.template.yaml`); depois disso o `deploy.yml` passa a publicar a cada CI verde. Enquanto o domínio não aponta, o staging no GitHub Pages (`pages.yml`) publica a mesma `main` em `/resetia-site/` com `noindex`. Passo a passo (token, DNS sem derrubar o e-mail, Uptime, Search Console) em [`docs/deploy.md`](docs/deploy.md).
 
 ## Estrutura
 

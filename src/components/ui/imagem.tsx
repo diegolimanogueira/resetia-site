@@ -1,4 +1,5 @@
 import type { ComponentProps } from "react";
+import { asset } from "@/lib/asset";
 
 type Props = {
   /** Caminho sem extensão em /public, ex.: "/brand/porta". */
@@ -15,9 +16,9 @@ export function Imagem({ base, alt, width, height, formatos = ["webp"], fallback
   return (
     <picture>
       {formatos.map((f) => (
-        <source key={f} srcSet={`${base}.${f}`} type={`image/${f}`} />
+        <source key={f} srcSet={asset(`${base}.${f}`)} type={`image/${f}`} />
       ))}
-      <img src={`${base}.${fallback}`} alt={alt} width={width} height={height} decoding="async" {...rest} />
+      <img src={asset(`${base}.${fallback}`)} alt={alt} width={width} height={height} decoding="async" {...rest} />
     </picture>
   );
 }

@@ -6,6 +6,7 @@ import { Botao } from "@/components/ui/botao";
 import { Glow } from "@/components/ui/glow";
 import { Section } from "@/components/ui/section";
 import { home } from "@/content/home";
+import { asset } from "@/lib/asset";
 import { waGeral } from "@/lib/whatsapp";
 
 /** Ato 1 (hero) + Ato 2 (faixa de prova), na mesma seção carvão. */
@@ -13,7 +14,7 @@ export function Hero() {
   const h = home.hero;
   const p = home.prova;
   // LCP da home: avisa o navegador antes do CSS/JS. Browsers sem AVIF ignoram pelo type.
-  preload("/brand/porta.avif", { as: "image", type: "image/avif", fetchPriority: "high" });
+  preload(asset("/brand/porta.avif"), { as: "image", type: "image/avif", fetchPriority: "high" });
   return (
     <Section
       tom="carvao"
@@ -40,12 +41,12 @@ export function Hero() {
         </div>
         <div className="relative h-full min-h-[420px] overflow-hidden">
           <picture>
-            <source media="(max-width: 860px)" srcSet="/brand/porta-768.avif" type="image/avif" />
-            <source media="(max-width: 860px)" srcSet="/brand/porta-768.webp" type="image/webp" />
-            <source srcSet="/brand/porta.avif" type="image/avif" />
-            <source srcSet="/brand/porta.webp" type="image/webp" />
+            <source media="(max-width: 860px)" srcSet={asset("/brand/porta-768.avif")} type="image/avif" />
+            <source media="(max-width: 860px)" srcSet={asset("/brand/porta-768.webp")} type="image/webp" />
+            <source srcSet={asset("/brand/porta.avif")} type="image/avif" />
+            <source srcSet={asset("/brand/porta.webp")} type="image/webp" />
             <img
-              src="/brand/porta.png"
+              src={asset("/brand/porta.png")}
               alt={h.imagemAlt}
               width={920}
               height={582}

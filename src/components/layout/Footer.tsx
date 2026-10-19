@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { footer, nav, site } from "@/content/site";
@@ -19,7 +20,7 @@ export function Footer() {
           <ul className="text-neutro flex flex-col gap-2">
             {nav.map((l) => (
               <li key={l.href}>
-                <a href={l.href}>{l.label}</a>
+                <Link href={l.href}>{l.label}</Link>
               </li>
             ))}
           </ul>
