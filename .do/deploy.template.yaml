@@ -8,7 +8,7 @@ spec:
       github:
         repo: diegolimanogueira/resetia-site
         branch: main
-        deploy_on_push: false
+        deploy_on_push: true
       environment_slug: node-js
       build_command: npm ci && npm run build
       output_dir: out
@@ -18,9 +18,6 @@ spec:
         - key: NEXT_PUBLIC_SITE_URL
           scope: BUILD_TIME
           value: https://www.resetia.com.br
-        - key: NODE_ENV
-          scope: BUILD_TIME
-          value: development
         - key: NEXT_TELEMETRY_DISABLED
           scope: BUILD_TIME
           value: "1"

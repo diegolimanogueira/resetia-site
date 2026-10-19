@@ -1,6 +1,6 @@
 # App spec do DigitalOcean App Platform — site estático da Reset IA.
-# Deploy: GitHub Actions (deploy.yml) chama digitalocean/app_action com este arquivo depois que o CI passa.
-# deploy_on_push fica desligado de propósito: o CI é o portão.
+# Deploy: a própria DO publica a cada push na main (deploy_on_push). O CI do GitHub protege a main via
+# branch protection (só entra o que passou). O deploy.yml com token é opcional.
 # Referência: https://docs.digitalocean.com/products/app-platform/reference/app-spec/
 name: resetia-site
 region: nyc
@@ -9,7 +9,7 @@ static_sites:
     github:
       repo: diegolimanogueira/resetia-site
       branch: main
-      deploy_on_push: false
+      deploy_on_push: true
     environment_slug: node-js
     build_command: npm ci && npm run build
     output_dir: out
@@ -25,9 +25,6 @@ static_sites:
       - key: NEXT_PUBLIC_ANALYTICS_ID
         scope: BUILD_TIME
         value: "" # [FALTA] ID do Umami ou do GA4
-      - key: NODE_ENV
-        scope: BUILD_TIME
-        value: development # o buildpack precisa das devDependencies para rodar o build
       - key: NEXT_TELEMETRY_DISABLED
         scope: BUILD_TIME
         value: "1"

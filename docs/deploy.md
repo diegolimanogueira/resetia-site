@@ -1,10 +1,20 @@
 # Deploy — DigitalOcean App Platform (Static Site)
 
-O site é um export estático (`out/`). Vai para o App Platform como componente `static_site`, no tier gratuito (até 3 apps estáticos, 1 GiB de saída por app/mês; excedente US$ 0,02/GiB). CDN e TLS automáticos. O spec está em `.do/app.yaml`; o deploy é disparado pelo GitHub Actions **só depois que o CI passa** (`deploy.yml`).
+O site é um export estático (`out/`). Vai para o App Platform como componente `static_site`, no tier gratuito (até 3 apps estáticos, 1 GiB de saída por app/mês; excedente US$ 0,02/GiB). CDN e TLS automáticos. O spec está em `.do/app.yaml`. A DO publica sozinha a cada push na `main` (`deploy_on_push: true`), sem token; o CI protege a `main` no GitHub. O `deploy.yml` com token é opcional e fica dormente sem o secret.
 
 ## Staging já no ar (GitHub Pages)
 
 `pages.yml` publica a `main` em https://diegolimanogueira.github.io/resetia-site/ depois de cada CI verde. É o mesmo build, com `NEXT_PUBLIC_BASE_PATH=/resetia-site` e `NEXT_PUBLIC_STAGING=true` (robots noindex, `robots.txt` bloqueando tudo). Serve para conferir no celular e mandar para alguém olhar; produção é o DigitalOcean.
+
+## Se o painel disser "Deploy failed"
+
+Checar, nesta ordem, em Apps → resetia-site → Settings → componente:
+
+1. **Tipo do componente deve ser Static Site, não Web Service.** O painel costuma detectar Next.js como Web Service: o build passa e o deploy falha no health check, porque um site estático não abre porta. Edit → Resource Type → Static Site. (Por garantia, `npm start` agora respeita `$PORT`, então até como Web Service subiria, mas isso custa plano pago sem necessidade.)
+2. **Output Directory = `out`.** A DO só detecta sozinha `_static`, `dist`, `public` e `build`; sem isso ela não acha o site.
+3. **Build Command = `npm run build`** (ou `npm ci && npm run build`). Node vem de `engines.node` (24.x).
+4. **Error Document = `404.html`.**
+5. Se ainda falhar, abrir Activity → o deploy → Build Logs / Deploy Logs e copiar as últimas ~40 linhas.
 
 ## O que já está pronto no repositório
 
