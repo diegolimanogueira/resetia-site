@@ -4,7 +4,13 @@ module.exports = {
   ci: {
     collect: {
       staticDistDir: "./out",
-      url: ["http://localhost/", "http://localhost/solucoes/", "http://localhost/spotlite/", "http://localhost/sobre/"],
+      url: [
+        "http://localhost/",
+        "http://localhost/solucoes/",
+        "http://localhost/produtos/",
+        "http://localhost/sobre/",
+        "http://localhost/privacidade/",
+      ],
       numberOfRuns: 3,
       settings: {
         skipAudits: ["uses-http2"],

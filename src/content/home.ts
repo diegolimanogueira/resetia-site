@@ -36,8 +36,7 @@ export const home = {
     antes: "Equipes treinadas em empresas como",
     empresas: ["IEL", "Fortes Tecnologia", "FortesPay", "Longevidade Saudável"],
     depois: "entre outras.",
-    extra:
-      "Na Unimed Nacional, a trilha de Champions de IA conduzida pelo nosso fundador já formou mais de 250 líderes do sistema Unimed.",
+    extra: "Fundada por um arquiteto de IA do centro de excelência de inteligência artificial da Unimed Nacional.",
   },
   problema: {
     titulo: ["Sua empresa já usa IA.", "Só não sabe como."],

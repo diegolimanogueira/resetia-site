@@ -8,19 +8,21 @@ export const sobre = {
     nome: "Diego Nogueira",
     subtitulo: "Arquiteto de IA e consultor de inovação. Muita prática, pouca teoria.",
     descricao:
-      "Arquiteto de IA no centro de excelência de inteligência artificial da Unimed Nacional, onde conduz a trilha de Champions de IA com mais de 250 líderes do sistema Unimed. Quinze anos em tecnologia, com raízes em implantação de sistemas financeiros. Treina equipes em empresas como IEL, Fortes Tecnologia, FortesPay e Longevidade Saudável, e constrói as ferramentas que usa nos treinamentos.",
+      "Sou arquiteto de IA no centro de excelência de inteligência artificial da Unimed Nacional, onde construo ferramentas para a saúde, do discovery ao sistema em operação. Tenho quinze anos em tecnologia, com raízes em implantação de sistemas financeiros. Como consultor e instrutor, treinei equipes e estruturei IA em empresas como IEL, Fortes Tecnologia, FortesPay e Longevidade Saudável. E construo as ferramentas que uso nos treinamentos: Spotlite e Fluxa BPM.",
     destaques: [
       {
-        destaque: "Forma líderes em escala.",
-        texto: "Mais de 250 líderes do sistema Unimed na trilha de Champions de IA.",
+        destaque: "Treinei equipes de verdade.",
+        texto:
+          "IEL, Fortes Tecnologia, FortesPay e Longevidade Saudável, entre outras, com exercícios sobre o trabalho real de cada área.",
       },
       {
-        destaque: "Constrói o que ensina.",
-        texto: "Spotlite e Fluxa BPM são produtos próprios, usados nos próprios treinamentos.",
+        destaque: "Construo o que ensino.",
+        texto: "Spotlite e Fluxa BPM são produtos meus, usados nos próprios treinamentos.",
       },
       {
         destaque: "Base técnica de verdade.",
-        texto: "Certificações Oracle AI, CSPO e ACSM; formação contínua em engenharia de software, FIAP e IBMEC.",
+        texto:
+          "Arquiteto de IA na Unimed Nacional; certificações Oracle AI, CSPO e ACSM; formação contínua em engenharia de software, FIAP e IBMEC.",
       },
     ] satisfies Ponto[],
     links: [{ label: "Instagram", href: site.redes.instagram }] satisfies Link[],
