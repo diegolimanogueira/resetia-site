@@ -26,11 +26,14 @@ O site é um export estático (`out/`). Vai para o App Platform como componente 
    - `brew install doctl && doctl auth init && doctl apps create --spec .do/app.yaml`.
      Depois do primeiro deploy, anotar o host padrão (`resetia-site-xxxxx.ondigitalocean.app`).
 4. **DNS.** O canonical do site é `https://www.resetia.com.br`.
+
+   **Situação encontrada em 18/10/2026:** `resetia.com.br` está estacionado na **Hostinger** (nameservers `lunar/solar.dns-parking.com`, apex A `2.57.91.91`, `www` CNAME para o apex, página "Parked Domain", **nenhum registro MX ou TXT**). Ou seja: a zona DNS se edita no hPanel da Hostinger, e hoje não há e-mail configurado no DNS para proteger; se o `contato@resetia.com.br` for criado depois (Hostinger Email, Google Workspace, Zoho), os registros MX/TXT entram na zona que estiver ativa.
    - `www`: registro **CNAME** → `resetia-site-xxxxx.ondigitalocean.app`.
    - Apex `resetia.com.br`: há dois caminhos.
-     - **Nameservers na DO** (`ns1/ns2/ns3.digitalocean.com`). A DO cria A/AAAA e o redirect apex → www funciona pela regra do spec. **Antes de trocar os NS, recriar na DO todos os registros existentes, em especial os MX e TXT (SPF/DKIM) do e-mail `contato@resetia.com.br`.** Se não, o e-mail para.
-     - **DNS fica no Registro.br**: só o CNAME de `www`; o apex usa o redirecionamento do próprio Registro.br (ou um A para o IP de redirect da DO, se a DO fornecer). Nesse caso, remover `resetia.com.br` da lista `domains` do spec, ou o DO vai esperar a validação.
+     - **Recomendado: nameservers na DO** (`ns1/ns2/ns3.digitalocean.com`, trocados no painel onde o domínio está registrado). Como a zona atual só tem o parking da Hostinger, não há nada a migrar. A DO cria A/AAAA do apex e o redirect apex → www funciona pela regra do spec. Se um dia houver e-mail, criar os MX/TXT na zona da DO.
+     - **DNS fica na Hostinger**: criar o CNAME de `www`, apagar o A do parking e usar o redirecionamento de domínio da Hostinger para mandar o apex para `https://www.resetia.com.br`. Nesse caso, remover `resetia.com.br` da lista `domains` do spec, ou o DO vai esperar a validação.
    - Propagação: até 48 h. A DO emite o certificado quando o DNS aponta.
+
 5. **Uptime Check.** Painel → Monitoring → Uptime → Create Check: HTTPS `https://www.resetia.com.br`, regiões US-East e EU, alerta por e-mail (1 check é gratuito).
 6. **Google Search Console.** Adicionar a propriedade `www.resetia.com.br`, verificar por DNS ou arquivo, enviar `https://www.resetia.com.br/sitemap.xml`.
 7. **Analytics.** Criar o site no Umami (cloud.umami.is) ou a propriedade GA4, preencher `NEXT_PUBLIC_ANALYTICS_ID` em `.do/app.yaml` (e `NEXT_PUBLIC_ANALYTICS_PROVIDER=ga4` se for GA4). O evento `cta_whatsapp` aparece com a origem do botão (`hero`, `fecho`, `spotlite`…).
