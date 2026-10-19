@@ -72,7 +72,7 @@ A pirâmide completa, o que cada camada pega e como atualizar os baselines visua
 
 ## Deploy
 
-Static Site no DigitalOcean App Platform, spec em `.do/app.yaml`. O botão "Deploy to DO" acima cria o app com um clique (template em `.do/deploy.template.yaml`); depois disso o `deploy.yml` passa a publicar a cada CI verde. Enquanto o domínio não aponta, o staging no GitHub Pages (`pages.yml`) publica a mesma `main` em `/resetia-site/` com `noindex`. Passo a passo (token, DNS sem derrubar o e-mail, Uptime, Search Console) em [`docs/deploy.md`](docs/deploy.md).
+Static Site no DigitalOcean App Platform, spec em `.do/app.yaml`. `npm run deploy:do` (depois de `doctl auth init`) cria o app, espera o deploy e grava o secret do GitHub. O botão "Deploy to DO" acima cria o app com um clique (template em `.do/deploy.template.yaml`); depois disso o `deploy.yml` passa a publicar a cada CI verde. Enquanto o domínio não aponta, o staging no GitHub Pages (`pages.yml`) publica a mesma `main` em `/resetia-site/` com `noindex`. Passo a passo (token, DNS sem derrubar o e-mail, Uptime, Search Console) em [`docs/deploy.md`](docs/deploy.md).
 
 ## Estrutura
 

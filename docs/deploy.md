@@ -20,7 +20,7 @@ O site é um export estático (`out/`). Vai para o App Platform como componente 
    gh secret set DIGITALOCEAN_ACCESS_TOKEN --repo diegolimanogueira/resetia-site
    ```
 2. **Autorizar o GitHub na DO.** Painel → Apps → Create App → GitHub → autorizar a conta `diegolimanogueira` e o repositório `resetia-site` (pode cancelar a criação depois de autorizar; o spec cria o app).
-3. **Primeiro deploy.** Três opções:
+3. **Primeiro deploy.** O caminho mais curto é `doctl auth init` (cola o token) e depois `npm run deploy:do`: o script cria o app pelo spec, espera o deploy, grava o token como secret no GitHub e imprime o host para o DNS. Alternativas:
    - Botão **Deploy to DO** no README (lê `.do/deploy.template.yaml`, cria o app no painel em um clique; adicionar os domínios depois em Settings → Domains ou deixando o `deploy.yml` aplicar o spec completo);
    - GitHub → Actions → "Deploy" → Run workflow (usa o secret e o spec); ou
    - `brew install doctl && doctl auth init && doctl apps create --spec .do/app.yaml`.

@@ -18,4 +18,4 @@ Site institucional estático da Reset IA (`www.resetia.com.br`). Next.js 16 App 
 
 ## Comandos
 
-`npm run dev` · `npm run build` (gera `out/`) · `npm run lint` · `npm run typecheck` · `npm run images` (reotimiza `public/brand`) · `npm run test` · `npm run e2e` · `npm run lhci`
+`npm run dev` · `npm run build` (gera `out/`) · `npm run lint` · `npm run typecheck` · `npm run images` (reotimiza `public/brand`) · `npm run test` · `npm run e2e` · `npm run lhci` · `npm run deploy:do` (primeiro deploy na DO após `doctl auth init`)
