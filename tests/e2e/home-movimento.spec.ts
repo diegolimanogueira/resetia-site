@@ -30,9 +30,11 @@ test.describe("home: movimento", () => {
   });
 
   test("seções presas e wipe: a seção seguinte entra recortada por clip-path", async ({ page }) => {
-    const tops = await page.locator("[data-stick]").evaluateAll((els) => els.map((e) => (e as HTMLElement).style.top));
-    expect(tops).toHaveLength(3);
-    tops.forEach((t) => expect(t).toMatch(/^-?\d+px$/));
+    // O top das seções presas é calculado num efeito após a hidratação: esperar, não ler de imediato.
+    const lerTops = () =>
+      page.locator("[data-stick]").evaluateAll((els) => els.map((e) => (e as HTMLElement).style.top));
+    await expect.poll(async () => (await lerTops()).every((t) => /^-?\d+px$/.test(t)), { timeout: 5_000 }).toBe(true);
+    expect(await lerTops()).toHaveLength(3);
     await page.mouse.move(700, 450);
     await page.mouse.wheel(0, 500);
     await expect
