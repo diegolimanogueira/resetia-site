@@ -46,4 +46,4 @@ Spotlite (`#FF7A45`, ponto) e Fluxa BPM (`#0B7A4F`) aparecem só como um ponto c
 
 ## Imagens
 
-`porta` (hero da home, 920×582), `bussola` (Ato 4 e hero do Spotlite; **baixa resolução 215×341 [FALTA] original em alta**). Foto do Diego 4:5 **[FALTA]**.
+`porta` (hero da home, 920×582), `bussola` (Ato 4; **baixa resolução 215×341 [FALTA] original em alta**), `diego` (Sobre, redonda 112px; fonte em `design/fotos/`), `spotlite-site` e `fluxa-site` (capturas reais, `npm run snapshots:produtos`).

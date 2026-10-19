@@ -6,6 +6,11 @@ import type { Passo, Ponto } from "./types";
  * Tudo aqui é o que o produto diz de si mesmo; o exemplo de reembolso é o exemplo público do próprio site.
  */
 export const fluxa = {
+  captura: {
+    base: "/brand/fluxa-site",
+    alt: "Página inicial da Fluxa BPM: 'Conte como o trabalho é feito. A IA desenha o processo e mostra onde ele trava'",
+    legenda: "fluxabpm.com.br",
+  },
   eyebrow: "Gestão de processos com IA",
   titulo: "Conte como o trabalho é feito. A IA desenha o processo e mostra onde ele trava.",
   lead: "O desenho sai em cerca de um minuto. Depois vêm o passo a passo, os pontos de atenção e a proposta de melhoria, em PDF e Word. Em português, com custo e economia estimados em reais.",

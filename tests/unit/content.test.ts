@@ -79,11 +79,12 @@ describe("conteúdo do site", () => {
     }
   });
 
-  it("as pendências [FALTA] são exatamente as conhecidas", () => {
-    const pendentes: string[] = [];
-    if (sobre.diego.fotoPlaceholder.includes(FALTA)) pendentes.push("sobre.diego.foto");
-    expect(pendentes).toEqual(["sobre.diego.foto"]);
-    expect(footer.legal.join(" ")).not.toContain(FALTA);
+  it("não há pendências [FALTA] no conteúdo", () => {
+    // Nenhuma pendência visível: CNPJ saiu, política de privacidade publicada, foto entregue.
+    const tudo = JSON.stringify({ home, solucoes, spotlite, fluxa, sobre, footer, privacidade });
+    expect(tudo).not.toContain(FALTA);
+    expect(sobre.diego.destaques).toHaveLength(3);
+    expect(sobre.diego.foto.base).toBe("/brand/diego");
   });
 
   it("o mockup da Spotlite é rotulado como exemplo", () => {

@@ -5,6 +5,7 @@ import { CtaFinal } from "@/components/sections/shared/CtaFinal";
 import { FluxaCard } from "@/components/sections/shared/FluxaCard";
 import { SpotliteCard } from "@/components/sections/shared/SpotliteCard";
 import { Botao } from "@/components/ui/botao";
+import { CapturaSite } from "@/components/ui/captura-site";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Glow } from "@/components/ui/glow";
 import { ListaNumerada } from "@/components/ui/lista-numerada";
@@ -70,6 +71,15 @@ export default function Produtos() {
               <p className="text-cinza mt-4 text-[14px]">{site.semFormulario}</p>
             </div>
             <SpotliteCard card={sp.cardExemplo} tamanho="lg" />
+          </div>
+
+          <div className="mt-16">
+            <CapturaSite
+              base={sp.captura.base}
+              alt={sp.captura.alt}
+              legenda={sp.captura.legenda}
+              href={sp.hero.ctaSite.href}
+            />
           </div>
 
           <div className="mt-24 grid gap-16 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
@@ -155,6 +165,15 @@ export default function Produtos() {
               <p className="text-fg-2 mt-4 text-[14px]">{fluxa.planos}</p>
             </div>
             <FluxaCard />
+          </div>
+
+          <div className="mt-16">
+            <CapturaSite
+              base={fluxa.captura.base}
+              alt={fluxa.captura.alt}
+              legenda={fluxa.captura.legenda}
+              href={fluxa.links.site.href}
+            />
           </div>
 
           <div className="mt-24 grid gap-16 md:grid-cols-2">

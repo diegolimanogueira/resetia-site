@@ -50,6 +50,10 @@ A pedido do Diego, o site passou a descrever a Spotlite pelo que o produto é em
 
 A aba "Spotlite" virou "Produtos" (`/produtos`): Spotlite e Fluxa BPM lado a lado, cada uma com mockup, CTAs externos e WhatsApp com mensagem própria. A rota `/spotlite` ficou como redirecionamento no cliente (noindex, canonical em `/produtos`). O processo da consultoria na home passou a quatro passos, com a Spotlite no diagnóstico e na medição e a Fluxa no redesenho dos processos. Elementos de conversão adicionados sem sair da identidade: barra fixa de WhatsApp no celular (aparece depois do hero, `inert` enquanto escondida), microcopy "WhatsApp direto, sem formulário" sob os CTAs, prova social com a trilha de Champions da Unimed (fato que já estava na página Sobre). Política de privacidade geral, no padrão LGPD, publicada em `/privacidade`; o último `[FALTA]` visível é a foto do Diego.
 
+## 2026-10-19 · Foto do Diego e capturas reais dos produtos
+
+Sobre: foto redonda de 112px (≈3 cm) ao lado de uma descrição curta e três destaques de valor (250+ líderes na trilha de Champions da Unimed, produtos próprios usados nos treinamentos, certificações). Fonte em `design/fotos/diego.png`; `npm run images` gera AVIF/WebP/JPG quadrados centrados no rosto. Produtos: capturas reais das páginas iniciais de spotlite.com.br e fluxabpm.com.br (`npm run snapshots:produtos`, Playwright + sharp), com legenda e link; refazer quando os produtos mudarem de cara. Com isso não resta nenhum `[FALTA]` no site.
+
 ## 2026-10-19 · Cores das ferramentas só como marca
 
 As ferramentas têm identidade própria (Spotlite: ponto laranja `#FF7A45` sobre fundo quente; Fluxa: verde `#0B7A4F`). No site da Reset IA elas aparecem só como um ponto na cor da marca ao lado do nome (`MarcaFerramenta`). Nenhum fundo, botão ou traço do site usa essas cores: o verde Reset continua sendo o único acento.

@@ -1,4 +1,4 @@
-import { FALTA, site } from "./site";
+import { site } from "./site";
 import { ctaPadrao } from "./solucoes";
 import type { Link, Ponto } from "./types";
 
@@ -7,13 +7,24 @@ export const sobre = {
   diego: {
     nome: "Diego Nogueira",
     subtitulo: "Arquiteto de IA e consultor de inovação. Muita prática, pouca teoria.",
-    paragrafos: [
-      "Quinze anos em tecnologia, com raízes em implantação de sistemas financeiros. Hoje atua como arquiteto de IA no centro de excelência de inteligência artificial da Unimed Nacional, onde conduz a trilha de Champions de IA com mais de 250 líderes do sistema Unimed, e constrói ferramentas para a saúde do discovery ao sistema em operação.",
-      "Como consultor e instrutor, já treinou e estruturou IA em empresas como IEL, Fortes Tecnologia, FortesPay e Longevidade Saudável. Certificações Oracle AI, CSPO e ACSM. Em formação contínua em engenharia de software, pós-graduação na FIAP e multiagentes no IBMEC.",
-    ],
+    descricao:
+      "Arquiteto de IA no centro de excelência de inteligência artificial da Unimed Nacional, onde conduz a trilha de Champions de IA com mais de 250 líderes do sistema Unimed. Quinze anos em tecnologia, com raízes em implantação de sistemas financeiros. Treina equipes em empresas como IEL, Fortes Tecnologia, FortesPay e Longevidade Saudável, e constrói as ferramentas que usa nos treinamentos.",
+    destaques: [
+      {
+        destaque: "Forma líderes em escala.",
+        texto: "Mais de 250 líderes do sistema Unimed na trilha de Champions de IA.",
+      },
+      {
+        destaque: "Constrói o que ensina.",
+        texto: "Spotlite e Fluxa BPM são produtos próprios, usados nos próprios treinamentos.",
+      },
+      {
+        destaque: "Base técnica de verdade.",
+        texto: "Certificações Oracle AI, CSPO e ACSM; formação contínua em engenharia de software, FIAP e IBMEC.",
+      },
+    ] satisfies Ponto[],
     links: [{ label: "Instagram", href: site.redes.instagram }] satisfies Link[],
-    fotoPlaceholder: `Foto do Diego ${FALTA}`,
-    fotoAlt: "Diego Nogueira",
+    foto: { base: "/brand/diego", alt: "Diego Nogueira, fundador da Reset IA" },
   },
   comoTrabalhamos: {
     titulo: "Como trabalhamos",

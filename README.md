@@ -60,7 +60,7 @@ Todo texto do site está em `src/content/`:
 
 Pendências usam a constante `FALTA` (`"[FALTA]"`): `npm run check:falta` lista onde elas aparecem no HTML gerado. Não invente copy: o que falta é fornecido pelo Diego (ver `docs/decisions.md`).
 
-Imagens de marca em `public/brand/`. `npm run images` reotimiza (WebP/AVIF), regenera favicon, ícones PWA e a imagem de compartilhamento (`src/app/opengraph-image.png`).
+Imagens de marca em `public/brand/`. `npm run images` reotimiza (WebP/AVIF), regenera favicon, ícones PWA, a foto do Sobre e a imagem de compartilhamento (`src/app/opengraph-image.png`). `npm run snapshots:produtos` refaz as capturas dos sites da Spotlite e da Fluxa usadas na página Produtos.
 
 ## Testes e qualidade
 

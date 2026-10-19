@@ -44,6 +44,19 @@ await convert("bussola.png", [{ file: "bussola.webp", fmt: "webp", opts: { quali
 await convert("logo-dark.png", [{ file: "logo-dark.webp", fmt: "webp", opts: { quality: 90 } }]);
 await convert("logo-light.png", [{ file: "logo-light.webp", fmt: "webp", opts: { quality: 90 } }]);
 
+// Foto do Diego (design/fotos/diego.png): quadrado centrado no rosto, para o bloco compacto da página Sobre.
+for (const [fmt, file, opts] of [
+  ["avif", "diego.avif", { quality: 60 }],
+  ["webp", "diego.webp", { quality: 82 }],
+  ["jpeg", "diego.jpg", { quality: 84 }],
+]) {
+  await sharp("design/fotos/diego.png")
+    .resize(480, 480, { fit: "cover", position: sharp.strategy.attention })
+    [fmt](opts)
+    .toFile(`${BRAND}/${file}`);
+  console.log(`diego.png → ${file} (${await kb(`${BRAND}/${file}`)})`);
+}
+
 // PLACEHOLDER brand: ícones gerados do PNG. Trocar pelo SVG oficial quando o Diego exportar.
 await icon(512, "src/app/icon.png");
 await icon(180, "src/app/apple-icon.png", { padding: 0.14 });

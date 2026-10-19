@@ -23,6 +23,11 @@ export const cardExemplo: CardSpotlite = {
 };
 
 export const spotlite = {
+  captura: {
+    base: "/brand/spotlite-site",
+    alt: "Página inicial da Spotlite: 'Descubra onde a IA e a automação já podem trabalhar pelo seu setor'",
+    legenda: "spotlite.com.br",
+  },
   hero: {
     titulo: "Spotlite.",
     lead: "Diagnóstico com IA, exclusivo da Reset IA. Mostra onde o tempo da equipe está indo e onde IA e automação entram no trabalho do seu setor, em horas e em reais estimados. Para empresas e para quem trabalha nelas.",

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { CtaFinal } from "@/components/sections/shared/CtaFinal";
-import { Eyebrow } from "@/components/ui/eyebrow";
+import { Imagem } from "@/components/ui/imagem";
 import { LinkSeta } from "@/components/ui/link-seta";
 import { Ponto } from "@/components/ui/ponto";
 import { Section } from "@/components/ui/section";
@@ -26,37 +26,35 @@ export default function Sobre() {
       </Section>
 
       <Section tom="neutro" className="gutter pb-[120px]">
-        <div className="container-site grid items-start gap-16 md:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">
-          {/* [FALTA] foto do Diego em 4:5 */}
-          <div
-            role="img"
-            aria-label={s.diego.fotoAlt}
-            className="bg-carvao text-cinza eyebrow flex aspect-[4/5] items-end p-6"
-          >
-            {s.diego.fotoPlaceholder}
-          </div>
-          <div>
-            <h2 className="mb-2 text-[clamp(32px,3.6vw,48px)] leading-none font-bold tracking-[-0.03em]">
-              {s.diego.nome}
-            </h2>
-            <p className="text-fg-2 mb-8 text-[20px] leading-[1.5]">{s.diego.subtitulo}</p>
-            {s.diego.paragrafos.map((p, i) => (
-              <p
-                key={i}
-                className={cn(
-                  "max-w-[62ch] text-[18px] leading-[1.6]",
-                  i === s.diego.paragrafos.length - 1 ? "mb-8" : "mb-5",
-                )}
-              >
-                {p}
-              </p>
-            ))}
-            <div className="flex gap-7">
-              {s.diego.links.map((l) => (
-                <LinkSeta key={l.href} href={l.href}>
-                  {l.label}
-                </LinkSeta>
-              ))}
+        <div className="container-site">
+          <div className="grid items-start gap-8 md:grid-cols-[112px_minmax(0,1fr)] md:gap-12">
+            <Imagem
+              base={s.diego.foto.base}
+              formatos={["avif", "webp"]}
+              fallback="jpg"
+              alt={s.diego.foto.alt}
+              width={480}
+              height={480}
+              className="h-28 w-28 rounded-full object-cover"
+            />
+            <div className="max-w-[68ch]">
+              <h2 className="mb-2 text-[clamp(32px,3.6vw,48px)] leading-none font-bold tracking-[-0.03em]">
+                {s.diego.nome}
+              </h2>
+              <p className="text-fg-2 mb-6 text-[20px] leading-[1.5]">{s.diego.subtitulo}</p>
+              <p className="mb-8 text-[18px] leading-[1.6]">{s.diego.descricao}</p>
+              <div className="mb-8 flex flex-col gap-5">
+                {s.diego.destaques.map((d) => (
+                  <Ponto key={d.destaque} destaque={d.destaque} texto={d.texto} className="max-w-none text-[17px]" />
+                ))}
+              </div>
+              <div className="flex gap-7">
+                {s.diego.links.map((l) => (
+                  <LinkSeta key={l.href} href={l.href}>
+                    {l.label}
+                  </LinkSeta>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -110,7 +108,6 @@ export default function Sobre() {
       </Section>
 
       <CtaFinal titulo={s.cta.titulo} botao={s.cta.botao} href={waGeral()} origem="sobre" />
-      <Eyebrow className="sr-only">{s.hero.titulo}</Eyebrow>
     </main>
   );
 }
