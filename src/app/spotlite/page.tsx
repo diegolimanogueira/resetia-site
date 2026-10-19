@@ -24,7 +24,7 @@ export default function SpotliteAntiga() {
           A Spotlite agora está em Produtos.
         </h1>
         <Link
-          href="/produtos#spotlite"
+          href="/produtos/#spotlite"
           className="text-cinza border-cinza/40 hover:text-neutro hover:border-verde border-b pb-[3px] text-[15px] font-medium"
         >
           Ir para Produtos →
