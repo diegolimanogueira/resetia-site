@@ -31,7 +31,7 @@ test("JSON-LD Organization com nome, URL, logo e redes", async ({ page }) => {
   expect(dados.name).toBe(site.nome);
   expect(dados.url).toBe(`${site.dominio}/`);
   expect(dados.logo).toMatch(/^https:\/\/.*logo/);
-  expect(dados.sameAs).toEqual(expect.arrayContaining([site.redes.linkedinEmpresa]));
+  expect(dados.sameAs).toEqual(expect.arrayContaining([site.redes.instagram, site.ferramentas.spotlite]));
 });
 
 test("sitemap, robots e manifest", async ({ request, baseURL }) => {

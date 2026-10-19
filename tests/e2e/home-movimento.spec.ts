@@ -49,7 +49,7 @@ test.describe("home: movimento", () => {
       .toMatch(/^inset\(\d+px( 0(px)?){1,3}\)$/); // Chrome serializa inset(180px 0 0 0) como inset(180px 0px 0px)
   });
 
-  test("o mockup do Spotlite conta do zero até 7,1 / 11 / 46 ao entrar na tela", async ({ page }) => {
+  test("o mockup da Spotlite conta do zero até 3,6 / R$ 4.200 / 9 ao entrar na tela", async ({ page }) => {
     const card = page.locator("[data-count]").first();
     await expect(card).toHaveAttribute("data-armado", "");
     await expect(card.locator("[data-nota]")).toHaveText("0,0");
@@ -61,9 +61,9 @@ test.describe("home: movimento", () => {
         return card.getAttribute("data-armado");
       })
       .toBeNull();
-    await expect(card.locator("[data-nota]")).toHaveText("7,1", { timeout: 3_000 });
-    await expect(card.locator("[data-ativ]")).toHaveText("11");
-    await expect(card.locator("[data-horas]")).toContainText("46");
+    await expect(card.locator("[data-nota]")).toHaveText("3,6", { timeout: 3_000 });
+    await expect(card.locator("[data-horas]")).toContainText("4.200");
+    await expect(card.locator("[data-ativ]")).toContainText("9");
   });
 
   test("hover numa linha de programa revela a descrição", async ({ page }) => {

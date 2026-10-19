@@ -1,3 +1,4 @@
+import { site } from "./site";
 import { cardExemplo } from "./spotlite";
 import type { Bloco, Link, Passo, Ponto, ProgramaResumo } from "./types";
 
@@ -59,57 +60,57 @@ export const home = {
     passos: [
       {
         numero: "01",
-        titulo: "Diagnóstico com o Spotlite",
+        titulo: "Diagnóstico com a Spotlite",
         texto:
-          "Antes da primeira aula, cada pessoa responde ao Spotlite, nossa ferramenta de diagnóstico. Ela mede o nível de uso de IA, automação e processos de cada setor e aponta onde está o ganho. O treinamento é montado em cima desse resultado, não de uma ementa genérica.",
+          "Antes da primeira aula, a equipe inteira responde à Spotlite, nossa ferramenta de diagnóstico com IA. Ela mapeia onde as horas da semana estão indo, o que cabe em IA ou automação e quanto isso vale, em reais estimados. O treinamento é montado em cima desse resultado, não de uma ementa genérica.",
       },
       {
         numero: "02",
         titulo: "Treinamento direcionado",
         texto:
-          "Sessões online de 90 minutos, 75% prática. Os exercícios usam documentos, planilhas e e-mails reais da própria área. Nada fictício. Toda sessão termina com algo pronto para usar no dia seguinte.",
+          "Sessões online e práticas. Os exercícios usam documentos, planilhas e e-mails reais da própria área. Nada fictício. Toda sessão termina com algo pronto para usar no dia seguinte.",
       },
       {
         numero: "03",
         titulo: "Medição antes × depois",
         texto:
-          "Ao final, o Spotlite roda de novo. O gestor recebe o comparativo: nota de maturidade, atividades que passaram a ser automatizadas e horas economizadas por mês. Resultado é número, não impressão.",
+          "Ao final, a Spotlite roda de novo. O gestor recebe o comparativo: nota de maturidade por dimensão, atividades que passaram a ser automatizadas e horas economizadas por mês. Resultado é número, não impressão.",
       },
     ] satisfies Passo[],
-    link: { label: "Conhecer o Spotlite", href: "/spotlite" } satisfies Link,
+    link: { label: site.ctaSpotliteSite, href: site.ferramentas.spotlite } satisfies Link,
   },
   treinamentos: {
     titulo: "Um programa para cada ponto da empresa.",
-    colunas: ["Programa", "Para quem", "Formato"],
+    colunas: ["Programa", "Para quem", "O que a equipe leva"],
     programas: [
       {
         nome: "Letramento em IA",
         quem: "Equipes de qualquer área: RH, financeiro, marketing, suporte, operações",
-        formato: "5 módulos · 11 sessões online · mentoria individual",
+        leva: "Método de prompt, domínio da ferramenta da casa e um agente próprio",
         desc: "Fundamentos e prompt, como as IAs funcionam, panorama de ferramentas, IA aplicada ao setor, uso seguro. Com os métodos próprios CLARO, CONFERE e PACEF.",
       },
       {
         nome: "Champions de IA",
         quem: "Líderes e multiplicadores que vão levar IA para o resto da empresa",
-        formato: "7 módulos · projeto real apresentado à diretoria · certificação",
+        leva: "Um caso de uso resolvido na própria área e um projeto real apresentado à diretoria",
         desc: "Discovery de problemas, mapeamento de processos, prototipagem com IA, agentes dentro das plataformas e Claude Code em nível de uso, não de programação.",
       },
       {
         nome: "Workshops por ferramenta",
         quem: "Times que já têm Gemini Workspace, Claude ou ChatGPT contratado e usam pouco",
-        formato: "3 a 6 encontros de 2h · 100% na ferramenta da casa",
+        leva: "Cada pessoa sai sabendo criar o próprio agente na ferramenta da casa",
         desc: "Gems, Gemini no Docs, Sheets e Gmail, Notebook. Ou Claude Projetos, Design e Cowork. O time sai sabendo criar o próprio agente.",
       },
       {
         nome: "Claude Code para times de tecnologia",
         quem: "Desenvolvedores e analistas que querem construir com agentes de código",
-        formato: "Aulas guiadas · a equipe sai com a fundação de um projeto de pé",
+        leva: "A fundação de um projeto real de pé",
         desc: "Setup, CLAUDE.md, skills, banco de dados e TDD, no ritmo real de produção de código.",
       },
       {
         nome: "Uso seguro de IA e LGPD",
         quem: "Toda a empresa, antes de assinar a política de IA",
-        formato: "Encontro dedicado · guia de uso seguro da área",
+        leva: "Guia de uso seguro da área, em uma página",
         desc: "O que pode e o que não pode, pesquisa segura, dado pessoal, política de IA explicada em linguagem de negócio.",
       },
     ] satisfies ProgramaResumo[],
@@ -118,9 +119,18 @@ export const home = {
   spotlite: {
     titulo: ["Spotlite.", "O diagnóstico que direciona tudo."],
     texto:
-      "Ferramenta própria da Reset IA. Mede, pessoa a pessoa e setor a setor, o nível real de uso de inteligência artificial, automação e processos. Entrega ao gestor uma nota de maturidade, a lista de atividades automatizáveis e a economia estimada em reais. Roda antes e depois do treinamento.",
-    cta: "Pedir o diagnóstico do meu setor",
+      "Ferramenta própria da Reset IA. A equipe inteira responde pelo link da rodada; a IA mapeia onde as horas da semana estão indo, o que cabe em IA ou automação e quanto isso vale, em reais estimados. A nota de 0 a 10 sai por regra fixa, em cinco dimensões, e a Reset IA revisa cada relatório antes de ele chegar à gestão.",
+    valor:
+      "Feita para empresas e para quem trabalha nelas. Mede retorno e geração de valor antes de qualquer promessa.",
+    ctaSite: { label: site.ctaSpotliteSite, href: site.ferramentas.spotlite } satisfies Link,
+    ctaWhatsapp: site.ctaSpotlite,
     card: cardExemplo,
+    fluxa: {
+      nome: "Fluxa BPM",
+      texto:
+        "Nossa outra ferramenta: gestão de processos com IA, em português. Você conta como o trabalho é feito; a IA desenha o processo, escreve o passo a passo, mostra onde ele trava e propõe a melhoria, com custo e economia estimados em reais. Sai em PDF e Word. Comece grátis, sem cartão.",
+      link: { label: site.ctaFluxaSite, href: site.ferramentas.fluxa } satisfies Link,
+    },
   },
   depois,
   fecho: {

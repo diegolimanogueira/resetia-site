@@ -90,7 +90,19 @@ export default function Sobre() {
                   i === s.metodos.itens.length - 1 && "border-b",
                 )}
               >
-                <strong className="text-fg font-semibold tracking-[.02em]">{m.nome}</strong> — {m.texto}
+                {"href" in m && m.href ? (
+                  <a
+                    href={m.href}
+                    target="_blank"
+                    rel="noopener"
+                    className="text-fg hover:border-verde border-b border-transparent font-semibold tracking-[.02em]"
+                  >
+                    {m.nome}
+                  </a>
+                ) : (
+                  <strong className="text-fg font-semibold tracking-[.02em]">{m.nome}</strong>
+                )}{" "}
+                — {m.texto}
               </li>
             ))}
           </ul>

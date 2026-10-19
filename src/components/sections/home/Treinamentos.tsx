@@ -34,7 +34,7 @@ export function Treinamentos() {
                 </p>
                 <p className="text-neutro text-[15px] leading-[1.5]">
                   <span className="md:sr-only">{s.colunas[2]}: </span>
-                  {p.formato}
+                  {p.leva}
                 </p>
               </div>
               <div className="grid grid-rows-[1fr] transition-[grid-template-rows] duration-[350ms] ease-out md:grid-rows-[0fr] md:group-hover:grid-rows-[1fr]">

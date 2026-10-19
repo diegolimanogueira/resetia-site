@@ -10,7 +10,7 @@ export function JsonLd() {
     logo: `${site.dominio}/brand/logo-dark.png`,
     description: seo.home.description,
     email: site.email,
-    sameAs: [site.redes.linkedinEmpresa, site.redes.instagram],
+    sameAs: [site.redes.instagram, site.ferramentas.spotlite, site.ferramentas.fluxa],
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "sales",

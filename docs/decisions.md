@@ -42,6 +42,14 @@ O manual pede numerais `01/02/03` em verde (home) e carvão a 25% (Spotlite) sob
 
 A home carrega ~250 KB (transfer) de JS: React 19 + runtime do Next 16 (~150 KB), Motion (~70 KB), Base UI + Lenis (~30 KB). `LazyMotion`/`m.*` foi testado e economizou 1,4 KB (a engine entra por `useSpring`, `useScroll` e `animate` de qualquer jeito), então ficou fora. Orçamento do Lighthouse: script ≤ 280 KB, total ≤ 600 KB; Performance mobile medida em 91–95. Próximo corte real, se precisar: carregar `WipeStack`, `Cursor` e `SpotliteCard` com `next/dynamic` só em desktop.
 
+## 2026-10-19 · Conteúdo alinhado aos produtos reais (Spotlite e Fluxa BPM)
+
+A pedido do Diego, o site passou a descrever a Spotlite pelo que o produto é em spotlite.com.br: diagnóstico com IA, equipe inteira responde, nota de 0 a 10 por regra fixa em cinco dimensões, mapa de horas por semana, oportunidades em reais sempre como estimativa, Shadow AI só agregado, revisão da Reset IA, referências públicas (Gartner, MIT CISR, BCG, NIST AI RMF 1.0, ISO/IEC 42001:2023). O mockup do relatório espelha a estrutura do relatório real, com dados fictícios. A Fluxa BPM (fluxabpm.com.br) entra como segunda ferramenta: gestão de processos com IA. Todo link para as ferramentas aponta para os sites dos produtos. Saíram: tempos e quantidade de módulos dos treinamentos, CNPJ e LinkedIn (perfil da Reset IA ainda não existe). Mensagem transversal: foco em empresas e colaboradores, retorno e geração de valor.
+
+## 2026-10-19 · Cores das ferramentas só como marca
+
+As ferramentas têm identidade própria (Spotlite: ponto laranja `#FF7A45` sobre fundo quente; Fluxa: verde `#0B7A4F`). No site da Reset IA elas aparecem só como um ponto na cor da marca ao lado do nome (`MarcaFerramenta`). Nenhum fundo, botão ou traço do site usa essas cores: o verde Reset continua sendo o único acento.
+
 ## 2026-10-18 · Deploy gated pelo CI
 
 `deploy_on_push: false` no app spec. GitHub Actions faz o deploy só se o CI (lint, tipos, unit, build, E2E, axe, Lighthouse) passar na `main`. Visual regression roda só no CI (Linux); baselines geradas na imagem Docker oficial do Playwright.

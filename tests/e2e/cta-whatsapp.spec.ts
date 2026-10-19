@@ -25,9 +25,10 @@ test.describe("CTAs de WhatsApp", () => {
 
   test("a página Spotlite usa a mensagem do diagnóstico nos CTAs principais", async ({ page }) => {
     await page.goto("/spotlite/");
-    const principais = page.locator("a[data-cta='spotlite']");
-    await expect(principais).toHaveCount(1);
-    await expect(principais.first()).toHaveAttribute("href", waSpotlite());
+    const principais = page.locator("a[data-cta='spotlite'], a[data-cta='spotlite-final']");
+    await expect(principais).toHaveCount(2);
+    for (const a of await principais.all()) await expect(a).toHaveAttribute("href", waSpotlite());
+    await expect(page.locator("a[data-cta='spotlite-site']")).toHaveAttribute("href", site.ferramentas.spotlite);
     await expect(page.locator("a[data-cta='footer']")).toHaveAttribute("href", waGeral());
   });
 

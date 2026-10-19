@@ -36,6 +36,10 @@ Contraste: `#9CA3AF` sobre `#0B0F0E` ≈ 6,9:1; `rgba(11,15,14,.6)` sobre `#F6F7
 - Foco: `outline: 2px solid #00E676; outline-offset: 3px`
 - Breakpoint: 860px (abaixo: menu mobile, grids em 1 coluna, rodapé 2 colunas)
 
+## Marcas das ferramentas
+
+Spotlite (`#FF7A45`, ponto) e Fluxa BPM (`#0B7A4F`) aparecem só como um ponto colorido ao lado do nome, via `MarcaFerramenta`. Não entram em fundos, botões ou traços.
+
 ## Logo e ícone
 
 `public/brand/`: `logo-dark` (fundo carvão), `logo-light` (fundo neutro), `icone-dark`, `icone-light`. Hoje em PNG/WebP exportados do manual. **[FALTA]** SVGs oficiais. Favicon e ícones PWA gerados por `npm run images` (placeholder até o SVG chegar).

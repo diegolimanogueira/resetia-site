@@ -8,7 +8,7 @@ test("reduced-motion: tudo no estado final, sem Lenis, sem cursor, sem seções 
   await expect(page.locator("body")).not.toHaveAttribute("data-nocursor", /.*/);
   await expect(page.locator("[data-cursor]")).toHaveCount(0);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("IA sem hype.Resultado na prática.");
-  await expect(page.locator("[data-nota]").first()).toHaveText("7,1");
+  await expect(page.locator("[data-nota]").first()).toHaveText("3,6");
 
   const escalas = await page.locator("[data-line]").evaluateAll((els) => els.map((e) => getComputedStyle(e).scale));
   escalas.forEach((s) => expect(s).toBe("none"));

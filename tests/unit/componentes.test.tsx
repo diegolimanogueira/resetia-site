@@ -44,10 +44,10 @@ describe("SpotliteCard", () => {
         <SpotliteCard card={cardExemplo} />
       </MotionProvider>,
     );
-    expect(screen.getByText("7,1")).toBeTruthy();
-    expect(screen.getByText("11")).toBeTruthy();
-    expect(screen.getByText(/^46/)).toBeTruthy();
-    expect(screen.getByText("exemplo")).toBeTruthy();
+    expect(screen.getByText("3,6")).toBeTruthy();
+    expect(screen.getByText(/4\.200/)).toBeTruthy();
+    expect(screen.getByText(/^9/)).toBeTruthy();
+    expect(screen.getByText(/exemplo/)).toBeTruthy();
   });
 });
 

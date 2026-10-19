@@ -19,7 +19,7 @@ export interface Passo {
 export interface ProgramaResumo {
   nome: string;
   quem: string;
-  formato: string;
+  leva: string;
   desc: string;
 }
 
@@ -43,20 +43,24 @@ export interface FaqItem {
 
 interface BarraExemplo {
   label: string;
-  nivel: string;
+  valor: string;
   pct: number;
 }
 
+/** Mockup do relatório da Spotlite. Espelha a estrutura real do relatório do setor, com dados fictícios. */
 export interface CardSpotlite {
   setor: string;
   tag: string;
   nota: number;
   notaLabel: string;
-  antesLabel: string;
+  notaApoio: string;
+  barrasTitulo: string;
   barras: BarraExemplo[];
-  atividades: { valor: number; label: string };
-  economia: { valor: number; unidade: string; label: string };
+  destaque: { prefixo: string; valor: number; sufixo: string; label: string };
+  respondentes: { valor: number; de: number; label: string };
 }
+
+export type Ferramenta = "spotlite" | "fluxa";
 
 export interface CtaFinal {
   titulo: string;

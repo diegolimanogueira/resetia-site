@@ -16,17 +16,21 @@ export const site = {
   },
   email: "contato@resetia.com.br",
   redes: {
-    linkedinEmpresa: "https://www.linkedin.com/company/resetia", // [FALTA] confirmar slug
-    linkedinDiego: "https://www.linkedin.com/in/diegonogueira1",
     instagram: "https://www.instagram.com/odiegonog", // [FALTA] Reset IA terá perfil próprio?
   },
+  /** Produtos da Reset IA. Sempre que o site fala deles, aponta para cá. */
+  ferramentas: {
+    spotlite: "https://www.spotlite.com.br/",
+    fluxa: "https://www.fluxabpm.com.br/",
+  },
   cidades: "Fortaleza e Campinas, Brasil",
-  cnpj: FALTA,
   politicaPrivacidade: FALTA,
   ano: 2026,
   ctaHeader: "Fale conosco",
   ctaGeral: "Falar com um especialista",
   ctaSpotlite: "Pedir o diagnóstico do meu setor",
+  ctaSpotliteSite: "Conhecer a Spotlite",
+  ctaFluxaSite: "Conhecer a Fluxa BPM",
 } as const;
 
 export const nav: Link[] = [
@@ -48,19 +52,14 @@ export const footer = {
   colunas: {
     navegacao: "Navegação",
     contato: "Contato",
-    redes: "Redes",
+    redes: "Redes e ferramentas",
   },
   redes: [
-    { label: "LinkedIn Reset IA", href: site.redes.linkedinEmpresa },
-    { label: "LinkedIn Diego", href: site.redes.linkedinDiego },
     { label: "Instagram", href: site.redes.instagram },
+    { label: "Spotlite", href: site.ferramentas.spotlite },
+    { label: "Fluxa BPM", href: site.ferramentas.fluxa },
   ] satisfies Link[],
-  legal: [
-    `© ${site.ano} Reset IA`,
-    `CNPJ ${site.cnpj}`,
-    site.cidades,
-    `Política de privacidade ${site.politicaPrivacidade}`,
-  ],
+  legal: [`© ${site.ano} Reset IA`, site.cidades, `Política de privacidade ${site.politicaPrivacidade}`],
 };
 
 export const seo = {
@@ -77,12 +76,12 @@ export const seo = {
   spotlite: {
     title: "Spotlite — diagnóstico de IA, automação e processos | Reset IA",
     description:
-      "Diagnóstico de inteligência artificial, automação e processos. Por pessoa, por setor, antes e depois. Nota de maturidade, atividades automatizáveis e economia estimada.",
+      "Spotlite, diagnóstico com IA da Reset IA: a equipe inteira responde, a IA mapeia onde as horas vão e quanto IA e automação valem em reais. Nota de 0 a 10 por regra.",
   },
   sobre: {
     title: "Quem está por trás da Reset IA",
     description:
-      "Diego Nogueira, arquiteto de IA e consultor de inovação. Muita prática, pouca teoria. Como a Reset IA trabalha e seus métodos próprios.",
+      "Diego Nogueira, arquiteto de IA e consultor de inovação. Muita prática, pouca teoria. Como a Reset IA trabalha, seus métodos e ferramentas próprias.",
   },
   naoEncontrada: {
     title: "Página não encontrada | Reset IA",
