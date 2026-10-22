@@ -4,7 +4,7 @@ Leia também `AGENTS.md` (regras do Next.js 16 geradas pelo framework) e `docs/d
 
 ## O que é
 
-Site institucional estático da Reset IA (`www.resetia.com.br`). Next.js 16 App Router, `output: 'export'`, Tailwind v4, `motion` + Lenis, shadcn (Base UI) só para Sheet e Accordion. Deploy como Static Site no DigitalOcean App Platform. Objetivo único do site: gerar conversa no WhatsApp.
+Site institucional estático da Reset IA (`www.resetia.com.br`). Next.js 16 App Router, `output: 'export'`, Tailwind v4, `motion` + Lenis, shadcn (Base UI) só para o Sheet do menu mobile. Deploy como Static Site no DigitalOcean App Platform. Objetivo único do site: gerar conversa no WhatsApp. Conteúdo: RESET 360 (estudo de 21/10/2026, ver `docs/decisions.md`).
 
 ## Regras
 

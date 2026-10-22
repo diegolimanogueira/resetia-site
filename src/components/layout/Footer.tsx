@@ -13,7 +13,11 @@ export function Footer() {
       <div className="container-site grid grid-cols-2 gap-10 text-[15px] leading-[1.6] md:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div className="col-span-2 md:col-span-1">
           <Logo tom="carvao" altura={44} className="mb-3 inline-block" />
-          <p>{footer.frase}</p>
+          <p>
+            {footer.frase[0]}
+            <br />
+            {footer.frase[1]}
+          </p>
         </div>
         <div>
           <Eyebrow className="mb-3">{footer.colunas.navegacao}</Eyebrow>
@@ -58,6 +62,7 @@ export function Footer() {
         <Link href={footer.privacidade.href} className="hover:text-neutro">
           {footer.privacidade.label}
         </Link>
+        <span className="basis-full">{footer.aviso}</span>
       </div>
     </footer>
   );

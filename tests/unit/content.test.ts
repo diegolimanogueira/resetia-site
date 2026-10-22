@@ -1,94 +1,108 @@
 import { describe, expect, it } from "vitest";
-import { home } from "@/content/home";
-import { FALTA, footer, nav, seo, site, tomPorRota } from "@/content/site";
-import { sobre } from "@/content/sobre";
-import { solucoes } from "@/content/solucoes";
-import { spotlite } from "@/content/spotlite";
+import { agentes, areas } from "@/content/agentes";
 import { fluxa } from "@/content/fluxa";
+import { home } from "@/content/home";
 import { privacidade } from "@/content/privacidade";
+import { FALTA, footer, nav, seo, site, tomDaRota, tomPorRota } from "@/content/site";
+import { sobre } from "@/content/sobre";
+import { seoSolucao, solucaoPorSlug, solucoes } from "@/content/solucoes";
+import { spotlite } from "@/content/spotlite";
+import { ferramentas, tecnologias } from "@/content/tecnologias";
 
-const semVazio = (obj: Record<string, unknown>) =>
-  Object.values(obj).forEach((v) => {
-    if (typeof v === "string") expect(v.trim().length, JSON.stringify(obj)).toBeGreaterThan(0);
+describe("conteúdo do site (RESET 360)", () => {
+  it("tem as sete soluções, com slug único e todos os campos preenchidos", () => {
+    expect(solucoes.lista).toHaveLength(7);
+    expect(new Set(solucoes.lista.map((s) => s.slug)).size).toBe(7);
+    expect(solucoes.lista.map((s) => s.num)).toEqual(["01", "02", "03", "04", "05", "06", "07"]);
+    for (const s of solucoes.lista) {
+      for (const campo of [s.nome, s.frase, s.descricao, s.paraQuem, s.medimos])
+        expect(campo.trim().length, `${s.slug}`).toBeGreaterThan(0);
+      expect(s.entregas.length, s.slug).toBeGreaterThanOrEqual(4);
+      expect(s.slug).toMatch(/^[a-z0-9-]+$/);
+      expect(solucaoPorSlug(s.slug)).toBe(s);
+    }
+    expect(solucaoPorSlug("nao-existe")).toBeUndefined();
   });
 
-describe("conteúdo do site", () => {
-  it("tem os cinco programas, com os quatro campos, na home e em Soluções", () => {
-    expect(home.treinamentos.programas).toHaveLength(5);
-    expect(solucoes.programas).toHaveLength(5);
-    home.treinamentos.programas.forEach(semVazio);
-    solucoes.programas.forEach(semVazio);
-    expect(solucoes.programas.map((p) => p.nome)).toEqual(home.treinamentos.programas.map((p) => p.nome));
+  it("as soluções aceleradas pelas ferramentas apontam para a ferramenta certa", () => {
+    expect(solucaoPorSlug("scan")?.ferramenta).toBe("spotlite");
+    expect(solucaoPorSlug("processos-com-ia")?.ferramenta).toBe("fluxa");
+    expect(solucaoPorSlug("agent-factory")?.relacionado?.link.href).toBe("/agentes");
+    expect(ferramentas.spotlite.solucao.href).toBe("/solucoes/scan");
+    expect(ferramentas.fluxa.solucao.href).toBe("/solucoes/processos-com-ia");
   });
 
-  it("tem quatro perguntas no FAQ, quatro passos e quatro pontos de método na Spotlite, três princípios e quatro métodos/ferramentas no Sobre", () => {
-    expect(solucoes.faq.itens).toHaveLength(4);
-    solucoes.faq.itens.forEach(semVazio);
-    expect(spotlite.comoFunciona.passos).toHaveLength(4);
-    expect(spotlite.metodo.passos).toHaveLength(4);
-    expect(sobre.comoTrabalhamos.principios).toHaveLength(3);
-    expect(sobre.metodos.itens).toHaveLength(4);
+  it("o catálogo tem 30 agentes, 10 por área, sem nome repetido", () => {
+    expect(agentes.lista).toHaveLength(30);
+    expect(agentes.hero.lead).toContain(String(agentes.lista.length));
+    for (const a of areas)
+      expect(
+        agentes.lista.filter((x) => x.area === a.id),
+        a.id,
+      ).toHaveLength(10);
+    expect(new Set(agentes.lista.map((a) => a.nome)).size).toBe(30);
+    expect(home.areas.itens.map((i) => i.area)).toEqual(areas.map((a) => a.id));
   });
 
-  it("não cita tempos nem quantidade de módulos nos treinamentos", () => {
-    const textos = [
-      ...home.treinamentos.programas.flatMap((p) => [p.quem, p.leva, p.desc]),
-      ...solucoes.programas.flatMap((p) => [p.quem, p.como, p.leva]),
-      ...home.comoFunciona.passos.map((p) => p.texto),
-      ...solucoes.faq.itens.map((f) => f.resposta),
-    ];
-    for (const t of textos)
-      expect(t, t).not.toMatch(/\b(\d+\s*(módulos?|sessões|encontros|semanas|minutos|horas?\b)|\d+h\b)/i);
+  it("o método da home tem quatro etapas, com as ferramentas no diagnóstico, no redesenho e na medição", () => {
+    expect(home.metodo.passos).toHaveLength(4);
+    expect(home.metodo.passos.map((p) => p.ferramenta)).toEqual(["spotlite", undefined, "fluxa", "spotlite"]);
+    expect(home.problema.pilares).toHaveLength(3);
+    expect(home.hero.ctaSecundario.href).toBe("#solucoes");
   });
 
   it("Spotlite e Fluxa apontam para os sites dos produtos", () => {
     expect(site.ferramentas.spotlite).toBe("https://www.spotlite.com.br/");
     expect(site.ferramentas.fluxa).toBe("https://www.fluxabpm.com.br/");
-    expect(home.comoFunciona.link.href).toBe("/produtos");
+    expect(ferramentas.spotlite.site.href).toBe(site.ferramentas.spotlite);
+    expect(ferramentas.fluxa.site.href).toBe(site.ferramentas.fluxa);
     expect(spotlite.hero.ctaSite.href).toBe(site.ferramentas.spotlite);
-    expect(home.produtos.spotlite.ctaSite.href).toBe(site.ferramentas.spotlite);
-    expect(home.produtos.fluxa.ctaGratis.href).toBe(site.ferramentas.fluxaGratis);
     expect(fluxa.links.site.href).toBe(site.ferramentas.fluxa);
-    expect(nav.map((l) => l.label)).toEqual(["Soluções", "Produtos", "Sobre"]);
+    expect(home.tecnologias.link.href).toBe("/tecnologias");
+    expect(home.tecnologias.card).toBe(spotlite.cardExemplo);
+    expect(tecnologias.hero.ancoras.map((a) => a.href)).toEqual(["#spotlite", "#fluxa"]);
   });
 
-  it("o processo da consultoria usa as duas ferramentas e a política de privacidade está completa", () => {
-    expect(home.comoFunciona.passos).toHaveLength(4);
-    expect(home.comoFunciona.passos.map((p) => p.ferramenta)).toEqual(["spotlite", undefined, "fluxa", "spotlite"]);
-    expect(privacidade.secoes.length).toBeGreaterThanOrEqual(6);
-    privacidade.secoes.forEach((s) => expect(s.paragrafos.join(" ")).not.toContain(FALTA));
-  });
-
-  it("rodapé sem CNPJ e sem LinkedIn", () => {
-    expect(footer.legal.join(" ")).not.toMatch(/CNPJ/);
-    expect(footer.redes.map((r) => r.href).join(" ")).not.toMatch(/linkedin/i);
-    expect(sobre.diego.links.map((l) => l.href).join(" ")).not.toMatch(/linkedin/i);
-  });
-
-  it("toda rota da navegação tem tom definido", () => {
-    expect(nav).toHaveLength(3);
+  it("navegação com quatro páginas, todas com tom; subpáginas herdam o tom da seção", () => {
+    expect(nav.map((l) => l.label)).toEqual(["Soluções", "Agentes", "Tecnologias", "Sobre"]);
     nav.forEach((l) => expect(tomPorRota[l.href], l.href).toMatch(/^(carvao|neutro)$/));
-    expect(tomPorRota["/"]).toBe("carvao");
+    expect(tomDaRota("/")).toBe("carvao");
+    expect(tomDaRota("/solucoes/scan")).toBe("neutro");
+    expect(tomDaRota("/rota-nova")).toBe("carvao");
   });
 
-  it("títulos e descrições cabem nos limites de SEO", () => {
-    // Título ≤ 70. Descrição ≤ 170: a da home vem literal do briefing com 167 caracteres (Google corta em ~160, mas indexa).
-    for (const [pagina, meta] of Object.entries(seo)) {
+  it("Sobre apresenta Élida e Diego; rodapé leva aos dois LinkedIns e não tem CNPJ", () => {
+    expect(sobre.fundadores.pessoas.map((p) => p.nome)).toEqual(["Élida Almeida", "Diego Nogueira"]);
+    const diego = sobre.fundadores.pessoas[1];
+    expect("foto" in diego && diego.foto?.base).toBe("/brand/diego");
+    expect(footer.legal.join(" ")).not.toMatch(/CNPJ/);
+    const hrefs = footer.redes.map((r) => r.href);
+    expect(hrefs).toContain(site.fundadores.elida.linkedin);
+    expect(hrefs).toContain(site.fundadores.diego.linkedin);
+  });
+
+  it("títulos e descrições cabem nos limites de SEO, inclusive nas sete soluções", () => {
+    const metas = [...Object.entries(seo), ...solucoes.lista.map((s) => [s.slug, seoSolucao(s)] as const)];
+    for (const [pagina, meta] of metas) {
       expect(meta.title.length, `${pagina}.title`).toBeLessThanOrEqual(70);
-      if ("description" in meta) expect(meta.description.length, `${pagina}.description`).toBeLessThanOrEqual(170);
+      if ("description" in meta) {
+        expect(meta.description.length, `${pagina}.description`).toBeLessThanOrEqual(170);
+        expect(meta.description.length, `${pagina}.description`).toBeGreaterThan(50);
+      }
     }
   });
 
-  it("não há pendências [FALTA] no conteúdo", () => {
-    // Nenhuma pendência visível: CNPJ saiu, política de privacidade publicada, foto entregue.
-    const tudo = JSON.stringify({ home, solucoes, spotlite, fluxa, sobre, footer, privacidade });
+  it("não há pendências [FALTA] visíveis no conteúdo e a política de privacidade está completa", () => {
+    const tudo = JSON.stringify({ home, solucoes, agentes, spotlite, fluxa, tecnologias, sobre, footer, privacidade });
     expect(tudo).not.toContain(FALTA);
-    expect(sobre.diego.destaques).toHaveLength(3);
-    expect(sobre.diego.foto.base).toBe("/brand/diego");
+    expect(privacidade.secoes.length).toBeGreaterThanOrEqual(6);
+  });
+
+  it("nenhum texto promete 'sem formulário' (o diagnóstico com formulário vem aí)", () => {
+    expect(JSON.stringify({ home, site })).not.toMatch(/sem formulário/i);
   });
 
   it("o mockup da Spotlite é rotulado como exemplo", () => {
     expect(spotlite.cardExemplo.tag).toMatch(/exemplo/);
-    expect(home.produtos.spotlite.card).toBe(spotlite.cardExemplo);
   });
 });

@@ -3,6 +3,7 @@ import { preload } from "react-dom";
 import { Decode } from "@/components/motion/Decode";
 import { Line } from "@/components/motion/Line";
 import { Botao } from "@/components/ui/botao";
+import { Eyebrow } from "@/components/ui/eyebrow";
 import { Glow } from "@/components/ui/glow";
 import { Section } from "@/components/ui/section";
 import { home } from "@/content/home";
@@ -13,8 +14,14 @@ import { waGeral } from "@/lib/whatsapp";
 export function Hero() {
   const h = home.hero;
   const p = home.prova;
-  // LCP da home: avisa o navegador antes do CSS/JS. Browsers sem AVIF ignoram pelo type.
-  preload(asset("/brand/porta.avif"), { as: "image", type: "image/avif", fetchPriority: "high" });
+  // LCP da home: preload com os mesmos candidatos do <picture>, para o navegador reaproveitar o download.
+  preload(asset("/brand/porta.avif"), {
+    as: "image",
+    type: "image/avif",
+    fetchPriority: "high",
+    imageSrcSet: `${asset("/brand/porta-768.avif")} 768w, ${asset("/brand/porta.avif")} 920w`,
+    imageSizes: "(max-width: 860px) 100vw, 45vw",
+  });
   return (
     <Section
       tom="carvao"
@@ -24,9 +31,11 @@ export function Hero() {
     >
       <Glow posicao="superior-direita" />
       <div className="gutter relative grid flex-1 items-center gap-10 pt-[150px] pb-20 md:grid-cols-[minmax(0,1.1fr)_minmax(0,.9fr)]">
-        <div className="max-w-[720px]">
+        <div className="max-w-[760px]">
+          <Eyebrow className="text-cinza mb-6">{h.eyebrow}</Eyebrow>
           <Decode
             linhas={h.titulo}
+            classesLinhas={["text-cinza"]}
             className="mb-7 text-[clamp(42px,7vw,96px)] leading-[.95] font-bold tracking-[-0.03em]"
           />
           <p className="text-cinza mb-10 max-w-[560px] text-[20px] leading-[1.6]">{h.lead}</p>
@@ -38,14 +47,19 @@ export function Hero() {
               {h.ctaSecundario.label}
             </Botao>
           </div>
-          <p className="text-cinza mt-4 text-[14px]">{h.semFormulario}</p>
         </div>
         <div className="relative h-full min-h-[420px] overflow-hidden">
           <picture>
-            <source media="(max-width: 860px)" srcSet={asset("/brand/porta-768.avif")} type="image/avif" />
-            <source media="(max-width: 860px)" srcSet={asset("/brand/porta-768.webp")} type="image/webp" />
-            <source srcSet={asset("/brand/porta.avif")} type="image/avif" />
-            <source srcSet={asset("/brand/porta.webp")} type="image/webp" />
+            <source
+              type="image/avif"
+              srcSet={`${asset("/brand/porta-768.avif")} 768w, ${asset("/brand/porta.avif")} 920w`}
+              sizes="(max-width: 860px) 100vw, 45vw"
+            />
+            <source
+              type="image/webp"
+              srcSet={`${asset("/brand/porta-768.webp")} 768w, ${asset("/brand/porta.webp")} 920w`}
+              sizes="(max-width: 860px) 100vw, 45vw"
+            />
             <img
               src={asset("/brand/porta.png")}
               alt={h.imagemAlt}
@@ -77,7 +91,6 @@ export function Hero() {
           ))}
           {p.depois}
         </p>
-        <p className="text-cinza mt-3 max-w-[760px] text-[17px] leading-[1.6]">{p.extra}</p>
       </div>
     </Section>
   );

@@ -8,7 +8,7 @@ import { Logo } from "@/components/brand/Logo";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { useMotionOk } from "@/components/motion/MotionProvider";
 import { Botao } from "@/components/ui/botao";
-import { nav, site, tomPorRota } from "@/content/site";
+import { nav, rotaAtiva, site, tomDaRota } from "@/content/site";
 import { waGeral } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +20,7 @@ const semBarra = (p: string) => (p.length > 1 ? p.replace(/\/$/, "") : p);
  */
 export function Header() {
   const pathname = semBarra(usePathname() ?? "/");
-  const tom = tomPorRota[pathname] ?? "carvao";
+  const tom = tomDaRota(pathname);
   const home = pathname === "/";
   const motionOk = useMotionOk();
   const [rolou, setRolou] = useState(false);
@@ -58,12 +58,12 @@ export function Header() {
       </Link>
       <nav aria-label="Principal" className="hidden gap-9 text-[15px] font-medium md:flex">
         {nav.map((l) => {
-          const ativo = pathname === l.href;
+          const ativo = rotaAtiva(pathname, l.href);
           return (
             <Link
               key={l.href}
               href={l.href}
-              aria-current={ativo ? "page" : undefined}
+              aria-current={pathname === l.href ? "page" : ativo ? "true" : undefined}
               className={cn(
                 "hover:border-verde text-fg border-b-2 py-1.5 transition-colors",
                 ativo ? "border-verde" : "border-transparent",

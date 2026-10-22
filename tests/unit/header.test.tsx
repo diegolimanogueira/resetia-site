@@ -30,12 +30,19 @@ describe("Header", () => {
     expect(header.getAttribute("data-tom")).toBe("neutro");
     expect(header.className).toContain("sticky");
     expect(screen.getByRole("link", { name: "Soluções" }).getAttribute("aria-current")).toBe("page");
-    expect(screen.getByRole("link", { name: "Produtos" }).getAttribute("aria-current")).toBeNull();
+    expect(screen.getByRole("link", { name: "Tecnologias" }).getAttribute("aria-current")).toBeNull();
   });
 
   it("aceita a rota com barra final", () => {
-    const { container } = renderHeader("/produtos/");
+    const { container } = renderHeader("/tecnologias/");
     expect(container.querySelector("header")!.getAttribute("data-tom")).toBe("carvao");
-    expect(screen.getByRole("link", { name: "Produtos" }).getAttribute("aria-current")).toBe("page");
+    expect(screen.getByRole("link", { name: "Tecnologias" }).getAttribute("aria-current")).toBe("page");
+  });
+
+  it("numa solução herda o tom de Soluções e marca a seção no menu", () => {
+    const { container } = renderHeader("/solucoes/scan/");
+    expect(container.querySelector("header")!.getAttribute("data-tom")).toBe("neutro");
+    expect(screen.getByRole("link", { name: "Soluções" }).getAttribute("aria-current")).toBe("true");
+    expect(screen.getByRole("link", { name: "Agentes" }).getAttribute("aria-current")).toBeNull();
   });
 });

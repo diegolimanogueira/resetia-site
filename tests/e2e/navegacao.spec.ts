@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { site } from "@/content/site";
+import { sobre } from "@/content/sobre";
 import { linksNav, rotas } from "./rotas";
 
 test.describe("navegação", () => {
@@ -8,10 +9,10 @@ test.describe("navegação", () => {
     await page.goto("/solucoes/");
     const nav = page.getByRole("navigation", { name: "Principal" });
     await expect(nav.getByRole("link", { name: "Soluções" })).toHaveAttribute("aria-current", "page");
-    await expect(nav.getByRole("link", { name: "Produtos" })).not.toHaveAttribute("aria-current", /.*/);
-    await nav.getByRole("link", { name: "Produtos" }).click();
-    await expect(page).toHaveURL(/\/produtos\/$/);
-    await expect(nav.getByRole("link", { name: "Produtos" })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link", { name: "Agentes" })).not.toHaveAttribute("aria-current", /.*/);
+    await nav.getByRole("link", { name: "Agentes" }).click();
+    await expect(page).toHaveURL(/\/agentes\/$/);
+    await expect(nav.getByRole("link", { name: "Agentes" })).toHaveAttribute("aria-current", "page");
     await page.getByRole("link", { name: site.nome, exact: true }).click();
     await expect(page).toHaveURL(/\/$/);
   });
@@ -39,17 +40,16 @@ test.describe("navegação", () => {
     await dialogo.getByRole("link", { name: "Sobre" }).click();
     await expect(page).toHaveURL(/\/sobre\/$/);
     await expect(page.getByRole("dialog")).toBeHidden();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Quem está por trás.");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(sobre.hero.titulo.join(""));
   });
 
-  test("botão secundário do hero leva à âncora #como-funciona", async ({ page }) => {
+  test("botão secundário do hero leva à âncora #solucoes", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("link", { name: "Ver como funciona" }).click();
-    await expect(page).toHaveURL(/#como-funciona$/);
+    await page.getByRole("link", { name: "Explorar o Reset 360" }).click();
+    await expect(page).toHaveURL(/#solucoes$/);
     await expect
       .poll(
-        async () =>
-          page.evaluate(() => Math.abs(document.querySelector("#como-funciona")!.getBoundingClientRect().top)),
+        async () => page.evaluate(() => Math.abs(document.querySelector("#solucoes")!.getBoundingClientRect().top)),
         {
           timeout: 5_000,
         },

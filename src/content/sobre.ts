@@ -1,57 +1,64 @@
 import { site } from "./site";
 import { ctaPadrao } from "./solucoes";
-import type { Link, Ponto } from "./types";
+import type { Link } from "./types";
+
+interface Fundador {
+  nome: string;
+  areas: string;
+  paragrafos: string[];
+  link: Link;
+  /** Sem foto, mostra o monograma no mesmo círculo. */
+  foto?: { base: string; alt: string };
+  monograma: string;
+}
 
 export const sobre = {
-  hero: { titulo: "Quem está por trás." },
-  diego: {
-    nome: "Diego Nogueira",
-    subtitulo: "Arquiteto de IA e consultor de inovação. Muita prática, pouca teoria.",
-    descricao:
-      "Sou arquiteto de IA no centro de excelência de inteligência artificial da Unimed Nacional, onde construo ferramentas para a saúde, do discovery ao sistema em operação. Tenho quinze anos em tecnologia, com raízes em implantação de sistemas financeiros. Como consultor e instrutor, treinei equipes e estruturei IA em empresas como IEL, Fortes Tecnologia, FortesPay e Longevidade Saudável. E construo as ferramentas que uso nos treinamentos: Spotlite e Fluxa BPM.",
-    destaques: [
-      {
-        destaque: "Treinei equipes de verdade.",
-        texto:
-          "IEL, Fortes Tecnologia, FortesPay e Longevidade Saudável, entre outras, com exercícios sobre o trabalho real de cada área.",
-      },
-      {
-        destaque: "Construo o que ensino.",
-        texto: "Spotlite e Fluxa BPM são produtos meus, usados nos próprios treinamentos.",
-      },
-      {
-        destaque: "Base técnica de verdade.",
-        texto:
-          "Arquiteto de IA na Unimed Nacional; certificações Oracle AI, CSPO e ACSM; formação contínua em engenharia de software, FIAP e IBMEC.",
-      },
-    ] satisfies Ponto[],
-    links: [{ label: "Instagram", href: site.redes.instagram }] satisfies Link[],
-    foto: { base: "/brand/diego", alt: "Diego Nogueira, fundador da Reset IA" },
+  hero: {
+    kicker: "Sobre a Reset",
+    titulo: ["Duas experiências.", "Uma visão de futuro."],
+    lead: "A tecnologia transforma possibilidades. A visão de negócio transforma possibilidades em resultados.",
   },
-  comoTrabalhamos: {
-    titulo: "Como trabalhamos",
-    principios: [
-      { destaque: "Nada fictício.", texto: "Exercício é feito com o documento real da sua área." },
-      { destaque: "Mais mão que fala.", texto: "Quem está na sala executa; o instrutor acompanha." },
-      { destaque: "Resultado é número.", texto: "O que não se mede não entra na proposta." },
-    ] satisfies Ponto[],
-  },
-  metodos: {
-    titulo: "Métodos e ferramentas próprias",
-    itens: [
-      { nome: "CLARO · CONFERE · PARE", texto: "como pedir, como checar, quando não usar IA." },
-      { nome: "PACEF", texto: "persona, ação, contexto, exemplo, formato." },
-      {
-        nome: "Spotlite",
-        texto: "diagnóstico com IA do setor, em horas e reais, antes e depois do treinamento.",
-        href: site.ferramentas.spotlite,
-      },
-      {
-        nome: "Fluxa BPM",
-        texto: "gestão de processos com IA: a equipe conta como trabalha, a IA desenha, documenta e propõe a melhoria.",
-        href: site.ferramentas.fluxa,
-      },
+  essencia: {
+    kicker: "Nossa essência",
+    titulo: ["Inteligência aplicada.", "Crescimento real."],
+    paragrafos: [
+      "A Reset nasce da combinação entre experiência em inteligência artificial, inovação e construção de soluções digitais e uma trajetória dedicada a Marketing, Vendas e crescimento de negócios.",
+      "Acreditamos que o potencial da IA está em transformar rotinas, ampliar a capacidade das pessoas e criar operações mais inteligentes, não apenas em contratar novas plataformas.",
     ],
+  },
+  fundadores: {
+    kicker: "Quem está por trás",
+    titulo: ["Visões complementares.", "Uma só direção."],
+    pessoas: [
+      {
+        nome: site.fundadores.elida.nome,
+        areas: "Estratégia · Marketing · Growth",
+        paragrafos: [
+          "Executiva com ampla experiência em Marketing Estratégico, Growth, posicionamento de marcas, liderança de equipes e estratégias comerciais. Sua atuação conecta as oportunidades da IA a desafios concretos de aquisição, conversão e geração de receita.",
+          "Na Reset, lidera a perspectiva de negócios: identificação de oportunidades, desenho da experiência do cliente e direcionamento de iniciativas para impacto comercial.",
+        ],
+        link: { label: "Élida no LinkedIn", href: site.fundadores.elida.linkedin },
+        // [FALTA] foto autorizada da Élida. Até lá, monograma.
+        monograma: "ÉA",
+      },
+      {
+        nome: site.fundadores.diego.nome,
+        areas: "Tecnologia · IA · Inovação",
+        paragrafos: [
+          "Profissional com vasta experiência em tecnologia, projetos de inovação e inteligência artificial. Sua trajetória reúne arquitetura de soluções, produtos digitais, processos e transformação tecnológica em ambientes corporativos.",
+          "Na Reset, lidera a perspectiva técnica: arquitetura de IA, criação de agentes inteligentes, integração de sistemas e aplicação responsável de tecnologia à operação.",
+        ],
+        link: { label: "Diego no LinkedIn", href: site.fundadores.diego.linkedin },
+        foto: { base: "/brand/diego", alt: "Diego Nogueira, fundador da Reset IA" },
+        monograma: "DN",
+      },
+    ] satisfies Fundador[],
+  },
+  conviccao: {
+    kicker: "Nossa convicção",
+    titulo: ["IA não é o destino.", "É o impulso para crescer."],
+    texto:
+      "Unimos quem entende os desafios de negócio à experiência de quem sabe desenhar a tecnologia para resolvê-los. Da estratégia à execução, sem promessas vazias.",
   },
   cta: ctaPadrao,
 };

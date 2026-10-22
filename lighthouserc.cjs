@@ -7,7 +7,9 @@ module.exports = {
       url: [
         "http://localhost/",
         "http://localhost/solucoes/",
-        "http://localhost/produtos/",
+        "http://localhost/solucoes/scan/",
+        "http://localhost/agentes/",
+        "http://localhost/tecnologias/",
         "http://localhost/sobre/",
         "http://localhost/privacidade/",
       ],

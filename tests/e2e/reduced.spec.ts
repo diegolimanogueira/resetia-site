@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { home } from "@/content/home";
 
 /** Com prefers-reduced-motion o site inteiro é estático. Roda no projeto reduced-motion. */
 test("reduced-motion: tudo no estado final, sem Lenis, sem cursor, sem seções presas", async ({ page }) => {
@@ -7,7 +8,7 @@ test("reduced-motion: tudo no estado final, sem Lenis, sem cursor, sem seções 
   await expect(page.locator("html")).not.toHaveClass(/lenis/);
   await expect(page.locator("body")).not.toHaveAttribute("data-nocursor", /.*/);
   await expect(page.locator("[data-cursor]")).toHaveCount(0);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("IA sem hype.Resultado na prática.");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(home.hero.titulo.join(""));
   await expect(page.locator("[data-nota]").first()).toHaveText("3,6");
 
   const escalas = await page.locator("[data-line]").evaluateAll((els) => els.map((e) => getComputedStyle(e).scale));

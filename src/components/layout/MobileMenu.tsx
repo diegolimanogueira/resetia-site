@@ -7,12 +7,12 @@ import { useState } from "react";
 import { Logo } from "@/components/brand/Logo";
 import { Botao } from "@/components/ui/botao";
 import { Sheet, SheetBody, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { nav, site } from "@/content/site";
+import { nav, rotaAtiva, site } from "@/content/site";
 import type { Tom } from "@/content/types";
 import { waGeral } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
-/** Menu mobile: Sheet lateral carvão com os três links grandes e o botão de WhatsApp. */
+/** Menu mobile: Sheet lateral carvão com os links grandes e o botão de WhatsApp. */
 export function MobileMenu({ tom }: { tom: Tom }) {
   const [aberto, setAberto] = useState(false);
   const pathname = (usePathname() ?? "/").replace(/(.)\/$/, "$1");
@@ -34,12 +34,12 @@ export function MobileMenu({ tom }: { tom: Tom }) {
         <SheetBody className="gutter pt-6 pb-10">
           <nav aria-label="Principal" className="flex flex-col">
             {nav.map((l) => {
-              const ativo = pathname === l.href;
+              const ativo = rotaAtiva(pathname, l.href);
               return (
                 <Link
                   key={l.href}
                   href={l.href}
-                  aria-current={ativo ? "page" : undefined}
+                  aria-current={pathname === l.href ? "page" : ativo ? "true" : undefined}
                   onClick={() => setAberto(false)}
                   className={cn(
                     "border-cinza/25 border-b py-4 text-[32px] leading-none font-semibold tracking-[-0.02em]",

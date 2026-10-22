@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import { CtaFinal } from "@/components/sections/shared/CtaFinal";
+import { Eyebrow } from "@/components/ui/eyebrow";
 import { Imagem } from "@/components/ui/imagem";
 import { LinkSeta } from "@/components/ui/link-seta";
-import { Ponto } from "@/components/ui/ponto";
 import { Section } from "@/components/ui/section";
 import { seo } from "@/content/site";
 import { sobre } from "@/content/sobre";
-import { cn } from "@/lib/utils";
 import { waGeral } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
@@ -19,95 +18,102 @@ export default function Sobre() {
   const s = sobre;
   return (
     <main data-tom="neutro" className="text-fg bg-(--bg)">
-      <Section tom="neutro" className="gutter pt-[120px] pb-16">
+      <Section tom="neutro" className="gutter pt-[120px] pb-20">
         <div className="container-site">
-          <h1 className="text-[clamp(40px,5.6vw,80px)] leading-[.95] font-bold tracking-[-0.03em]">{s.hero.titulo}</h1>
+          <Eyebrow className="text-fg-2 mb-6">{s.hero.kicker}</Eyebrow>
+          <h1 className="mb-6 text-[clamp(40px,5.6vw,80px)] leading-[.95] font-bold tracking-[-0.03em]">
+            {s.hero.titulo[0]}
+            <br />
+            {s.hero.titulo[1]}
+          </h1>
+          <p className="text-fg-2 max-w-[52ch] text-[20px] leading-[1.6]">{s.hero.lead}</p>
         </div>
       </Section>
 
       <Section tom="neutro" className="gutter pb-[120px]">
-        <div className="container-site">
-          <div className="grid items-start gap-8 md:grid-cols-[112px_minmax(0,1fr)] md:gap-12">
-            <Imagem
-              base={s.diego.foto.base}
-              formatos={["avif", "webp"]}
-              fallback="jpg"
-              alt={s.diego.foto.alt}
-              width={480}
-              height={480}
-              className="h-28 w-28 rounded-full object-cover"
-            />
-            <div className="max-w-[68ch]">
-              <h2 className="mb-2 text-[clamp(32px,3.6vw,48px)] leading-none font-bold tracking-[-0.03em]">
-                {s.diego.nome}
-              </h2>
-              <p className="text-fg-2 mb-6 text-[20px] leading-[1.5]">{s.diego.subtitulo}</p>
-              <p className="mb-8 text-[18px] leading-[1.6]">{s.diego.descricao}</p>
-              <div className="mb-8 flex flex-col gap-5">
-                {s.diego.destaques.map((d) => (
-                  <Ponto key={d.destaque} destaque={d.destaque} texto={d.texto} className="max-w-none text-[17px]" />
-                ))}
-              </div>
-              <div className="flex gap-7">
-                {s.diego.links.map((l) => (
-                  <LinkSeta key={l.href} href={l.href}>
-                    {l.label}
-                  </LinkSeta>
-                ))}
-              </div>
-            </div>
+        <div className="container-site grid gap-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:gap-16">
+          <div>
+            <Eyebrow className="text-fg-2 mb-6">{s.essencia.kicker}</Eyebrow>
+            <h2 className="display-h2">
+              {s.essencia.titulo[0]}
+              <br />
+              {s.essencia.titulo[1]}
+            </h2>
+          </div>
+          <div className="flex flex-col gap-6 md:pt-10">
+            {s.essencia.paragrafos.map((p) => (
+              <p key={p} className="max-w-[58ch] text-[19px] leading-[1.6]">
+                {p}
+              </p>
+            ))}
           </div>
         </div>
       </Section>
 
       <Section tom="carvao" className="gutter py-[120px]">
-        <div className="container-site grid gap-16 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-          <h2 className="display-h2">{s.comoTrabalhamos.titulo}</h2>
-          <div className="flex flex-col gap-10">
-            {s.comoTrabalhamos.principios.map((p) => (
-              <Ponto
-                key={p.destaque}
-                destaque={p.destaque}
-                texto={p.texto}
-                className="max-w-none text-[20px] leading-[1.5]"
-              />
+        <div className="container-site">
+          <Eyebrow className="text-fg-2 mb-6">{s.fundadores.kicker}</Eyebrow>
+          <h2 className="display-h2 mb-16">
+            {s.fundadores.titulo[0]}
+            <br />
+            {s.fundadores.titulo[1]}
+          </h2>
+          <div className="grid gap-16 md:grid-cols-2">
+            {s.fundadores.pessoas.map((p) => (
+              <article key={p.nome} className="border-line border-t pt-10">
+                {"foto" in p && p.foto ? (
+                  <Imagem
+                    base={p.foto.base}
+                    formatos={["avif", "webp"]}
+                    fallback="jpg"
+                    alt={p.foto.alt}
+                    width={480}
+                    height={480}
+                    loading="lazy"
+                    className="mb-8 h-28 w-28 rounded-full object-cover"
+                  />
+                ) : (
+                  <div
+                    aria-hidden="true"
+                    className="border-line text-fg-2 mb-8 flex h-28 w-28 items-center justify-center rounded-full border text-[28px] font-semibold tracking-[-0.02em]"
+                  >
+                    {p.monograma}
+                  </div>
+                )}
+                <Eyebrow className="text-fg-2 mb-3">{p.areas}</Eyebrow>
+                <h3 className="mb-6 text-[clamp(28px,3.2vw,40px)] leading-none font-bold tracking-[-0.03em]">
+                  {p.nome}
+                </h3>
+                {p.paragrafos.map((t, i) => (
+                  <p
+                    key={t}
+                    className={i === 0 ? "mb-5 text-[18px] leading-[1.6]" : "text-fg-2 mb-8 text-[18px] leading-[1.6]"}
+                  >
+                    {t}
+                  </p>
+                ))}
+                <LinkSeta href={p.link.href}>{p.link.label}</LinkSeta>
+              </article>
             ))}
           </div>
         </div>
       </Section>
 
       <Section tom="neutro" className="gutter py-[120px]">
-        <div className="container-site grid gap-16 md:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-          <h2 className="display-h2">{s.metodos.titulo}</h2>
-          <ul className="flex flex-col">
-            {s.metodos.itens.map((m, i) => (
-              <li
-                key={m.nome}
-                className={cn(
-                  "border-line text-fg-2 border-t py-6 text-[18px] leading-[1.6]",
-                  i === s.metodos.itens.length - 1 && "border-b",
-                )}
-              >
-                {"href" in m && m.href ? (
-                  <a
-                    href={m.href}
-                    target="_blank"
-                    rel="noopener"
-                    className="text-fg hover:border-verde border-b border-transparent font-semibold tracking-[.02em]"
-                  >
-                    {m.nome}
-                  </a>
-                ) : (
-                  <strong className="text-fg font-semibold tracking-[.02em]">{m.nome}</strong>
-                )}{" "}
-                — {m.texto}
-              </li>
-            ))}
-          </ul>
+        <div className="container-site grid gap-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:gap-16">
+          <div>
+            <Eyebrow className="text-fg-2 mb-6">{s.conviccao.kicker}</Eyebrow>
+            <h2 className="display-h2">
+              {s.conviccao.titulo[0]}
+              <br />
+              {s.conviccao.titulo[1]}
+            </h2>
+          </div>
+          <p className="max-w-[52ch] text-[20px] leading-[1.6] md:pt-10">{s.conviccao.texto}</p>
         </div>
       </Section>
 
-      <CtaFinal titulo={s.cta.titulo} botao={s.cta.botao} href={waGeral()} origem="sobre" />
+      <CtaFinal cta={s.cta} href={waGeral()} origem="sobre" />
     </main>
   );
 }

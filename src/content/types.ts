@@ -16,31 +16,6 @@ export interface Passo {
   texto: string;
 }
 
-export interface ProgramaResumo {
-  nome: string;
-  quem: string;
-  leva: string;
-  desc: string;
-}
-
-export interface ProgramaDetalhe {
-  num: string;
-  nome: string;
-  quem: string;
-  como: string;
-  leva: string;
-}
-
-export interface Bloco {
-  titulo: string;
-  texto: string;
-}
-
-export interface FaqItem {
-  pergunta: string;
-  resposta: string;
-}
-
 interface BarraExemplo {
   label: string;
   valor: string;
@@ -63,6 +38,34 @@ export interface CardSpotlite {
 export type Ferramenta = "spotlite" | "fluxa";
 
 export interface CtaFinal {
+  kicker?: string;
   titulo: string;
+  apoio?: string;
   botao: string;
+}
+
+/** Uma das sete soluções do RESET 360. Cada uma tem página própria em /solucoes/[slug]. */
+export interface Solucao {
+  slug: string;
+  num: string;
+  nome: string;
+  /** Frase curta: aparece nas listas e como lead da página. */
+  frase: string;
+  /** "O que é": também é a meta description da página. */
+  descricao: string;
+  paraQuem: string;
+  entregas: string[];
+  medimos: string;
+  /** Tecnologia própria que acelera a solução. */
+  ferramenta?: Ferramenta;
+  /** Bloco extra com link (ex.: Agent Factory aponta para o catálogo de agentes). */
+  relacionado?: { titulo: string; texto: string; link: Link };
+}
+
+export type AreaId = "marketing" | "vendas" | "customer-success";
+
+export interface Agente {
+  area: AreaId;
+  nome: string;
+  texto: string;
 }

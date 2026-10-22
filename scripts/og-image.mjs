@@ -6,9 +6,10 @@ import { readFile, writeFile } from "node:fs/promises";
 import { createElement as h } from "react";
 
 const nome = "Reset IA";
-const tagline = "IA sem hype. Resultado na prática.";
 const dominio = "www.resetia.com.br";
-const alt = `${nome} — ${tagline}`;
+// Mesmo título do hero da home (src/content/home.ts).
+const [linha1, linha2] = ["Não é sobre ter mais IA.", "É sobre fazer mais negócio."];
+const alt = `${nome} — ${linha1} ${linha2}`;
 
 const [inter700, inter400, icone] = await Promise.all([
   readFile("node_modules/@fontsource/inter/files/inter-latin-700-normal.woff"),
@@ -16,7 +17,6 @@ const [inter700, inter400, icone] = await Promise.all([
   readFile("public/brand/icone-dark.png"),
 ]);
 const iconeSrc = `data:image/png;base64,${icone.toString("base64")}`;
-const [linha1, linha2] = ["IA sem hype.", "Resultado na prática."];
 
 const arvore = h(
   "div",
@@ -55,13 +55,13 @@ const arvore = h(
         style: {
           display: "flex",
           flexDirection: "column",
-          fontSize: 92,
+          fontSize: 80,
           fontWeight: 700,
           lineHeight: 0.98,
           letterSpacing: "-0.03em",
         },
       },
-      h("span", null, linha1),
+      h("span", { style: { color: "#9CA3AF" } }, linha1),
       h("span", null, linha2),
     ),
     h("div", { style: { width: 140, height: 6, background: "#00E676", marginTop: 36 } }),
@@ -77,7 +77,7 @@ const arvore = h(
         letterSpacing: "0.02em",
       },
     },
-    h("span", null, `${nome} · treinamento de IA para equipes`),
+    h("span", null, `${nome} · IA aplicada a Marketing, Vendas e CS`),
     h("span", null, dominio),
   ),
 );

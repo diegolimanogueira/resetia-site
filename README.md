@@ -8,12 +8,12 @@
 
 **Staging (GitHub Pages, noindex):** https://diegolimanogueira.github.io/resetia-site/ · **Produção:** https://www.resetia.com.br
 
-Site de [www.resetia.com.br](https://www.resetia.com.br): consultoria de inteligência artificial para negócios, com foco em treinamento de equipes. Páginas `/`, `/solucoes`, `/produtos` (Spotlite e Fluxa BPM), `/sobre` e `/privacidade`, um objetivo: gerar conversa no WhatsApp.
+Site de [www.resetia.com.br](https://www.resetia.com.br): RESET 360, IA aplicada a Marketing, Vendas e Customer Success. Páginas `/`, `/solucoes` (portfólio) e `/solucoes/[slug]` (as sete soluções), `/agentes` (catálogo com filtro por área), `/tecnologias` (Spotlite e Fluxa BPM), `/sobre` e `/privacidade`; `/produtos` e `/spotlite` redirecionam para `/tecnologias`. Um objetivo: gerar conversa no WhatsApp.
 
 ## Stack
 
 - **Next.js 16** (App Router, TypeScript) com `output: 'export'`: site 100% estático em `out/`.
-- **Tailwind v4** com tokens do manual de marca; **shadcn/ui** (Base UI) só para o menu mobile e o FAQ.
+- **Tailwind v4** com tokens do manual de marca; **shadcn/ui** (Base UI) só para o menu mobile (Sheet).
 - **motion** + **Lenis** para o movimento (um só loop de rAF), tudo gateado por `prefers-reduced-motion`.
 - **DigitalOcean App Platform** (Static Site, tier gratuito), deploy pelo GitHub Actions só com CI verde.
 - Conteúdo tipado em `src/content/*.ts`. Sem CMS, sem banco, sem API.
@@ -49,18 +49,19 @@ Todo texto do site está em `src/content/`:
 
 | Arquivo          | O quê                                                                                 |
 | ---------------- | ------------------------------------------------------------------------------------- |
-| `site.ts`        | nome, tagline, WhatsApp e mensagens, e-mail, redes, navegação, rodapé, títulos de SEO |
+| `site.ts`        | nome, WhatsApp e mensagens, e-mail, fundadores, navegação, rodapé, títulos de SEO     |
 | `home.ts`        | os oito atos da home                                                                  |
-| `solucoes.ts`    | os cinco programas, FAQ e CTA                                                         |
+| `agentes.ts`     | catálogo dos 30 agentes por área, filtro, aviso                                       |
+| `solucoes.ts`    | as sete soluções (uma página cada), rótulos da página de solução e o CTA final padrão |
 | `spotlite.ts`    | Spotlite: passos, entregas, método, mockup de exemplo, para quem                      |
 | `fluxa.ts`       | Fluxa BPM: entregas, o que vem junto, serviço, exemplo                                |
-| `produtos.ts`    | hero e CTA da página Produtos                                                         |
+| `tecnologias.ts` | resumo das duas ferramentas (home e soluções), hero e CTA da página Tecnologias       |
 | `privacidade.ts` | política de privacidade                                                               |
-| `sobre.ts`       | bio do Diego, princípios, métodos                                                     |
+| `sobre.ts`       | essência, Élida e Diego, convicção                                                    |
 
 Pendências usam a constante `FALTA` (`"[FALTA]"`): `npm run check:falta` lista onde elas aparecem no HTML gerado. Não invente copy: o que falta é fornecido pelo Diego (ver `docs/decisions.md`).
 
-Imagens de marca em `public/brand/`. `npm run images` reotimiza (WebP/AVIF), regenera favicon, ícones PWA, a foto do Sobre e a imagem de compartilhamento (`src/app/opengraph-image.png`). `npm run snapshots:produtos` refaz as capturas dos sites da Spotlite e da Fluxa usadas na página Produtos.
+Imagens de marca em `public/brand/`. `npm run images` reotimiza (WebP/AVIF), regenera favicon, ícones PWA, a foto do Sobre e a imagem de compartilhamento (`src/app/opengraph-image.png`). `npm run snapshots:produtos` refaz as capturas dos sites da Spotlite e da Fluxa usadas na página Tecnologias.
 
 ## Testes e qualidade
 

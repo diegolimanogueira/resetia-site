@@ -1,20 +1,25 @@
 "use client";
 
 import { useEffect, useRef, type ComponentProps } from "react";
+import { cn } from "@/lib/utils";
 import { useMotionOk } from "./MotionProvider";
 
 const GLIFOS = "▮▯/\\|";
 const DURACAO = 900;
 const TROCA = 40;
 
-type Props = { linhas: string[] } & Omit<ComponentProps<"h1">, "children">;
+type Props = {
+  linhas: string[];
+  /** Classe extra por linha (ex.: primeira linha em cinza). */
+  classesLinhas?: string[];
+} & Omit<ComponentProps<"h1">, "children">;
 
 /**
  * Título que "decodifica": cada caractere alterna glifos a cada 40ms antes de assentar na letra certa,
  * da esquerda para a direita, em no máximo 900ms. Uma vez, no carregamento. Único efeito automático do site.
  * O HTML já sai com o texto final (SEO, no-JS, reduced-motion).
  */
-export function Decode({ linhas, ...rest }: Props) {
+export function Decode({ linhas, classesLinhas, ...rest }: Props) {
   const ok = useMotionOk();
   const refs = useRef<Array<HTMLSpanElement | null>>([]);
 
@@ -60,7 +65,7 @@ export function Decode({ linhas, ...rest }: Props) {
         <span
           key={linha}
           data-dl
-          className="block"
+          className={cn("block", classesLinhas?.[i])}
           ref={(el) => {
             refs.current[i] = el;
           }}

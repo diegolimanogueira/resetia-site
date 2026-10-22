@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { home } from "@/content/home";
 
 /** Movimento da home com ponteiro fino e sem reduced-motion (só desktop-chromium). */
 test.describe("home: movimento", () => {
@@ -8,14 +9,14 @@ test.describe("home: movimento", () => {
 
   test("o título decodifica e assenta no texto final em até 1,2 s", async ({ page }) => {
     const h1 = page.getByRole("heading", { level: 1 });
-    await expect(h1).toHaveText("IA sem hype.Resultado na prática.", { timeout: 1_500 });
+    await expect(h1).toHaveText(home.hero.titulo.join(""), { timeout: 1_500 });
   });
 
   test("Lenis e cursor da marca ativos; header some ao descer e volta ao subir", async ({ page }) => {
     await expect(page.locator("html")).toHaveClass(/lenis/);
     await expect(page.locator("html")).toHaveAttribute("data-movimento", "true");
     await expect(page.locator("body")).toHaveAttribute("data-nocursor", "");
-    await page.getByRole("link", { name: "Falar com um especialista" }).first().hover();
+    await page.getByRole("link", { name: home.hero.ctaPrimario }).first().hover();
     await expect(page.locator("[data-cursor='anel']")).toHaveAttribute("data-modo", "link");
 
     await page.mouse.move(700, 450);
@@ -68,17 +69,5 @@ test.describe("home: movimento", () => {
     await expect(card.locator("[data-nota]")).toHaveText("3,6", { timeout: 3_000 });
     await expect(card.locator("[data-horas]")).toContainText("4.200");
     await expect(card.locator("[data-ativ]")).toContainText("9");
-  });
-
-  test("hover numa linha de programa revela a descrição", async ({ page }) => {
-    const linha = page.getByRole("listitem").filter({ hasText: "Letramento em IA" }).first();
-    await linha.scrollIntoViewIfNeeded();
-    // O <p> mantém a altura; quem colapsa é o wrapper overflow-hidden (grid-rows 0fr → 1fr).
-    const descricao = linha.getByText(/Fundamentos e prompt/);
-    const wrapper = descricao.locator("xpath=..");
-    expect((await wrapper.boundingBox())?.height ?? 0).toBeLessThan(2);
-    await linha.hover();
-    await expect.poll(async () => (await wrapper.boundingBox())?.height ?? 0).toBeGreaterThan(20);
-    await expect(descricao).toBeInViewport();
   });
 });

@@ -1,15 +1,21 @@
 import { MarcaFerramenta } from "@/components/brand/MarcaFerramenta";
+import { Eyebrow } from "@/components/ui/eyebrow";
 import { Imagem } from "@/components/ui/imagem";
-import { LinkSeta } from "@/components/ui/link-seta";
 import { Section } from "@/components/ui/section";
 import { home } from "@/content/home";
 import { cn } from "@/lib/utils";
 
-/** Ato 4 — Como funciona (neutro). Bússola fixa à esquerda, três passos à direita. */
-export function ComoFunciona() {
-  const s = home.comoFunciona;
+/** Ato 3 — Método (neutro). Bússola fixa à esquerda, as quatro etapas do RESET 360 à direita. */
+export function Metodo() {
+  const s = home.metodo;
   return (
-    <Section tom="neutro" data-ato="como-funciona" data-stick className="gutter sticky top-0 z-0 pt-[140px] pb-[120px]">
+    <Section
+      tom="neutro"
+      id="metodo"
+      data-ato="metodo"
+      data-stick
+      className="gutter sticky top-0 z-0 pt-[140px] pb-[120px]"
+    >
       <div className="container-site grid items-stretch gap-16 md:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">
         <div className="bg-carvao relative aspect-[2/3] max-h-[520px] min-h-[320px] self-start overflow-hidden md:sticky md:top-[120px]">
           {/* [FALTA] bússola em alta resolução: original tem 215×341 */}
@@ -23,11 +29,13 @@ export function ComoFunciona() {
           />
         </div>
         <div>
-          <h2 className="display-h2 mb-14">
+          <Eyebrow className="text-fg-2 mb-6">{s.kicker}</Eyebrow>
+          <h2 className="display-h2 mb-6">
             {s.titulo[0]}
             <br />
             {s.titulo[1]}
           </h2>
+          <p className="text-fg-2 mb-14 max-w-[52ch] text-[20px] leading-[1.6]">{s.lead}</p>
           <ol className="flex flex-col">
             {s.passos.map((p, i) => (
               <li
@@ -46,6 +54,7 @@ export function ComoFunciona() {
                   {p.numero}
                 </span>
                 <div>
+                  <Eyebrow className="text-fg-2 mb-2">{p.etapa}</Eyebrow>
                   <h3 className="mb-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[24px] leading-[1.1] font-semibold tracking-[-0.02em]">
                     {p.titulo}
                     {p.ferramenta ? <MarcaFerramenta qual={p.ferramenta} className="text-[15px]" /> : null}
@@ -55,9 +64,6 @@ export function ComoFunciona() {
               </li>
             ))}
           </ol>
-          <div className="mt-10">
-            <LinkSeta href={s.link.href}>{s.link.label}</LinkSeta>
-          </div>
         </div>
       </div>
     </Section>

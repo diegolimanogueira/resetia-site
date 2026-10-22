@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { site } from "@/content/site";
-import { waGeral, waSpotlite, waUrl } from "@/lib/whatsapp";
+import { waGeral, waSolucao, waSpotlite, waUrl } from "@/lib/whatsapp";
 
 describe("waUrl", () => {
   it("aponta para o número da Reset IA com a mensagem geral codificada", () => {
@@ -12,6 +12,11 @@ describe("waUrl", () => {
   it("usa a mensagem do Spotlite na variante do diagnóstico", () => {
     expect(new URL(waSpotlite()).searchParams.get("text")).toBe(site.mensagens.spotlite);
     expect(waSpotlite()).not.toBe(waGeral());
+  });
+
+  it("cada solução tem mensagem própria com o nome dela", () => {
+    expect(new URL(waSolucao("RESET Scan")).searchParams.get("text")).toBe("Olá! Quero conhecer o RESET Scan.");
+    expect(waSolucao("RESET Scan")).not.toBe(waGeral());
   });
 
   it("codifica acentos e espaços (sem caracteres crus na URL)", () => {

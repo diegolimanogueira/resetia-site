@@ -66,6 +66,17 @@ describe("Decode", () => {
     vi.useRealTimers();
   });
 
+  it("aplica a classe extra só na linha indicada", () => {
+    const { container } = render(
+      <MotionProvider movimento={false}>
+        <Decode linhas={["Linha um.", "Linha dois."]} classesLinhas={["text-cinza"]} />
+      </MotionProvider>,
+    );
+    const linhas = container.querySelectorAll("h1 > span");
+    expect(linhas[0].className).toContain("text-cinza");
+    expect(linhas[1].className).not.toContain("text-cinza");
+  });
+
   it("sem movimento não altera o texto", () => {
     vi.useFakeTimers();
     const { container } = render(

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { ComoFunciona } from "@/components/sections/home/ComoFunciona";
-import { Depois } from "@/components/sections/home/Depois";
+import { Areas } from "@/components/sections/home/Areas";
 import { Fecho } from "@/components/sections/home/Fecho";
 import { Hero } from "@/components/sections/home/Hero";
+import { Metodo } from "@/components/sections/home/Metodo";
 import { Problema } from "@/components/sections/home/Problema";
-import { Produtos } from "@/components/sections/home/Produtos";
-import { Treinamentos } from "@/components/sections/home/Treinamentos";
+import { QuemSomos } from "@/components/sections/home/QuemSomos";
+import { Solucoes } from "@/components/sections/home/Solucoes";
+import { Tecnologias } from "@/components/sections/home/Tecnologias";
 import { WipeStack } from "@/components/motion/WipeStack";
 import { seo } from "@/content/site";
 
@@ -21,10 +22,11 @@ export default function Home() {
       <WipeStack>
         <Hero />
         <Problema />
-        <ComoFunciona />
-        <Treinamentos />
-        <Produtos />
-        <Depois />
+        <Metodo />
+        <Solucoes />
+        <Tecnologias />
+        <Areas />
+        <QuemSomos />
         <Fecho />
       </WipeStack>
     </main>

@@ -18,7 +18,7 @@ Componente `static_site` (não Web Service Node). Tier gratuito: até 3 apps est
 
 `motion` (ex-Framer Motion, import de `motion/react`) para scroll, spring e inView. Lenis com `autoRaf: false`, avançado pelo `frame` do Motion, para não ter dois loops de rAF. Tudo gateado por `useMotionOk()` (`MotionProvider`): `prefers-reduced-motion` ou `movimento=false` deixam o site estático.
 
-## 2026-10-18 · shadcn/ui só para Sheet e Accordion
+## 2026-10-18 · shadcn/ui só para Sheet e Accordion (Accordion saiu em 22/10, ver abaixo)
 
 CLI v4 com Base UI (primitivo padrão desde jul/2026). Só `sheet` (menu mobile) e `accordion` (FAQ): são os dois lugares onde foco, aria e teclado precisam estar certos. O botão pill é componente próprio (`Botao`): dois estilos, comportamento magnético na Fase 2; o sistema de variantes do shadcn não acrescentaria nada.
 
@@ -61,3 +61,15 @@ As ferramentas têm identidade própria (Spotlite: ponto laranja `#FF7A45` sobre
 ## 2026-10-18 · Deploy gated pelo CI
 
 `deploy_on_push: false` no app spec. GitHub Actions faz o deploy só se o CI (lint, tipos, unit, build, E2E, axe, Lighthouse) passar na `main`. Visual regression roda só no CI (Linux); baselines geradas na imagem Docker oficial do Playwright.
+
+## 2026-10-22 · Conteúdo RESET 360
+
+A pedido do Diego, o conteúdo do site foi trocado pelo estudo `reset360-site.zip` (21/10/2026). O layout, os tokens e o movimento continuam os mesmos; só a copy e a estrutura de páginas mudaram. Posicionamento: IA aplicada a Marketing, Vendas e Customer Success ("Não é sobre ter mais IA. É sobre fazer mais negócio."), com Élida Almeida (negócio) e Diego Nogueira (tecnologia) como sócios.
+
+- **Rotas.** `/solucoes` lista as sete soluções; cada uma tem página em `/solucoes/[slug]` (`generateStaticParams`, `dynamicParams = false`). `/agentes` é o catálogo de 30 agentes com filtro por área (`?area=marketing|vendas|customer-success`, lido com `useSearchParams` dentro de `Suspense`; o HTML estático sai com "Todos"). `/produtos` virou `/tecnologias`; `/produtos` e `/spotlite` redirecionam no cliente.
+- **Home.** Hero (porta) → problema → método em quatro etapas (bússola presa) → sete soluções → tecnologias próprias (Spotlite e Fluxa, presas) → áreas → quem está por trás → fecho. Continua com três seções presas e o wipe entre elas.
+- **Rótulos de seção.** O estudo usa um rótulo (eyebrow) acima de cada título; foram mantidos, no estilo `eyebrow` que já existia.
+- **WhatsApp.** Mensagem geral do estudo ("Quero conhecer as soluções da Reset 360"); cada solução tem mensagem própria com o nome dela (`waSolucao`), para o Diego saber de onde veio o contato.
+- **Saíram:** treinamentos (cinco programas), "Depois do treinamento", FAQ e o Accordion, princípios e métodos do Sobre (CLARO, PACEF), a linha da Unimed e o Instagram pessoal. O microcopy "WhatsApp direto, sem formulário" saiu porque o diagnóstico aberto com formulário vem aí.
+- **Ficaram:** a faixa de prova social (equipes treinadas em IEL, Fortes Tecnologia, FortesPay e Longevidade Saudável), a página detalhada das ferramentas, mockups e capturas.
+- **Pendências do Diego** (comentadas no código, sem `[FALTA]` visível): confirmar os LinkedIns de Élida e Diego (vieram do estudo); foto autorizada da Élida (até lá, monograma "ÉA" no mesmo círculo da foto do Diego).

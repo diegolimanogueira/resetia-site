@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import { seo, site } from "@/content/site";
+import { nav, seo, site } from "@/content/site";
+import { solucoes } from "@/content/solucoes";
 import { rotas } from "./rotas";
 
 const local = (url: string, base: string) => url.replace(site.dominio, base.replace(/\/$/, ""));
@@ -23,7 +24,7 @@ for (const rota of rotas) {
   });
 }
 
-test("JSON-LD Organization com nome, URL, logo e redes", async ({ page }) => {
+test("JSON-LD Organization com nome, URL, logo, fundadores e ferramentas", async ({ page }) => {
   await page.goto("/");
   const json = await page.locator("script[type='application/ld+json']").first().textContent();
   const dados = JSON.parse(json!);
@@ -31,7 +32,11 @@ test("JSON-LD Organization com nome, URL, logo e redes", async ({ page }) => {
   expect(dados.name).toBe(site.nome);
   expect(dados.url).toBe(`${site.dominio}/`);
   expect(dados.logo).toMatch(/^https:\/\/.*logo/);
-  expect(dados.sameAs).toEqual(expect.arrayContaining([site.redes.instagram, site.ferramentas.spotlite]));
+  expect(dados.sameAs).toEqual(expect.arrayContaining([site.ferramentas.spotlite, site.ferramentas.fluxa]));
+  expect(dados.founder.map((f: { name: string }) => f.name)).toEqual([
+    site.fundadores.elida.nome,
+    site.fundadores.diego.nome,
+  ]);
 });
 
 test("sitemap, robots e manifest", async ({ request, baseURL }) => {
@@ -39,7 +44,10 @@ test("sitemap, robots e manifest", async ({ request, baseURL }) => {
   expect(sitemap.status()).toBe(200);
   const xml = await sitemap.text();
   for (const rota of rotas) expect(xml).toContain(`<loc>${site.dominio}${rota.caminho}</loc>`);
-  expect(xml.match(/<url>/g)).toHaveLength(rotas.length);
+  for (const s of solucoes.lista) expect(xml).toContain(`<loc>${site.dominio}/solucoes/${s.slug}/</loc>`);
+  // home + navegação + sete soluções + privacidade; rotas antigas (/produtos, /spotlite) ficam fora.
+  expect(xml.match(/<url>/g)).toHaveLength(2 + nav.length + solucoes.lista.length);
+  expect(xml).not.toContain("/produtos/");
 
   const robots = await request.get("/robots.txt");
   expect(await robots.text()).toContain(`Sitemap: ${site.dominio}/sitemap.xml`);
