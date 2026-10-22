@@ -16,6 +16,7 @@ import { fluxa } from "@/content/fluxa";
 import { seo, site } from "@/content/site";
 import { spotlite } from "@/content/spotlite";
 import { ferramentas, tecnologias } from "@/content/tecnologias";
+import { diagnosticoUrl } from "@/lib/diagnostico";
 import { cn } from "@/lib/utils";
 import { waFluxa, waSpotlite } from "@/lib/whatsapp";
 
@@ -138,7 +139,8 @@ export default function Tecnologias() {
                   </li>
                 ))}
               </ul>
-              <p className="text-cinza mt-6 text-[16px]">{sp.paraQuem.nota}</p>
+              <p className="text-cinza mt-6 mb-4 text-[16px]">{sp.paraQuem.nota}</p>
+              <LinkSeta href={diagnosticoUrl("tecnologias")}>{sp.paraQuem.teste}</LinkSeta>
             </div>
           </div>
         </div>

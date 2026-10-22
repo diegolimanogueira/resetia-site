@@ -8,7 +8,7 @@ import { Glow } from "@/components/ui/glow";
 import { Section } from "@/components/ui/section";
 import { home } from "@/content/home";
 import { asset } from "@/lib/asset";
-import { waGeral } from "@/lib/whatsapp";
+import { diagnosticoUrl } from "@/lib/diagnostico";
 
 /** Ato 1 (hero) + Ato 2 (faixa de prova), na mesma seção carvão. */
 export function Hero() {
@@ -40,13 +40,14 @@ export function Hero() {
           />
           <p className="text-cinza mb-10 max-w-[560px] text-[20px] leading-[1.6]">{h.lead}</p>
           <div className="flex flex-wrap gap-3.5">
-            <Botao href={waGeral()} origem="hero">
+            <Botao href={diagnosticoUrl("hero")} origem="hero">
               {h.ctaPrimario}
             </Botao>
             <Botao href={h.ctaSecundario.href} variante="secundario">
               {h.ctaSecundario.label}
             </Botao>
           </div>
+          <p className="text-cinza mt-4 text-[14px]">{h.notaCta}</p>
         </div>
         <div className="relative h-full min-h-[420px] overflow-hidden">
           <picture>

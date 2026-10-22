@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { site } from "@/content/site";
 import { solucoes } from "@/content/solucoes";
+import { diagnosticoUrl } from "@/lib/diagnostico";
 import { waFluxa, waGeral, waSolucao, waSpotlite } from "@/lib/whatsapp";
 import { rotas } from "./rotas";
 
@@ -56,9 +57,24 @@ test.describe("CTAs de WhatsApp", () => {
     await expect(page.locator("a[data-cta='home-fluxa-site']")).toHaveAttribute("href", site.ferramentas.fluxa);
   });
 
+  test("o teste de IA da Spotlite abre em nova aba, com a origem de cada botão", async ({ page }) => {
+    await page.goto("/");
+    for (const [cta, origem] of [
+      ["hero", "hero"],
+      ["home-diagnostico", "home"],
+    ]) {
+      const a = page.locator(`a[data-cta='${cta}']`);
+      await expect(a).toHaveAttribute("href", diagnosticoUrl(origem));
+      await expect(a).toHaveAttribute("target", "_blank");
+      expect(await a.getAttribute("rel")).toContain("noopener");
+    }
+    await page.goto("/tecnologias/");
+    await expect(page.locator(`a[href='${diagnosticoUrl("tecnologias")}']`)).toHaveCount(1);
+  });
+
   test("a mensagem decodificada é a do conteúdo", async ({ page }) => {
     await page.goto("/");
-    const href = (await page.locator("a[data-cta='hero']").getAttribute("href"))!;
+    const href = (await page.locator("a[data-cta='fecho']").getAttribute("href"))!;
     expect(new URL(href).searchParams.get("text")).toBe(site.mensagens.geral);
   });
 });

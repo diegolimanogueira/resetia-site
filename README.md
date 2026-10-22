@@ -41,7 +41,7 @@ Copie `.env.example` para `.env.local`.
 | `NEXT_PUBLIC_MOVIMENTO`          | `false` desliga todo o movimento (depuração, prints determinísticos) |
 | `NEXT_PUBLIC_SITE_URL`           | URL pública; usada pelo deploy e pelo smoke                          |
 
-O único evento de analytics que importa é `cta_whatsapp`, disparado em todo clique em link `wa.me` com a origem do botão (`hero`, `fecho`, `spotlite`…).
+Os eventos de analytics que importam são `cta_whatsapp` (todo clique em link `wa.me`) e `cta_diagnostico` (todo clique no teste de IA da Spotlite), com a origem do botão (`hero`, `fecho`, `home-diagnostico`…). O link do teste leva `utm_source=resetia.<origem>`, que a Spotlite grava no lead.
 
 ## Trocar conteúdo
 

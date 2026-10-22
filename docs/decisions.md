@@ -73,3 +73,12 @@ A pedido do Diego, o conteúdo do site foi trocado pelo estudo `reset360-site.zi
 - **Saíram:** treinamentos (cinco programas), "Depois do treinamento", FAQ e o Accordion, princípios e métodos do Sobre (CLARO, PACEF), a linha da Unimed e o Instagram pessoal. O microcopy "WhatsApp direto, sem formulário" saiu porque o diagnóstico aberto com formulário vem aí.
 - **Ficaram:** a faixa de prova social (equipes treinadas em IEL, Fortes Tecnologia, FortesPay e Longevidade Saudável), a página detalhada das ferramentas, mockups e capturas.
 - **Pendências do Diego** (comentadas no código, sem `[FALTA]` visível): confirmar os LinkedIns de Élida e Diego (vieram do estudo); foto autorizada da Élida (até lá, monograma "ÉA" no mesmo círculo da foto do Diego).
+
+## 2026-10-22 · Diagnóstico aberto na Spotlite
+
+O diagnóstico aberto com IA fica na Spotlite, não no site: o site é estático e a Spotlite já tem o funil (`spotlite.com.br/descoberta/ia-negocios`, "Teste de IA para negócios": começa sem cadastro e pede nome, e-mail e WhatsApp para mostrar a devolutiva). O site só aponta para lá, então a política de privacidade do site continua valendo como está (sem formulário próprio; a Spotlite tem a sua).
+
+- **Onde aparece:** botão principal do hero ("Descobrir oportunidades", com a nota "Teste de IA para negócios na Spotlite, em 5 a 7 minutos"), seção própria na home logo depois do problema (carvão, bloco Spotlite com glow) e link na página Tecnologias, no lugar do antigo "Em breve". O WhatsApp continua no header, na barra do celular, no fecho, nas soluções e no rodapé.
+- **Origem do lead:** `diagnosticoUrl(origem)` acrescenta `utm_source=resetia.<origem>`; a Spotlite grava a origem no contato (minúsculas, `[a-z0-9][a-z0-9_.-]`).
+- **Analytics:** clique no teste vira `cta_diagnostico`, ao lado de `cta_whatsapp`.
+- **Copy:** a da seção é a do próprio teste (duração, o que a pessoa recebe, etapas, aviso de diagnóstico educacional). Se o teste mudar de endereço ou de texto, atualizar `site.ferramentas.spotliteTeste` e `home.diagnostico`.

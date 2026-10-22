@@ -136,7 +136,8 @@ export const spotlite = {
       "Empresa que vai contratar treinamento e quer medir retorno, não ementa genérica.",
       "Área que já treinou e quer provar o que mudou, em horas e reais.",
     ],
-    nota: "Em breve: diagnóstico individual gratuito, direto em spotlite.com.br.",
+    nota: "Teste de IA para negócios aberto, direto na Spotlite: em 5 a 7 minutos, o seu perfil de aplicação de IA e três próximos passos.",
+    teste: "Fazer o teste",
   },
   cta: {
     titulo: "Comece pelo diagnóstico.",

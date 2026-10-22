@@ -30,6 +30,8 @@ export const site = {
     fluxa: "https://www.fluxabpm.com.br/",
     fluxaGratis: "https://www.fluxabpm.com.br/signup",
     fluxaPrivacidade: "https://www.fluxabpm.com.br/privacidade",
+    /** Teste aberto de IA para negócios. A pessoa responde e, no fim, deixa nome, e-mail e WhatsApp. */
+    spotliteTeste: "https://www.spotlite.com.br/descoberta/ia-negocios",
   },
   cidades: "Fortaleza e Campinas, Brasil",
   ano: 2026,

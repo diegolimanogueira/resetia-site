@@ -46,7 +46,7 @@ Checar, nesta ordem, em Apps → resetia-site → Settings → componente:
 
 5. **Uptime Check.** Painel → Monitoring → Uptime → Create Check: HTTPS `https://www.resetia.com.br`, regiões US-East e EU, alerta por e-mail (1 check é gratuito).
 6. **Google Search Console.** Adicionar a propriedade `www.resetia.com.br`, verificar por DNS ou arquivo, enviar `https://www.resetia.com.br/sitemap.xml`.
-7. **Analytics.** Criar o site no Umami (cloud.umami.is) ou a propriedade GA4, preencher `NEXT_PUBLIC_ANALYTICS_ID` em `.do/app.yaml` (e `NEXT_PUBLIC_ANALYTICS_PROVIDER=ga4` se for GA4). O evento `cta_whatsapp` aparece com a origem do botão (`hero`, `fecho`, `spotlite`…).
+7. **Analytics.** Criar o site no Umami (cloud.umami.is) ou a propriedade GA4, preencher `NEXT_PUBLIC_ANALYTICS_ID` em `.do/app.yaml` (e `NEXT_PUBLIC_ANALYTICS_PROVIDER=ga4` se for GA4). Os eventos `cta_whatsapp` e `cta_diagnostico` aparecem com a origem do botão (`hero`, `fecho`, `home-diagnostico`…).
 
 ## Operação
 

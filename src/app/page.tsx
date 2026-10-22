@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Areas } from "@/components/sections/home/Areas";
+import { Diagnostico } from "@/components/sections/home/Diagnostico";
 import { Fecho } from "@/components/sections/home/Fecho";
 import { Hero } from "@/components/sections/home/Hero";
 import { Metodo } from "@/components/sections/home/Metodo";
@@ -22,6 +23,7 @@ export default function Home() {
       <WipeStack>
         <Hero />
         <Problema />
+        <Diagnostico />
         <Metodo />
         <Solucoes />
         <Tecnologias />

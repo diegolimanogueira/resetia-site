@@ -7,7 +7,7 @@ import { analytics, track } from "@/lib/analytics";
 
 /**
  * Carrega o script de analytics escolhido por env e registra os eventos do site:
- * cliques em CTAs de WhatsApp (`data-cta`) e Web Vitals. Sem env, não renderiza nada.
+ * cliques em CTAs de WhatsApp e no teste da Spotlite (com `data-cta`) e Web Vitals. Sem env, não renderiza nada.
  */
 export function Analytics() {
   useReportWebVitals((m) => {
@@ -21,9 +21,13 @@ export function Analytics() {
   useEffect(() => {
     if (!analytics.ativo) return;
     const aoClicar = (e: MouseEvent) => {
-      const alvo = e.target instanceof Element ? e.target.closest<HTMLAnchorElement>("a[href*='wa.me']") : null;
+      const alvo =
+        e.target instanceof Element
+          ? e.target.closest<HTMLAnchorElement>("a[href*='wa.me'], a[href*='spotlite.com.br/descoberta/']")
+          : null;
       if (!alvo) return;
-      track("cta_whatsapp", { origem: alvo.dataset.cta ?? "link", pagina: window.location.pathname });
+      const evento = alvo.href.includes("wa.me") ? "cta_whatsapp" : "cta_diagnostico";
+      track(evento, { origem: alvo.dataset.cta ?? "link", pagina: window.location.pathname });
     };
     document.addEventListener("click", aoClicar, { capture: true });
     return () => document.removeEventListener("click", aoClicar, { capture: true });

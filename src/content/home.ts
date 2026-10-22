@@ -8,7 +8,9 @@ export const home = {
     eyebrow: "Reset 360 · Marketing, Vendas & CS",
     titulo: ["Não é sobre ter mais IA.", "É sobre fazer mais negócio."],
     lead: "Conectamos pessoas, processos e agentes inteligentes para transformar a operação de receita. Menos ferramentas desperdiçadas. Mais times preparados. Mais valor para o seu cliente.",
+    /** Leva ao teste da Spotlite (diagnosticoUrl). */
     ctaPrimario: "Descobrir oportunidades",
+    notaCta: "Teste de IA para negócios na Spotlite, em 5 a 7 minutos.",
     ctaSecundario: { label: "Explorar o Reset 360", href: "#solucoes" } satisfies Link,
     manifesto: ["Marketing", "Vendas", "Customer Success"],
     imagemAlt: "Corredor escuro com uma porta aberta de onde sai luz verde",
@@ -32,6 +34,22 @@ export const home = {
       { numero: "02", texto: "Processos mais inteligentes" },
       { numero: "03", texto: "Negócios mais rentáveis" },
     ],
+  },
+  /** Texto do próprio teste em spotlite.com.br/descoberta/ia-negocios. */
+  diagnostico: {
+    kicker: "Diagnóstico aberto com IA",
+    titulo: ["Teste de IA", "para negócios."],
+    lead: "Em 5 a 7 minutos, você descobre o seu perfil de aplicação de IA, a sua nota nas competências de IA para negócios e três próximos passos para o seu trabalho.",
+    paraQuem: "Para empresários e líderes, colaboradores de empresa e profissionais individuais.",
+    etapas: [
+      { numero: "01", texto: "Sobre você" },
+      { numero: "02", texto: "Preferências" },
+      { numero: "03", texto: "Situações" },
+      { numero: "04", texto: "Seu resultado" },
+    ],
+    cta: "Fazer o teste",
+    nota: "Começa sem cadastro; no fim, você informa nome, e-mail e WhatsApp para ver a devolutiva.",
+    aviso: "Diagnóstico educacional: orienta o seu desenvolvimento e não é certificação.",
   },
   metodo: {
     kicker: "Nossa forma de trabalhar",
