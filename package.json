@@ -26,7 +26,7 @@
     "prepare": "husky || true",
     "e2e:baselines": "docker run --rm -v \"$PWD\":/work -v /work/node_modules -w /work -e CI=1 mcr.microsoft.com/playwright:v1.64.1-noble bash -lc \"npm ci && npx playwright test --project=reduced-motion --project=reduced-motion-mobile tests/e2e/visual.spec.ts --update-snapshots\"",
     "deploy:do": "bash scripts/deploy-do.sh",
-    "check:links": "lychee --offline --root-dir \"$PWD/out\" --include-fragments --exclude \"\\\\?\" --no-progress \"out/**/*.html\"",
+    "check:links": "lychee --offline --root-dir \"$PWD/out\" --index-files index.html --include-fragments --exclude \"\\\\?\" --no-progress \"out/**/*.html\"",
     "snapshots:produtos": "node scripts/site-snapshots.mjs"
   },
   "dependencies": {
