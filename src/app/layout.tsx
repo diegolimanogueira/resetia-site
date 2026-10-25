@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { Analytics } from "@/components/analytics/Analytics";
@@ -9,9 +9,12 @@ import { seo, site } from "@/content/site";
 import { STAGING } from "@/lib/asset";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+// Inter variável (subconjunto latino, OFL) no repositório: o build não depende do Google Fonts.
+// No runner do GitHub o Google passou a servir URLs "l/font?kit=…&…" que o next/font/google
+// do Turbopack não resolve, e o build quebrava.
+const inter = localFont({
+  src: "./fonts/inter-latin.woff2",
+  weight: "400 700",
   variable: "--font-inter",
   display: "swap",
 });

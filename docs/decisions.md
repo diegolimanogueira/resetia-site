@@ -94,3 +94,7 @@ A pedido do Diego, o site passou a seguir o protótipo `design/reset360/` (index
 - **Ficaram do site anterior** (escolha do Diego): o teste de IA da Spotlite como bloco da home, depois de Tecnologias; a foto do Diego no Sobre; a barra de WhatsApp no celular; a política de privacidade.
 - **Saíram por não estarem no protótipo:** a faixa de prova social, os selos de ferramenta nos passos do Método e o campo "Tecnologia própria" nas soluções, o mockup da Spotlite, as capturas dos sites e o e-mail no rodapé. O CTA principal do hero volta a abrir o WhatsApp, como no protótipo.
 - **Ajustes ao protótipo:** entregas de cada solução em lista (no protótipo, uma frase com ";"); mensagem de WhatsApp com o nome da solução nas páginas de produto; sem as legendas "FOTO DE…" e o aviso de fotos provisórias, que eram notas do protótipo.
+
+## 2026-10-25 · Inter hospedada no repositório
+
+O build no runner do GitHub passou a quebrar no `next/font/google` (Turbopack: "next/font/google queries have exactly one entry"): o Google Fonts começou a responder ao runner com URLs `fonts.gstatic.com/l/font?kit=…&…`, que o Turbopack não resolve. Local, em container Linux e na DigitalOcean o build passava. A Inter variável (subconjunto latino, o mesmo arquivo que o Google entregava, 48 KB) agora fica em `src/app/fonts/` com a licença OFL e entra por `next/font/local`. O build não depende mais de rede para fontes, e o site carrega um arquivo de fonte em vez de seis.
