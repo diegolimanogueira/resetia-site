@@ -1,5 +1,7 @@
 # Handoff: Site Reset IA
 
+> **Histórico.** Desde 25/10/2026 o layout segue o protótipo `design/reset360/` (ver `docs/decisions.md`). Este handoff fica como registro.
+
 ## Overview
 Site institucional da Reset IA (treinamento de IA para equipes). Quatro páginas: Home, Soluções, Spotlite, Sobre. Objetivo: converter gestores em uma conversa de 30 minutos via WhatsApp. Idioma: português do Brasil.
 

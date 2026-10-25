@@ -1,0 +1,14 @@
+RESET 360 — site estático responsivo
+
+Abra index.html no navegador. Para publicar, envie todos os arquivos desta pasta a um serviço de hospedagem estática.
+
+Páginas: home, sobre, catálogo de agentes e sete páginas individuais de soluções.
+
+ANTES DE PUBLICAR:
+1. Substituir os monogramas ÉA e DN por fotos autorizadas dos fundadores.
+2. Revisar biografias, títulos, políticas de privacidade e informações legais.
+3. Confirmar links, telefone de WhatsApp e marca registrada.
+4. Conectar analytics, domínio, formulário de contato e consentimento, se necessário.
+5. Validar promessas comerciais e integrações dos agentes caso a caso.
+
+Identidade visual inspirada no site resetia.com.br consultado em outubro/2026; não utiliza imagens, arquivos ou código proprietários do site original.
