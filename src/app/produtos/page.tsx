@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import { PaginaMovida } from "@/components/sections/shared/PaginaMovida";
-import { movidas, seo } from "@/content/site";
+import { movidas } from "@/content/site";
 
 export const metadata: Metadata = {
-  title: seo.produtos.title,
-  description: seo.produtos.description,
+  title: `${movidas.tecnologias.titulo} | Reset IA`,
   robots: { index: false, follow: true },
-  alternates: { canonical: "/tecnologias/" },
+  alternates: { canonical: "/" },
 };
 
-/** Rota antiga. A página Produtos virou Tecnologias. */
+/** Rota antiga (Produtos → Tecnologias → seção #tecnologias da home). */
 export default function ProdutosAntiga() {
-  return <PaginaMovida titulo={movidas.produtos.titulo} link={movidas.produtos.link} />;
+  return <PaginaMovida titulo={movidas.tecnologias.titulo} link={movidas.tecnologias.link} />;
 }

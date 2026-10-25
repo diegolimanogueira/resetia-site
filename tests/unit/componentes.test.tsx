@@ -1,14 +1,11 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
-import { MotionProvider } from "@/components/motion/MotionProvider";
-import { Decode } from "@/components/motion/Decode";
-import { SpotliteCard } from "@/components/sections/shared/SpotliteCard";
+import { describe, expect, it } from "vitest";
 import { Botao } from "@/components/ui/botao";
-import { cardExemplo } from "@/content/spotlite";
+import { Linhas, semMarcas } from "@/components/ui/linhas";
 import { waGeral } from "@/lib/whatsapp";
 
 describe("Botao", () => {
-  it("link externo abre em nova aba com rel=noopener e marca a origem", () => {
+  it("link externo abre em nova aba com rel=noopener, marca a origem e ganha a seta ↗", () => {
     render(
       <Botao href={waGeral()} origem="hero">
         Falar
@@ -19,73 +16,39 @@ describe("Botao", () => {
     expect(a.getAttribute("rel")).toContain("noopener");
     expect(a.getAttribute("data-cta")).toBe("hero");
     expect(a.getAttribute("href")).toBe(waGeral());
+    expect(a.textContent).toBe("Falar↗");
   });
 
-  it("âncora interna vira <a> simples (para o Lenis tratar) e rota interna vira Link", () => {
+  it("âncora interna vira <a> simples e rota interna vira Link, sem seta por padrão", () => {
     render(
       <>
-        <Botao href="#como-funciona" variante="secundario">
+        <Botao href="#solucoes" variante="secundario" seta="↓">
           Ver
         </Botao>
-        <Botao href="/spotlite" magnetico={false}>
-          Spotlite
-        </Botao>
+        <Botao href="/agentes">Agentes</Botao>
       </>,
     );
-    expect(screen.getByRole("link", { name: "Ver" }).getAttribute("href")).toBe("#como-funciona");
-    expect(screen.getByRole("link", { name: "Spotlite" }).getAttribute("href")).toBe("/spotlite");
+    expect(screen.getByRole("link", { name: "Ver" }).getAttribute("href")).toBe("#solucoes");
+    expect(screen.getByRole("link", { name: "Ver" }).textContent).toBe("Ver↓");
+    expect(screen.getByRole("link", { name: "Agentes" }).getAttribute("href")).toBe("/agentes");
+    expect(screen.getByRole("link", { name: "Agentes" }).textContent).toBe("Agentes");
   });
 });
 
-describe("SpotliteCard", () => {
-  it("sem movimento mostra os valores finais de imediato", () => {
-    render(
-      <MotionProvider movimento={false}>
-        <SpotliteCard card={cardExemplo} />
-      </MotionProvider>,
-    );
-    expect(screen.getByText("3,6")).toBeTruthy();
-    expect(screen.getByText(/4\.200/)).toBeTruthy();
-    expect(screen.getByText(/^9/)).toBeTruthy();
-    expect(screen.getByText(/exemplo/)).toBeTruthy();
-  });
-});
-
-describe("Decode", () => {
-  it("renderiza o texto final no HTML e volta a ele ao terminar a animação", () => {
-    vi.useFakeTimers();
+describe("Linhas", () => {
+  it("quebra em linhas, põe *trechos* em <em> e mantém as palavras separadas no texto", () => {
     const { container } = render(
-      <MotionProvider>
-        <Decode linhas={["IA sem hype.", "Resultado na prática."]} />
-      </MotionProvider>,
+      <h2>
+        <Linhas itens={["Uma visão *360°.*", "Um caminho claro."]} />
+      </h2>,
     );
-    const h1 = container.querySelector("h1")!;
-    expect(h1.textContent).toBe("IA sem hype.Resultado na prática.");
-    vi.advanceTimersByTime(1500);
-    expect(h1.textContent).toBe("IA sem hype.Resultado na prática.");
-    vi.useRealTimers();
+    const h2 = container.querySelector("h2")!;
+    expect(h2.querySelectorAll("br")).toHaveLength(1);
+    expect(h2.querySelector("em")!.textContent).toBe("360°.");
+    expect(h2.textContent).toBe("Uma visão 360°. Um caminho claro.");
   });
 
-  it("aplica a classe extra só na linha indicada", () => {
-    const { container } = render(
-      <MotionProvider movimento={false}>
-        <Decode linhas={["Linha um.", "Linha dois."]} classesLinhas={["text-cinza"]} />
-      </MotionProvider>,
-    );
-    const linhas = container.querySelectorAll("h1 > span");
-    expect(linhas[0].className).toContain("text-cinza");
-    expect(linhas[1].className).not.toContain("text-cinza");
-  });
-
-  it("sem movimento não altera o texto", () => {
-    vi.useFakeTimers();
-    const { container } = render(
-      <MotionProvider movimento={false}>
-        <Decode linhas={["IA sem hype."]} />
-      </MotionProvider>,
-    );
-    vi.advanceTimersByTime(200);
-    expect(container.querySelector("h1")!.textContent).toBe("IA sem hype.");
-    vi.useRealTimers();
+  it("semMarcas devolve o texto sem asteriscos", () => {
+    expect(semMarcas("para *resetar o futuro?*")).toBe("para resetar o futuro?");
   });
 });

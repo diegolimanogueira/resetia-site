@@ -1,13 +1,9 @@
-export type Tom = "carvao" | "neutro";
+/** Fundo da seção. Todas são escuras (reset360); muda só a superfície. */
+export type Tom = "carvao" | "escuro" | "contraste";
 
 export interface Link {
   label: string;
   href: string;
-}
-
-export interface Ponto {
-  destaque: string;
-  texto: string;
 }
 
 export interface Passo {
@@ -16,30 +12,12 @@ export interface Passo {
   texto: string;
 }
 
-interface BarraExemplo {
-  label: string;
-  valor: string;
-  pct: number;
-}
-
-/** Mockup do relatório da Spotlite. Espelha a estrutura real do relatório do setor, com dados fictícios. */
-export interface CardSpotlite {
-  setor: string;
-  tag: string;
-  nota: number;
-  notaLabel: string;
-  notaApoio: string;
-  barrasTitulo: string;
-  barras: BarraExemplo[];
-  destaque: { prefixo: string; valor: number; sufixo: string; label: string };
-  respondentes: { valor: number; de: number; label: string };
-}
-
 export type Ferramenta = "spotlite" | "fluxa";
 
+/** Títulos são linhas; trechos entre *asteriscos* ficam em destaque verde. */
 export interface CtaFinal {
   kicker?: string;
-  titulo: string;
+  titulo: string[];
   apoio?: string;
   botao: string;
 }
@@ -49,15 +27,13 @@ export interface Solucao {
   slug: string;
   num: string;
   nome: string;
-  /** Frase curta: aparece nas listas e como lead da página. */
+  /** Frase curta: aparece nos cards e como lead da página. */
   frase: string;
   /** "O que é": também é a meta description da página. */
   descricao: string;
   paraQuem: string;
   entregas: string[];
   medimos: string;
-  /** Tecnologia própria que acelera a solução. */
-  ferramenta?: Ferramenta;
   /** Bloco extra com link (ex.: Agent Factory aponta para o catálogo de agentes). */
   relacionado?: { titulo: string; texto: string; link: Link };
 }

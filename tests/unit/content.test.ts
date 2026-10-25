@@ -1,15 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { agentes, areas } from "@/content/agentes";
-import { fluxa } from "@/content/fluxa";
 import { home } from "@/content/home";
 import { privacidade } from "@/content/privacidade";
-import { FALTA, footer, nav, seo, site, tomDaRota, tomPorRota } from "@/content/site";
+import { FALTA, footer, movidas, nav, seo, site } from "@/content/site";
 import { sobre } from "@/content/sobre";
-import { seoSolucao, solucaoPorSlug, solucoes } from "@/content/solucoes";
-import { spotlite } from "@/content/spotlite";
-import { ferramentas, tecnologias } from "@/content/tecnologias";
+import { ctaPadrao, seoSolucao, solucaoPorSlug, solucoes } from "@/content/solucoes";
+import { ferramentas } from "@/content/tecnologias";
 
-describe("conteúdo do site (RESET 360)", () => {
+describe("conteúdo do site (RESET 360, layout do reset360)", () => {
   it("tem as sete soluções, com slug único e todos os campos preenchidos", () => {
     expect(solucoes.lista).toHaveLength(7);
     expect(new Set(solucoes.lista.map((s) => s.slug)).size).toBe(7);
@@ -22,14 +20,8 @@ describe("conteúdo do site (RESET 360)", () => {
       expect(solucaoPorSlug(s.slug)).toBe(s);
     }
     expect(solucaoPorSlug("nao-existe")).toBeUndefined();
-  });
-
-  it("as soluções aceleradas pelas ferramentas apontam para a ferramenta certa", () => {
-    expect(solucaoPorSlug("scan")?.ferramenta).toBe("spotlite");
-    expect(solucaoPorSlug("processos-com-ia")?.ferramenta).toBe("fluxa");
     expect(solucaoPorSlug("agent-factory")?.relacionado?.link.href).toBe("/agentes");
-    expect(ferramentas.spotlite.solucao.href).toBe("/solucoes/scan");
-    expect(ferramentas.fluxa.solucao.href).toBe("/solucoes/processos-com-ia");
+    expect(solucoes.detalhe.voltar.href).toBe("/#solucoes");
   });
 
   it("o catálogo tem 30 agentes, 10 por área, sem nome repetido", () => {
@@ -44,11 +36,14 @@ describe("conteúdo do site (RESET 360)", () => {
     expect(home.areas.itens.map((i) => i.area)).toEqual(areas.map((a) => a.id));
   });
 
-  it("o método da home tem quatro etapas, com as ferramentas no diagnóstico, no redesenho e na medição", () => {
-    expect(home.metodo.passos).toHaveLength(4);
-    expect(home.metodo.passos.map((p) => p.ferramenta)).toEqual(["spotlite", undefined, "fluxa", "spotlite"]);
-    expect(home.problema.pilares).toHaveLength(3);
+  it("a home segue o reset360: hero em quatro linhas, três pilares, quatro etapas, três áreas", () => {
+    expect(home.hero.titulo).toHaveLength(4);
+    expect(home.hero.pilulas).toEqual(["Marketing", "Vendas", "Customer Success"]);
     expect(home.hero.ctaSecundario.href).toBe("#solucoes");
+    expect(home.problema.pilares).toHaveLength(3);
+    expect(home.metodo.passos.map((p) => p.etapa)).toEqual(["Descobrir", "Preparar", "Transformar", "Evoluir"]);
+    expect(home.diagnostico.etapas).toHaveLength(4);
+    expect(home.quemSomos.monograma.letras).toEqual(["É", "D"]);
   });
 
   it("Spotlite e Fluxa apontam para os sites dos produtos", () => {
@@ -56,29 +51,39 @@ describe("conteúdo do site (RESET 360)", () => {
     expect(site.ferramentas.fluxa).toBe("https://www.fluxabpm.com.br/");
     expect(ferramentas.spotlite.site.href).toBe(site.ferramentas.spotlite);
     expect(ferramentas.fluxa.site.href).toBe(site.ferramentas.fluxa);
-    expect(spotlite.hero.ctaSite.href).toBe(site.ferramentas.spotlite);
-    expect(fluxa.links.site.href).toBe(site.ferramentas.fluxa);
-    expect(home.tecnologias.link.href).toBe("/tecnologias");
-    expect(home.tecnologias.card).toBe(spotlite.cardExemplo);
-    expect(tecnologias.hero.ancoras.map((a) => a.href)).toEqual(["#spotlite", "#fluxa"]);
   });
 
-  it("navegação com quatro páginas, todas com tom; subpáginas herdam o tom da seção", () => {
-    expect(nav.map((l) => l.label)).toEqual(["Soluções", "Agentes", "Tecnologias", "Sobre"]);
-    nav.forEach((l) => expect(tomPorRota[l.href], l.href).toMatch(/^(carvao|neutro)$/));
-    expect(tomDaRota("/")).toBe("carvao");
-    expect(tomDaRota("/solucoes/scan")).toBe("neutro");
-    expect(tomDaRota("/rota-nova")).toBe("carvao");
+  it("navegação do reset360: Método, Soluções e Tecnologias são âncoras da home", () => {
+    expect(nav.map((l) => l.label)).toEqual(["Método", "Soluções", "Agentes", "Tecnologias", "Sobre"]);
+    expect(nav.map((l) => l.href)).toEqual(["/#metodo", "/#solucoes", "/agentes", "/#tecnologias", "/sobre"]);
+    expect(movidas.solucoes.link.href).toBe("/#solucoes");
+    expect(movidas.tecnologias.link.href).toBe("/#tecnologias");
+  });
+
+  it("títulos marcam o destaque com *…* em pares", () => {
+    const titulos = [
+      home.hero.titulo,
+      home.metodo.titulo,
+      home.solucoes.titulo,
+      home.areas.titulo,
+      home.tecnologias.titulo,
+      home.quemSomos.titulo,
+      ctaPadrao.titulo,
+      solucoes.detalhe.titulo,
+      agentes.hero.titulo,
+      sobre.hero.titulo,
+    ].flat();
+    for (const t of titulos) expect((t.match(/\*/g) ?? []).length % 2, t).toBe(0);
+    expect(ctaPadrao.titulo.join(" ")).toContain("*resetar o futuro?*");
   });
 
   it("Sobre apresenta Élida e Diego; rodapé leva aos dois LinkedIns e não tem CNPJ", () => {
     expect(sobre.fundadores.pessoas.map((p) => p.nome)).toEqual(["Élida Almeida", "Diego Nogueira"]);
     const diego = sobre.fundadores.pessoas[1];
     expect("foto" in diego && diego.foto?.base).toBe("/brand/diego");
-    expect(footer.legal.join(" ")).not.toMatch(/CNPJ/);
-    const hrefs = footer.redes.map((r) => r.href);
-    expect(hrefs).toContain(site.fundadores.elida.linkedin);
-    expect(hrefs).toContain(site.fundadores.diego.linkedin);
+    expect(footer.legal).not.toMatch(/CNPJ/);
+    const hrefs = footer.contato.redes.map((r) => r.href);
+    expect(hrefs).toEqual([site.fundadores.elida.linkedin, site.fundadores.diego.linkedin]);
   });
 
   it("títulos e descrições cabem nos limites de SEO, inclusive nas sete soluções", () => {
@@ -93,16 +98,12 @@ describe("conteúdo do site (RESET 360)", () => {
   });
 
   it("não há pendências [FALTA] visíveis no conteúdo e a política de privacidade está completa", () => {
-    const tudo = JSON.stringify({ home, solucoes, agentes, spotlite, fluxa, tecnologias, sobre, footer, privacidade });
+    const tudo = JSON.stringify({ home, solucoes, agentes, ferramentas, sobre, footer, privacidade });
     expect(tudo).not.toContain(FALTA);
     expect(privacidade.secoes.length).toBeGreaterThanOrEqual(6);
   });
 
-  it("nenhum texto promete 'sem formulário' (o diagnóstico com formulário vem aí)", () => {
+  it("nenhum texto promete 'sem formulário' (o teste da Spotlite pede contato no fim)", () => {
     expect(JSON.stringify({ home, site })).not.toMatch(/sem formulário/i);
-  });
-
-  it("o mockup da Spotlite é rotulado como exemplo", () => {
-    expect(spotlite.cardExemplo.tag).toMatch(/exemplo/);
   });
 });

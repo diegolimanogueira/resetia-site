@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Catalogo, CatalogoAgentes } from "@/components/sections/shared/CatalogoAgentes";
 import { CtaFinal } from "@/components/sections/shared/CtaFinal";
+import { HeroPagina } from "@/components/sections/shared/HeroPagina";
 import { Eyebrow } from "@/components/ui/eyebrow";
+import { Linhas } from "@/components/ui/linhas";
 import { LinkSeta } from "@/components/ui/link-seta";
 import { Section } from "@/components/ui/section";
 import { agentes } from "@/content/agentes";
@@ -15,45 +17,35 @@ export const metadata: Metadata = {
   alternates: { canonical: "/agentes/" },
 };
 
+/** Catálogo de agentes (reset360 agentes.html): topo, filtro por área, grade de 30, "Menos complexidade", fecho. */
 export default function Agentes() {
   const h = agentes.hero;
   const c = agentes.complexidade;
   return (
-    <main data-tom="neutro" className="text-fg bg-(--bg)">
-      <Section tom="neutro" className="gutter pt-[120px] pb-20">
-        <div className="container-site">
-          <Eyebrow className="text-fg-2 mb-6">{h.kicker}</Eyebrow>
-          <h1 className="mb-6 text-[clamp(40px,5.6vw,80px)] leading-[.95] font-bold tracking-[-0.03em]">
-            {h.titulo[0]}
-            <br />
-            {h.titulo[1]}
-          </h1>
-          <p className="text-fg-2 mb-8 max-w-[62ch] text-[20px] leading-[1.6]">{h.lead}</p>
-          <LinkSeta href={h.link.href}>{h.link.label}</LinkSeta>
-        </div>
-      </Section>
+    <main data-tom="carvao" className="text-fg bg-(--bg)">
+      <HeroPagina kicker={h.kicker} titulo={<Linhas itens={h.titulo} />} lead={h.lead}>
+        <LinkSeta href={h.link.href}>{h.link.label}</LinkSeta>
+      </HeroPagina>
 
-      <Section tom="neutro" className="gutter pb-[120px]">
+      <Section>
         <div className="container-site">
           <Suspense fallback={<Catalogo area={null} />}>
             <CatalogoAgentes />
           </Suspense>
-          <p className="text-fg-2 mt-12 max-w-[72ch] text-[15px] leading-[1.6]">{agentes.aviso}</p>
+          <p className="text-fg-2 mt-[30px] max-w-[90ch] text-[12px] leading-[1.6]">{agentes.aviso}</p>
         </div>
       </Section>
 
-      <Section tom="carvao" className="gutter py-[120px]">
-        <div className="container-site grid gap-12 md:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] md:gap-16">
+      <Section tom="contraste">
+        <div className="container-site grid gap-[30px] md:grid-cols-2 md:gap-[90px]">
           <div>
-            <Eyebrow className="text-fg-2 mb-6">{c.kicker}</Eyebrow>
+            <Eyebrow>{c.kicker}</Eyebrow>
             <h2 className="display-h2">
-              {c.titulo[0]}
-              <br />
-              {c.titulo[1]}
+              <Linhas itens={c.titulo} />
             </h2>
           </div>
-          <div className="md:pt-10">
-            <p className="mb-8 max-w-[56ch] text-[20px] leading-[1.6]">{c.texto}</p>
+          <div>
+            <p className="text-fg-2 mb-8 text-[19px] leading-[1.8]">{c.texto}</p>
             <LinkSeta href={c.link.href}>{c.link.label}</LinkSeta>
           </div>
         </div>

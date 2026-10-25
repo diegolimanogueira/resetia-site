@@ -2,10 +2,23 @@ import type { ComponentProps } from "react";
 import type { Tom } from "@/content/types";
 import { cn } from "@/lib/utils";
 
+const espacos = {
+  /** Seção comum: 75px no celular, 120px no desktop (reset360). */
+  secao: "py-[75px] md:py-[120px]",
+  nenhum: "",
+};
+
 /**
- * Seção com tom (carvão ou neutro). O atributo data-tom define as variáveis
- * --bg, --fg, --fg-2, --line em globals.css; filhos usam text-fg, border-line etc.
+ * Seção com tom (carvão, escuro ou contraste). O atributo data-tom define --bg em globals.css;
+ * filhos usam text-fg, text-fg-2 e border-line.
  */
-export function Section({ tom, className, ...rest }: ComponentProps<"section"> & { tom: Tom }) {
-  return <section data-tom={tom} className={cn("text-fg relative bg-(--bg)", className)} {...rest} />;
+export function Section({
+  tom = "carvao",
+  espaco = "secao",
+  className,
+  ...rest
+}: ComponentProps<"section"> & { tom?: Tom; espaco?: keyof typeof espacos }) {
+  return (
+    <section data-tom={tom} className={cn("gutter text-fg relative bg-(--bg)", espacos[espaco], className)} {...rest} />
+  );
 }

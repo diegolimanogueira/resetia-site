@@ -1,4 +1,4 @@
-import type { Link, Tom } from "./types";
+import type { Link } from "./types";
 
 /** Marcador de pendência. Nunca inventar o que falta: o Diego fornece. */
 export const FALTA = "[FALTA]";
@@ -14,8 +14,6 @@ export const site = {
     geral: "Olá! Quero conhecer as soluções da Reset 360.",
     /** {solucao} vira o nome da solução, ex.: "RESET Scan". */
     solucao: "Olá! Quero conhecer o {solucao}.",
-    spotlite: "Olá! Vim pelo site da Reset IA e quero fazer o diagnóstico Spotlite do meu setor.",
-    fluxa: "Olá! Vim pelo site da Reset IA e quero que vocês mapeiem um processo da minha empresa com a Fluxa BPM.",
   },
   email: "contato@resetia.com.br",
   // [FALTA] confirmar os dois perfis (vieram do estudo de conteúdo RESET 360).
@@ -28,7 +26,6 @@ export const site = {
     spotlite: "https://www.spotlite.com.br/",
     spotlitePrivacidade: "https://www.spotlite.com.br/privacidade",
     fluxa: "https://www.fluxabpm.com.br/",
-    fluxaGratis: "https://www.fluxabpm.com.br/signup",
     fluxaPrivacidade: "https://www.fluxabpm.com.br/privacidade",
     /** Teste aberto de IA para negócios. A pessoa responde e, no fim, deixa nome, e-mail e WhatsApp. */
     spotliteTeste: "https://www.spotlite.com.br/descoberta/ia-negocios",
@@ -36,55 +33,42 @@ export const site = {
   cidades: "Fortaleza e Campinas, Brasil",
   ano: 2026,
   ctaHeader: "Vamos conversar",
-  ctaSpotlite: "Pedir o diagnóstico do meu setor",
   ctaSpotliteSite: "Conhecer Spotlite",
   ctaFluxaSite: "Conhecer Fluxa BPM",
-  ctaFluxaGratis: "Mapear um processo grátis",
-  ctaFluxaServico: "Pedir para a Reset IA mapear um processo",
   barraMobile: "Falar no WhatsApp",
 } as const;
 
+/** Navegação do reset360: Método, Soluções e Tecnologias são seções da home. */
 export const nav: Link[] = [
-  { label: "Soluções", href: "/solucoes" },
+  { label: "Método", href: "/#metodo" },
+  { label: "Soluções", href: "/#solucoes" },
   { label: "Agentes", href: "/agentes" },
-  { label: "Tecnologias", href: "/tecnologias" },
+  { label: "Tecnologias", href: "/#tecnologias" },
   { label: "Sobre", href: "/sobre" },
 ];
 
-/** Tom do fundo da página: define header, logo e cor base. */
-export const tomPorRota: Record<string, Tom> = {
-  "/": "carvao",
-  "/solucoes": "neutro",
-  "/agentes": "neutro",
-  "/tecnologias": "carvao",
-  "/produtos": "carvao",
-  "/spotlite": "carvao",
-  "/sobre": "neutro",
-  "/privacidade": "neutro",
-};
-
-/** Tom de qualquer rota: exata ou pela primeira parte (ex.: /solucoes/scan herda de /solucoes). */
-export function tomDaRota(caminho: string): Tom {
-  return tomPorRota[caminho] ?? tomPorRota[`/${caminho.split("/")[1] ?? ""}`] ?? "carvao";
-}
-
-/** Link da navegação ativo na rota atual, inclusive em subpáginas. */
+/** Link da navegação ativo na rota atual, inclusive em subpáginas. Âncoras da home nunca ficam ativas. */
 export const rotaAtiva = (caminho: string, href: string) => caminho === href || caminho.startsWith(`${href}/`);
 
 export const footer = {
   frase: ["Um novo jeito de trabalhar.", "Uma nova forma de crescer."],
-  colunas: {
-    navegacao: "Explore",
-    contato: "Fale com a Reset",
-    redes: "Redes e ferramentas",
+  explore: {
+    titulo: "Explore",
+    links: [
+      { label: "Soluções", href: "/#solucoes" },
+      { label: "Fábrica de agentes", href: "/agentes" },
+      { label: "Nossa história", href: "/sobre" },
+    ] satisfies Link[],
   },
-  redes: [
-    { label: "Élida no LinkedIn", href: site.fundadores.elida.linkedin },
-    { label: "Diego no LinkedIn", href: site.fundadores.diego.linkedin },
-    { label: "Spotlite", href: site.ferramentas.spotlite },
-    { label: "Fluxa BPM", href: site.ferramentas.fluxa },
-  ] satisfies Link[],
-  legal: [`© ${site.ano} Reset IA`, site.cidades],
+  contato: {
+    titulo: "Fale com a Reset",
+    whatsapp: "WhatsApp",
+    redes: [
+      { label: "Élida no LinkedIn", href: site.fundadores.elida.linkedin },
+      { label: "Diego no LinkedIn", href: site.fundadores.diego.linkedin },
+    ] satisfies Link[],
+  },
+  legal: `© ${site.ano} Reset IA. ${site.cidades}.`,
   aviso: "Conteúdo institucional. Resultados dependem do contexto e da implantação.",
   privacidade: { label: "Política de privacidade", href: "/privacidade" } satisfies Link,
 };
@@ -95,28 +79,9 @@ export const seo = {
     description:
       "Transforme pessoas, processos e agentes em crescimento real com o RESET 360: IA aplicada a Marketing, Vendas e Customer Success.",
   },
-  solucoes: {
-    title: "Soluções RESET 360 | Reset IA",
-    description:
-      "Sete soluções, uma transformação. Contrate uma capacidade específica ou combine soluções em uma jornada integrada. Cada produto tem escopo e entregáveis próprios.",
-  },
   agentes: {
     title: "Catálogo de agentes | Reset IA",
     description: "Conheça 30 casos de uso de agentes de IA para Marketing, Vendas e Customer Success.",
-  },
-  tecnologias: {
-    title: "Tecnologias — Spotlite e Fluxa BPM | Reset IA",
-    description:
-      "Duas ferramentas próprias da Reset IA. Spotlite: diagnóstico com IA que mostra onde a IA vale a pena, em horas e reais. Fluxa BPM: a IA desenha e melhora os processos.",
-  },
-  produtos: {
-    title: "Tecnologias | Reset IA",
-    description:
-      "A página Produtos agora se chama Tecnologias: Spotlite e Fluxa BPM, as ferramentas próprias da Reset IA.",
-  },
-  spotlite: {
-    title: "Spotlite — diagnóstico de IA | Reset IA",
-    description: "A Spotlite agora está na página Tecnologias da Reset IA.",
   },
   sobre: {
     title: "Sobre a Reset | Reset IA",
@@ -131,15 +96,15 @@ export const seo = {
   },
 } as const;
 
-/** Rotas antigas que viraram redirecionamento no cliente. */
+/** Rotas antigas que viraram redirecionamento no cliente: o conteúdo agora é seção da home. */
 export const movidas = {
-  produtos: {
-    titulo: "Produtos agora se chama Tecnologias.",
-    link: { label: "Ir para Tecnologias", href: "/tecnologias/" } satisfies Link,
+  solucoes: {
+    titulo: "As soluções agora estão na página inicial.",
+    link: { label: "Ver as soluções", href: "/#solucoes" } satisfies Link,
   },
-  spotlite: {
-    titulo: "A Spotlite agora está em Tecnologias.",
-    link: { label: "Ir para Tecnologias", href: "/tecnologias/#spotlite" } satisfies Link,
+  tecnologias: {
+    titulo: "As tecnologias agora estão na página inicial.",
+    link: { label: "Ver as tecnologias", href: "/#tecnologias" } satisfies Link,
   },
 };
 

@@ -13,8 +13,8 @@ function escolher(area: AreaId | null) {
 }
 
 /**
- * Catálogo dos 30 agentes com filtro por área. Sem animação (nada a desligar no reduced-motion).
- * Linhas finas no lugar de cards. Renderiza o estado "Todos" no HTML estático (fallback do Suspense).
+ * Catálogo dos 30 agentes com filtro por área (reset360 .filter-line + .agent-grid).
+ * Renderiza o estado "Todos" no HTML estático (fallback do Suspense).
  */
 export function Catalogo({ area }: { area: AreaId | null }) {
   const f = agentes.filtro;
@@ -26,9 +26,9 @@ export function Catalogo({ area }: { area: AreaId | null }) {
 
   return (
     <>
-      <div className="mb-12 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <p className="eyebrow text-fg-2">{f.rotulo}</p>
-        <div role="group" aria-label={f.rotulo} className="flex flex-wrap gap-2.5">
+      <div className="mb-[35px] flex flex-col gap-5 md:flex-row md:items-center md:justify-between md:gap-[30px]">
+        <p className="eyebrow text-verde text-[11px]">{f.rotulo}</p>
+        <div role="group" aria-label={f.rotulo} className="flex flex-wrap gap-2">
           {opcoes.map((o) => {
             const ativo = o.id === area;
             return (
@@ -39,12 +39,12 @@ export function Catalogo({ area }: { area: AreaId | null }) {
                 data-filtro={o.id ?? "todos"}
                 onClick={() => escolher(o.id)}
                 className={cn(
-                  "inline-flex cursor-pointer items-center gap-2 rounded-full border-[1.5px] px-[18px] py-[10px] text-[14px] font-medium transition-colors duration-200",
-                  ativo ? "border-verde bg-verde text-carvao" : "border-line text-fg hover:border-fg",
+                  "hover:bg-verde hover:text-carvao cursor-pointer border px-[17px] py-3 text-[14px] transition-colors duration-200 max-sm:px-2.5 max-sm:py-2.5 max-sm:text-[12px]",
+                  ativo ? "border-verde bg-verde text-carvao" : "border-line bg-painel text-fg",
                 )}
               >
                 {o.nome}
-                <span className={ativo ? "text-carvao/70" : "text-fg-2"}>{o.total}</span>
+                <small className="ml-[7px]">{o.total}</small>
               </button>
             );
           })}
@@ -53,12 +53,12 @@ export function Catalogo({ area }: { area: AreaId | null }) {
       <p aria-live="polite" className="sr-only">
         {f.contagem(lista.length)}
       </p>
-      <ul className="grid gap-x-10 md:grid-cols-2 lg:grid-cols-3">
+      <ul className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
         {lista.map((a) => (
-          <li key={a.nome} data-agente={a.area} className="border-line border-t py-7">
-            <p className="eyebrow text-fg-2 mb-3">{nomeDaArea(a.area)}</p>
-            <h3 className="mb-2 text-[22px] leading-[1.15] font-semibold tracking-[-0.02em]">{a.nome}</h3>
-            <p className="text-fg-2 text-[16px] leading-[1.55]">{a.texto}</p>
+          <li key={a.nome} data-agente={a.area} className="border-line bg-painel min-h-[200px] border p-[27px]">
+            <p className="text-verde text-[10px] tracking-[.15em] uppercase">{nomeDaArea(a.area)}</p>
+            <h3 className="mt-[30px] mb-2.5 text-[23px] leading-[1.2] font-bold tracking-[-0.02em]">{a.nome}</h3>
+            <p className="text-fg-2 text-[14px] leading-[1.6]">{a.texto}</p>
           </li>
         ))}
       </ul>

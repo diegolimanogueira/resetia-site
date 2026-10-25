@@ -3,7 +3,7 @@ import type { CtaFinal, Solucao } from "./types";
 /** Fecho de todas as páginas: o mesmo convite do estudo RESET 360. */
 export const ctaPadrao: CtaFinal = {
   kicker: "O próximo ciclo começa aqui",
-  titulo: "Sua empresa está pronta para resetar o futuro?",
+  titulo: ["Sua empresa está pronta", "para *resetar o futuro?*"],
   apoio: "Comece identificando onde IA pode criar eficiência, liberar capacidade e acelerar crescimento.",
   botao: "Conversar sobre meu negócio",
 };
@@ -24,7 +24,6 @@ const lista: Solucao[] = [
       "Roadmap executivo de 90 dias",
     ],
     medimos: "Maturidade de IA, oportunidades priorizadas, custos identificados e plano de execução.",
-    ferramenta: "spotlite",
   },
   {
     slug: "workshops",
@@ -77,7 +76,6 @@ const lista: Solucao[] = [
       "Backlog de automações e indicadores",
     ],
     medimos: "Tempo de ciclo, retrabalho, capacidade e economia validada.",
-    ferramenta: "fluxa",
   },
   {
     slug: "agent-factory",
@@ -137,34 +135,27 @@ const lista: Solucao[] = [
       "Relatórios executivos",
     ],
     medimos: "Adoção, custo total, retenção, produtividade e receita incremental validada.",
-    ferramenta: "spotlite",
   },
 ];
 
 export const solucoes = {
-  hero: {
-    kicker: "Portfólio Reset",
-    titulo: ["Sete soluções.", "Uma transformação."],
-    lead: "Contrate uma capacidade específica ou combine soluções em uma jornada integrada. Cada produto tem escopo e entregáveis próprios.",
-  },
   lista,
-  /** Rótulo do link em cada linha da lista. */
+  /** Rótulo do link em cada card. */
   explorar: "Explorar solução",
   detalhe: {
-    voltar: { label: "Voltar para soluções", href: "/solucoes" },
+    voltar: { label: "Voltar para soluções", href: "/#solucoes" },
     kicker: "Solução RESET 360",
     oQueE: "O que é",
-    titulo: ["Desenhado para gerar", "mudança real."],
+    titulo: ["Desenhado para gerar", "*mudança real.*"],
     campos: {
       paraQuem: "Para quem",
       entregas: "Principais entregas",
       medimos: "Como medimos",
-      ferramenta: "Tecnologia própria",
     },
     cta: "Falar sobre esta solução",
     continuar: {
       kicker: "Continue explorando",
-      titulo: ["Uma solução conecta", "a próxima."],
+      titulo: ["Uma solução conecta", "*a próxima.*"],
     },
   },
   cta: ctaPadrao,

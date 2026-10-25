@@ -6,10 +6,8 @@ module.exports = {
       staticDistDir: "./out",
       url: [
         "http://localhost/",
-        "http://localhost/solucoes/",
         "http://localhost/solucoes/scan/",
         "http://localhost/agentes/",
-        "http://localhost/tecnologias/",
         "http://localhost/sobre/",
         "http://localhost/privacidade/",
       ],
@@ -25,8 +23,8 @@ module.exports = {
         "categories:best-practices": ["error", { minScore: 0.95 }],
         "categories:seo": ["error", { minScore: 0.95 }],
         // Orçamentos (bytes transferidos por página)
-        // Medido em 18/10/2026: ~250 KB (React 19 + runtime Next 16 + Motion + Base UI). Teto com ~12% de folga.
-        "resource-summary:script:size": ["error", { maxNumericValue: 280_000 }],
+        // Medido em 25/10/2026: ~157 KB (React 19 + runtime Next 16; sem Motion, Lenis e Base UI). Teto com ~15% de folga.
+        "resource-summary:script:size": ["error", { maxNumericValue: 185_000 }],
         "resource-summary:image:size": ["error", { maxNumericValue: 300_000 }],
         "resource-summary:font:size": ["error", { maxNumericValue: 150_000 }],
         "resource-summary:stylesheet:size": ["error", { maxNumericValue: 30_000 }],

@@ -1,16 +1,12 @@
 import { site } from "@/content/site";
-import type { Tom } from "@/content/types";
 import { asset } from "@/lib/asset";
 
-// PLACEHOLDER brand: logos em PNG/WebP exportados do manual. Trocar por SVG quando o Diego enviar.
-const arquivos: Record<Tom, string> = {
-  carvao: "/brand/logo-dark",
-  neutro: "/brand/logo-light",
-};
+// PLACEHOLDER brand: logo em PNG/WebP exportada do manual. Trocar por SVG quando o Diego enviar.
+// O site é todo escuro (reset360), então só a versão para fundo carvão é usada.
+const base = "/brand/logo-dark";
 
-/** Logo horizontal. `tom` é o fundo em que ela aparece. */
-export function Logo({ tom, altura = 40, className }: { tom: Tom; altura?: number; className?: string }) {
-  const base = arquivos[tom];
+/** Logo horizontal da Reset IA sobre fundo escuro. */
+export function Logo({ altura = 40, className }: { altura?: number; className?: string }) {
   const largura = Math.round(altura * 4.45);
   return (
     <picture className={className}>

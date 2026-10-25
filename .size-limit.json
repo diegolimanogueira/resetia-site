@@ -2,7 +2,7 @@
   {
     "name": "JavaScript (todos os chunks, gzip)",
     "path": "out/_next/static/chunks/**/*.js",
-    "limit": "300 kB",
+    "limit": "220 kB",
     "gzip": true
   },
   {
@@ -12,9 +12,9 @@
     "gzip": true
   },
   {
-    "name": "Imagens da home (porta + logo)",
-    "path": ["public/brand/porta.avif", "public/brand/porta.webp", "public/brand/logo-dark.webp"],
-    "limit": "120 kB",
+    "name": "Imagens da home (logo + ícone do hero)",
+    "path": ["public/brand/logo-dark.webp", "public/brand/icone-dark.webp"],
+    "limit": "40 kB",
     "gzip": false
   }
 ]

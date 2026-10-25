@@ -4,12 +4,15 @@ import { solucoes } from "@/content/solucoes";
 
 export const dynamic = "force-static";
 
+/** Páginas da navegação (as âncoras da home ficam de fora), as sete soluções e a privacidade. */
+const paginasNav = nav.filter((l) => !l.href.includes("#")).map((l) => l.href);
+
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
   return [
     { url: `${site.dominio}/`, lastModified, changeFrequency: "monthly", priority: 1 },
-    ...nav.map((l) => ({
-      url: `${site.dominio}${l.href}/`,
+    ...paginasNav.map((href) => ({
+      url: `${site.dominio}${href}/`,
       lastModified,
       changeFrequency: "monthly" as const,
       priority: 0.8,

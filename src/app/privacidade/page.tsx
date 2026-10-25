@@ -11,12 +11,10 @@ export const metadata: Metadata = {
 
 export default function Privacidade() {
   return (
-    <main data-tom="neutro" className="text-fg bg-(--bg)">
-      <Section tom="neutro" className="gutter pt-[120px] pb-[120px]">
+    <main data-tom="carvao" className="text-fg bg-(--bg)">
+      <Section>
         <div className="container-site max-w-[72ch]">
-          <h1 className="mb-4 text-[clamp(36px,5vw,64px)] leading-[.98] font-bold tracking-[-0.03em]">
-            {privacidade.titulo}
-          </h1>
+          <h1 className="display-h2 mb-4">{privacidade.titulo}</h1>
           <p className="eyebrow text-fg-2 mb-10">Atualizada em {privacidade.atualizadaEm}</p>
           <p className="text-fg mb-14 text-[20px] leading-[1.6]">{privacidade.intro}</p>
           <div className="flex flex-col gap-12">
@@ -32,13 +30,8 @@ export default function Privacidade() {
                   <ul className="mt-2 flex flex-wrap gap-6 text-[15px] font-medium">
                     {s.links.map((l) => (
                       <li key={l.href}>
-                        <a
-                          href={l.href}
-                          target="_blank"
-                          rel="noopener"
-                          className="text-fg border-fg/30 hover:border-verde border-b pb-[3px]"
-                        >
-                          {l.label} →
+                        <a href={l.href} target="_blank" rel="noopener" className="text-verde hover:text-fg font-bold">
+                          {l.label} <span aria-hidden="true">↗</span>
                         </a>
                       </li>
                     ))}

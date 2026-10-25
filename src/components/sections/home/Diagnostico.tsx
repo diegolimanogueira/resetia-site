@@ -1,62 +1,37 @@
-import { MarcaFerramenta } from "@/components/brand/MarcaFerramenta";
 import { Botao } from "@/components/ui/botao";
 import { Eyebrow } from "@/components/ui/eyebrow";
-import { Glow } from "@/components/ui/glow";
+import { Linhas } from "@/components/ui/linhas";
 import { Section } from "@/components/ui/section";
 import { home } from "@/content/home";
 import { diagnosticoUrl } from "@/lib/diagnostico";
-import { cn } from "@/lib/utils";
 
-/**
- * Ato 2b — Diagnóstico aberto (carvão, bloco Spotlite com glow). Logo depois do problema: antes de
- * conhecer o método, a pessoa já pode fazer o teste de IA para negócios na Spotlite.
- */
+/** Teste de IA para negócios da Spotlite: texto e botão à esquerda, as quatro etapas à direita. */
 export function Diagnostico() {
-  const s = home.diagnostico;
+  const d = home.diagnostico;
   return (
-    <Section
-      tom="carvao"
-      id="diagnostico"
-      data-ato="diagnostico"
-      className="gutter z-[1] overflow-hidden pt-[140px] pb-[120px]"
-    >
-      <Glow posicao="superior-direita" opacidade={0.12} />
-      <div className="container-site relative grid gap-14 md:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] md:gap-16">
+    <Section id="teste-de-ia">
+      <div className="container-site border-line grid gap-10 border bg-[radial-gradient(circle_at_100%_0%,rgba(0,230,118,0.1)_0%,rgba(0,230,118,0)_55%)] p-[26px] md:grid-cols-[1.1fr_1fr] md:gap-[70px] md:p-[50px]">
         <div>
-          <Eyebrow className="text-cinza mb-6 flex flex-wrap items-center gap-x-3">
-            <MarcaFerramenta qual="spotlite" className="tracking-normal normal-case" /> {s.kicker}
-          </Eyebrow>
+          <Eyebrow>{d.kicker}</Eyebrow>
           <h2 className="display-h2 mb-6">
-            {s.titulo[0]}
-            <br />
-            {s.titulo[1]}
+            <Linhas itens={d.titulo} />
           </h2>
-          <p className="text-cinza mb-6 max-w-[52ch] text-[20px] leading-[1.6]">{s.lead}</p>
-          <p className="text-neutro mb-10 max-w-[52ch] text-[17px] leading-[1.5] font-semibold">{s.paraQuem}</p>
+          <p className="text-fg-2 mb-4 max-w-[560px] text-[18px] leading-[1.7]">{d.lead}</p>
+          <p className="text-fg mb-8 text-[15px]">{d.paraQuem}</p>
           <Botao href={diagnosticoUrl("home")} origem="home-diagnostico">
-            {s.cta}
+            {d.cta}
           </Botao>
-          <p className="text-cinza mt-4 max-w-[52ch] text-[14px] leading-[1.5]">{s.nota}</p>
+          <p className="text-fg-2 mt-5 max-w-[520px] text-[13px] leading-[1.6]">{d.nota}</p>
+          <p className="text-fg-2 mt-1 text-[13px] leading-[1.6]">{d.aviso}</p>
         </div>
-        <div className="md:pt-10">
-          <ol className="flex flex-col">
-            {s.etapas.map((e, i) => (
-              <li
-                key={e.numero}
-                className={cn(
-                  "border-line grid grid-cols-[64px_1fr] items-baseline gap-6 border-t py-6",
-                  i === s.etapas.length - 1 && "border-b",
-                )}
-              >
-                <span aria-hidden="true" className="text-verde text-[32px] leading-none font-bold tracking-[-0.03em]">
-                  {e.numero}
-                </span>
-                <span className="text-[24px] leading-[1.1] font-semibold tracking-[-0.02em]">{e.texto}</span>
-              </li>
-            ))}
-          </ol>
-          <p className="text-cinza mt-6 text-[14px] leading-[1.5]">{s.aviso}</p>
-        </div>
+        <ol className="grid content-center gap-3 sm:grid-cols-2">
+          {d.etapas.map((e) => (
+            <li key={e.numero} className="border-line bg-painel border px-6 py-7">
+              <span className="text-verde block text-[32px] leading-none font-bold tracking-[-0.03em]">{e.numero}</span>
+              <span className="mt-4 block text-[18px] font-semibold">{e.texto}</span>
+            </li>
+          ))}
+        </ol>
       </div>
     </Section>
   );

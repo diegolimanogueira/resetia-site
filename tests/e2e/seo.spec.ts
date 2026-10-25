@@ -45,9 +45,11 @@ test("sitemap, robots e manifest", async ({ request, baseURL }) => {
   const xml = await sitemap.text();
   for (const rota of rotas) expect(xml).toContain(`<loc>${site.dominio}${rota.caminho}</loc>`);
   for (const s of solucoes.lista) expect(xml).toContain(`<loc>${site.dominio}/solucoes/${s.slug}/</loc>`);
-  // home + navegação + sete soluções + privacidade; rotas antigas (/produtos, /spotlite) ficam fora.
-  expect(xml.match(/<url>/g)).toHaveLength(2 + nav.length + solucoes.lista.length);
-  expect(xml).not.toContain("/produtos/");
+  // home + Agentes + Sobre + sete soluções + privacidade; âncoras e rotas antigas ficam fora.
+  const paginasNav = nav.filter((l) => !l.href.includes("#"));
+  expect(xml.match(/<url>/g)).toHaveLength(2 + paginasNav.length + solucoes.lista.length);
+  for (const antiga of ["/produtos/", "/spotlite/", "/tecnologias/", "/solucoes/</loc>", "#"])
+    expect(xml).not.toContain(antiga);
 
   const robots = await request.get("/robots.txt");
   expect(await robots.text()).toContain(`Sitemap: ${site.dominio}/sitemap.xml`);

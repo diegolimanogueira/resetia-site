@@ -4,7 +4,7 @@ import { expect, test } from "@playwright/test";
 import { rotas } from "./rotas";
 
 /**
- * Regressão visual determinística: roda nos projetos reduced-motion (sem animação, sem cursor).
+ * Regressão visual determinística: roda nos projetos reduced-motion (sem transição nem scroll suave).
  * Baselines são geradas no Linux (workflow "Atualizar snapshots") e commitadas em tests/e2e/__screenshots__.
  * Sem baseline para o projeto, o teste é pulado em vez de falhar: o primeiro CI fica verde e o
  * workflow de atualização cria as imagens.

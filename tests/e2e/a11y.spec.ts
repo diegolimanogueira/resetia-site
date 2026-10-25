@@ -8,7 +8,7 @@ for (const rota of rotas) {
   test(`acessibilidade (axe, WCAG 2.1 AA) em ${rota.caminho}`, async ({ page }) => {
     await page.goto(rota.caminho);
     await page.evaluate(() => document.fonts.ready);
-    // [data-decorativo]: numerais e o "+" do FAQ em verde sobre neutro (escolha do manual, aria-hidden, ordem já na <ol>).
+    // [data-decorativo]: órbitas do hero (aria-hidden; as áreas aparecem de novo, como texto, mais abaixo).
     const resultado = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
       .exclude("[data-decorativo]")

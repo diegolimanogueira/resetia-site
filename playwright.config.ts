@@ -28,17 +28,17 @@ export default defineConfig({
     {
       name: "desktop-chromium",
       use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 } },
-      testIgnore: /(visual|reduced)\.spec\.ts/,
+      testIgnore: /visual\.spec\.ts/,
     },
     {
       name: "mobile-webkit",
       use: { ...devices["iPhone 14"] },
-      testIgnore: /(visual|reduced|home-movimento)\.spec\.ts/,
+      testIgnore: /visual\.spec\.ts/,
     },
     {
       name: "reduced-motion",
       use: { ...devices["Desktop Chrome"], viewport: { width: 1440, height: 900 }, reducedMotion: "reduce" },
-      testMatch: /(visual|reduced)\.spec\.ts/,
+      testMatch: /visual\.spec\.ts/,
     },
     {
       name: "reduced-motion-mobile",

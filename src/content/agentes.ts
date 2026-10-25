@@ -53,7 +53,7 @@ const lista: Agente[] = [
 export const agentes = {
   hero: {
     kicker: "RESET Agent Factory",
-    titulo: ["Seu time, com", "novas capacidades."],
+    titulo: ["Seu time, com", "*novas capacidades.*"],
     lead: "30 aplicações possíveis de agentes em Marketing, Vendas e Customer Success. Não vendemos robôs genéricos: desenhamos soluções adequadas ao processo, aos dados e às metas de cada operação.",
     link: { label: "Entenda a Fábrica de Agentes", href: "/solucoes/agent-factory" },
   },
@@ -68,7 +68,7 @@ export const agentes = {
     "As aplicações são oportunidades de solução, não produtos prontos e universalmente compatíveis. Autonomia, integrações, dados, segurança, qualidade e custos são definidos em cada projeto.",
   complexidade: {
     kicker: "Menos complexidade",
-    titulo: ["Não é preciso somar", "mais uma ferramenta."],
+    titulo: ["Não é preciso somar", "*mais uma ferramenta.*"],
     texto:
       "Avaliamos licenças existentes, redundâncias e oportunidades de consolidação. Um agente pode complementar ou substituir tarefas de ferramentas específicas — desde que os testes comprovem qualidade, segurança e custo total vantajoso.",
     link: { label: "Comece pelo RESET Scan", href: "/solucoes/scan" },

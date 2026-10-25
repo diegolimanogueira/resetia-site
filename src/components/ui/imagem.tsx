@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { asset } from "@/lib/asset";
 
 type Props = {
-  /** Caminho sem extensão em /public, ex.: "/brand/porta". */
+  /** Caminho sem extensão em /public, ex.: "/brand/diego". */
   base: string;
   alt: string;
   width: number;

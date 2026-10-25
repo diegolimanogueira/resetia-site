@@ -28,21 +28,15 @@ async function icon(size, output, { padding = 0.18 } = {}) {
   console.log(`ícone ${size}px → ${output} (${await kb(output)})`);
 }
 
-await convert("porta.png", [
-  { file: "porta.webp", fmt: "webp", opts: { quality: 80 } },
-  { file: "porta.avif", fmt: "avif", opts: { quality: 55 } },
-]);
-// Variante para telas até 860px (coluna ocupa a largura toda; 768px cobre 2x em 390px)
-for (const [fmt, file, opts] of [
-  ["webp", "porta-768.webp", { quality: 80 }],
-  ["avif", "porta-768.avif", { quality: 55 }],
-]) {
-  await sharp(`${BRAND}/porta.png`).resize({ width: 768 })[fmt](opts).toFile(`${BRAND}/${file}`);
-  console.log(`porta.png → ${file} (${await kb(`${BRAND}/${file}`)})`);
-}
-await convert("bussola.png", [{ file: "bussola.webp", fmt: "webp", opts: { quality: 82 } }]);
 await convert("logo-dark.png", [{ file: "logo-dark.webp", fmt: "webp", opts: { quality: 90 } }]);
 await convert("logo-light.png", [{ file: "logo-light.webp", fmt: "webp", opts: { quality: 90 } }]);
+
+// Ícone no núcleo das órbitas do hero (até 92px na tela; 180px cobre 2x).
+await sharp(`${BRAND}/icone-dark.png`)
+  .resize(180, 180, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+  .webp({ quality: 90 })
+  .toFile(`${BRAND}/icone-dark.webp`);
+console.log(`icone-dark.png → icone-dark.webp (${await kb(`${BRAND}/icone-dark.webp`)})`);
 
 // Foto do Diego (design/fotos/diego.png): quadrado centrado no rosto, para o bloco compacto da página Sobre.
 for (const [fmt, file, opts] of [

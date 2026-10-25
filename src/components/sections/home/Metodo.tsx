@@ -1,70 +1,27 @@
-import { MarcaFerramenta } from "@/components/brand/MarcaFerramenta";
-import { Eyebrow } from "@/components/ui/eyebrow";
-import { Imagem } from "@/components/ui/imagem";
+import { CabecalhoSecao } from "@/components/ui/cabecalho-secao";
 import { Section } from "@/components/ui/section";
 import { home } from "@/content/home";
-import { cn } from "@/lib/utils";
 
-/** Ato 3 — Método (neutro). Bússola fixa à esquerda, as quatro etapas do RESET 360 à direita. */
+/** Método (reset360 .steps): quatro cards "01 / Descobrir". */
 export function Metodo() {
-  const s = home.metodo;
+  const m = home.metodo;
   return (
-    <Section
-      tom="neutro"
-      id="metodo"
-      data-ato="metodo"
-      data-stick
-      className="gutter sticky top-0 z-0 pt-[140px] pb-[120px]"
-    >
-      <div className="container-site grid items-stretch gap-16 md:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)]">
-        <div className="bg-carvao relative aspect-[2/3] max-h-[520px] min-h-[320px] self-start overflow-hidden md:sticky md:top-[120px]">
-          {/* [FALTA] bússola em alta resolução: original tem 215×341 */}
-          <Imagem
-            base="/brand/bussola"
-            alt={s.imagemAlt}
-            width={215}
-            height={341}
-            loading="lazy"
-            className="absolute inset-0 h-full w-full object-cover object-center"
-          />
-        </div>
-        <div>
-          <Eyebrow className="text-fg-2 mb-6">{s.kicker}</Eyebrow>
-          <h2 className="display-h2 mb-6">
-            {s.titulo[0]}
-            <br />
-            {s.titulo[1]}
-          </h2>
-          <p className="text-fg-2 mb-14 max-w-[52ch] text-[20px] leading-[1.6]">{s.lead}</p>
-          <ol className="flex flex-col">
-            {s.passos.map((p, i) => (
-              <li
-                key={p.numero}
-                className={cn(
-                  "border-line grid grid-cols-[64px_1fr] gap-6 border-t py-7",
-                  i === s.passos.length - 1 && "border-b",
-                )}
-              >
-                {/* Numeral decorativo: a ordem já está na <ol>. Verde sobre neutro é escolha do manual (ver docs/decisions). */}
-                <span
-                  aria-hidden="true"
-                  data-decorativo
-                  className="text-verde text-[32px] leading-none font-bold tracking-[-0.03em]"
-                >
-                  {p.numero}
-                </span>
-                <div>
-                  <Eyebrow className="text-fg-2 mb-2">{p.etapa}</Eyebrow>
-                  <h3 className="mb-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-[24px] leading-[1.1] font-semibold tracking-[-0.02em]">
-                    {p.titulo}
-                    {p.ferramenta ? <MarcaFerramenta qual={p.ferramenta} className="text-[15px]" /> : null}
-                  </h3>
-                  <p className="text-fg-2 max-w-[58ch] text-[17px] leading-[1.6]">{p.texto}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
+    <Section id="metodo">
+      <div className="container-site">
+        <CabecalhoSecao kicker={m.kicker} titulo={m.titulo} lead={m.lead} />
+        <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {m.passos.map((p) => (
+            <li key={p.numero} className="border-line bg-painel min-h-[170px] border px-6 py-[34px] sm:min-h-[260px]">
+              <span className="text-verde text-[11px] tracking-[.1em] uppercase">
+                {p.numero} / {p.etapa}
+              </span>
+              <h3 className="mt-5 mb-2 text-[26px] leading-[1.15] font-bold tracking-[-0.02em] sm:mt-[42px]">
+                {p.titulo}
+              </h3>
+              <p className="text-fg-2 text-[14px] leading-[1.6]">{p.texto}</p>
+            </li>
+          ))}
+        </ol>
       </div>
     </Section>
   );

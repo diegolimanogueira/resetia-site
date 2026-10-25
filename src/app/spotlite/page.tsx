@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import { PaginaMovida } from "@/components/sections/shared/PaginaMovida";
-import { movidas, seo } from "@/content/site";
+import { movidas } from "@/content/site";
 
 export const metadata: Metadata = {
-  title: seo.spotlite.title,
-  description: seo.spotlite.description,
+  title: `${movidas.tecnologias.titulo} | Reset IA`,
   robots: { index: false, follow: true },
-  alternates: { canonical: "/tecnologias/" },
+  alternates: { canonical: "/" },
 };
 
-/** Rota antiga. A Spotlite vive em /tecnologias. */
+/** Rota antiga: a Spotlite está na seção #tecnologias da home. */
 export default function SpotliteAntiga() {
-  return <PaginaMovida titulo={movidas.spotlite.titulo} link={movidas.spotlite.link} />;
+  return <PaginaMovida titulo={movidas.tecnologias.titulo} link={movidas.tecnologias.link} />;
 }

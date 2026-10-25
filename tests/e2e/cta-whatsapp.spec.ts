@@ -2,16 +2,13 @@ import { expect, test } from "@playwright/test";
 import { site } from "@/content/site";
 import { solucoes } from "@/content/solucoes";
 import { diagnosticoUrl } from "@/lib/diagnostico";
-import { waFluxa, waGeral, waSolucao, waSpotlite } from "@/lib/whatsapp";
+import { waGeral, waSolucao } from "@/lib/whatsapp";
 import { rotas } from "./rotas";
 
 /** Mensagem esperada pela origem do botão (data-cta). */
 function esperadoPara(origem: string) {
   const solucao = solucoes.lista.find((s) => origem === `solucao-${s.slug}` || origem === `solucao-${s.slug}-final`);
-  if (solucao) return waSolucao(solucao.nome);
-  if (/fluxa/.test(origem)) return waFluxa();
-  if (/spotlite/.test(origem)) return waSpotlite();
-  return waGeral();
+  return solucao ? waSolucao(solucao.nome) : waGeral();
 }
 
 /** O site existe para gerar conversa no WhatsApp: todo CTA precisa apontar para o número e a mensagem certos. */
@@ -41,35 +38,20 @@ test.describe("CTAs de WhatsApp", () => {
     }
   });
 
-  test("a página Tecnologias: Spotlite e Fluxa com as mensagens e os links certos", async ({ page }) => {
-    await page.goto("/tecnologias/");
-    await expect(page.locator("a[data-cta='spotlite-site']")).toHaveAttribute("href", site.ferramentas.spotlite);
-    await expect(page.locator("a[data-cta='fluxa-gratis']")).toHaveAttribute("href", site.ferramentas.fluxaGratis);
-    await expect(page.locator("a[data-cta='tecnologias-spotlite']")).toHaveAttribute("href", waSpotlite());
-    await expect(page.locator("a[data-cta='tecnologias-fluxa']")).toHaveAttribute("href", waFluxa());
-    await expect(page.locator("a[data-cta='tecnologias-spotlite-final']")).toHaveAttribute("href", waSpotlite());
-    await expect(page.locator("a[data-cta='footer']")).toHaveAttribute("href", waGeral());
-  });
-
-  test("na home, Spotlite e Fluxa têm o mesmo peso: cada uma com link para o próprio site", async ({ page }) => {
+  test("na home: hero, fecho e rodapé no WhatsApp; Spotlite e Fluxa com link para o próprio site", async ({ page }) => {
     await page.goto("/");
+    for (const cta of ["hero", "fecho", "footer", "header"])
+      await expect(page.locator(`a[data-cta='${cta}']`)).toHaveAttribute("href", waGeral());
     await expect(page.locator("a[data-cta='home-spotlite-site']")).toHaveAttribute("href", site.ferramentas.spotlite);
     await expect(page.locator("a[data-cta='home-fluxa-site']")).toHaveAttribute("href", site.ferramentas.fluxa);
   });
 
-  test("o teste de IA da Spotlite abre em nova aba, com a origem de cada botão", async ({ page }) => {
+  test("o teste de IA da Spotlite abre em nova aba com a origem da home", async ({ page }) => {
     await page.goto("/");
-    for (const [cta, origem] of [
-      ["hero", "hero"],
-      ["home-diagnostico", "home"],
-    ]) {
-      const a = page.locator(`a[data-cta='${cta}']`);
-      await expect(a).toHaveAttribute("href", diagnosticoUrl(origem));
-      await expect(a).toHaveAttribute("target", "_blank");
-      expect(await a.getAttribute("rel")).toContain("noopener");
-    }
-    await page.goto("/tecnologias/");
-    await expect(page.locator(`a[href='${diagnosticoUrl("tecnologias")}']`)).toHaveCount(1);
+    const a = page.locator("a[data-cta='home-diagnostico']");
+    await expect(a).toHaveAttribute("href", diagnosticoUrl("home"));
+    await expect(a).toHaveAttribute("target", "_blank");
+    expect(await a.getAttribute("rel")).toContain("noopener");
   });
 
   test("a mensagem decodificada é a do conteúdo", async ({ page }) => {

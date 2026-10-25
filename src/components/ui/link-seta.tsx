@@ -2,24 +2,39 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
-/** Link de texto com seta e sublinhado fino que fica verde no hover. `voltar` põe a seta para trás, antes do texto. */
+/**
+ * Link de texto verde com seta (reset360 .text-link). `voltar` vira o link discreto
+ * "← Voltar…" do topo das páginas internas.
+ */
 export function LinkSeta({
   href,
   children,
+  seta = "↗",
   voltar = false,
   className,
 }: {
   href: string;
   children: ReactNode;
+  seta?: "↗" | "→";
   voltar?: boolean;
   className?: string;
 }) {
   const classes = cn(
-    "inline-block text-[15px] font-medium text-fg-2 border-b border-fg/30 pb-[3px] transition-colors hover:text-fg hover:border-verde",
+    voltar
+      ? "text-fg-2 hover:text-verde inline-block text-[13px]"
+      : "text-verde hover:text-neutro inline-flex items-center gap-1.5 text-[14px] font-bold",
     className,
   );
   const externo = /^https?:\/\//.test(href);
-  const conteudo = voltar ? <>← {children}</> : <>{children} →</>;
+  const conteudo = voltar ? (
+    <>
+      <span aria-hidden="true">←</span> {children}
+    </>
+  ) : (
+    <>
+      {children} <span aria-hidden="true">{seta}</span>
+    </>
+  );
   return externo ? (
     <a href={href} target="_blank" rel="noopener" className={classes}>
       {conteudo}

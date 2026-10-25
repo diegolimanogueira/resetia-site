@@ -6,10 +6,8 @@ import { mkdir } from "node:fs/promises";
 const base = process.argv[2] ?? "http://localhost:4173";
 const rotas = [
   ["home", "/"],
-  ["solucoes", "/solucoes/"],
   ["solucao-scan", "/solucoes/scan/"],
   ["agentes", "/agentes/"],
-  ["tecnologias", "/tecnologias/"],
   ["sobre", "/sobre/"],
   ["privacidade", "/privacidade/"],
   ["404", "/rota-que-nao-existe/"],
