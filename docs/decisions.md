@@ -82,3 +82,15 @@ O diagnóstico aberto com IA fica na Spotlite, não no site: o site é estático
 - **Origem do lead:** `diagnosticoUrl(origem)` acrescenta `utm_source=resetia.<origem>`; a Spotlite grava a origem no contato (minúsculas, `[a-z0-9][a-z0-9_.-]`).
 - **Analytics:** clique no teste vira `cta_diagnostico`, ao lado de `cta_whatsapp`.
 - **Copy:** a da seção é a do próprio teste (duração, o que a pessoa recebe, etapas, aviso de diagnóstico educacional). Se o teste mudar de endereço ou de texto, atualizar `site.ferramentas.spotliteTeste` e `home.diagnostico`.
+
+## 2026-10-25 · Layout do reset360, sem movimento pesado
+
+A pedido do Diego, o site passou a seguir o protótipo `design/reset360/` (index, agentes, sobre e as sete páginas de produto) em estrutura, conteúdo e efeitos, mantendo a identidade Reset IA (logo, paleta e Inter). Motivo: o site estava pesado e com efeitos desnecessários. Substitui os registros "Fonte de verdade do design", "Movimento com motion + Lenis" e "shadcn/ui só para Sheet" de 18/10.
+
+- **Paleta.** O lime do protótipo vira o verde `#00E676`. Os tons escuros alternados viram superfícies derivadas por opacidade (neutro sobre carvão: escuro 3%, contraste 5%, painel 7%). O CTA final, que no protótipo é uma faixa lime, fica na superfície de contraste com destaque e botão verdes: verde continua não sendo fundo de seção.
+- **Hero.** Órbitas em CSS puro (anéis, núcleo com o ícone Reset IA, pílulas Marketing/Vendas/Customer Success). Saem a foto da porta e a bússola.
+- **Efeitos.** Só os do protótipo: hover nos botões e cards, header sticky com blur, scroll suave nativo. Saíram `motion`, Lenis, cursor, decode do H1, seções presas com wipe, botões magnéticos, linhas e barras animadas e o contador da Spotlite. O menu mobile deixou o Sheet do Base UI e virou um painel com `aria-expanded`; saíram `@base-ui/react`, `lucide-react` e `shadcn`. JS da home: de ~250 KB para ~157 KB transferidos (Lighthouse mobile).
+- **Rotas.** Como no protótipo, Método, Soluções e Tecnologias são seções da home (`/#metodo`, `/#solucoes`, `/#tecnologias`). `/solucoes` e `/tecnologias` viraram redirecionamentos no cliente (noindex) para essas âncoras, junto com `/produtos` e `/spotlite`. As páginas `/solucoes/[slug]` continuam com as mesmas URLs. Sitemap: 11 URLs.
+- **Ficaram do site anterior** (escolha do Diego): o teste de IA da Spotlite como bloco da home, depois de Tecnologias; a foto do Diego no Sobre; a barra de WhatsApp no celular; a política de privacidade.
+- **Saíram por não estarem no protótipo:** a faixa de prova social, os selos de ferramenta nos passos do Método e o campo "Tecnologia própria" nas soluções, o mockup da Spotlite, as capturas dos sites e o e-mail no rodapé. O CTA principal do hero volta a abrir o WhatsApp, como no protótipo.
+- **Ajustes ao protótipo:** entregas de cada solução em lista (no protótipo, uma frase com ";"); mensagem de WhatsApp com o nome da solução nas páginas de produto; sem as legendas "FOTO DE…" e o aviso de fotos provisórias, que eram notas do protótipo.
