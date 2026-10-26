@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { nav, seo, site } from "@/content/site";
+import { nav, navDiagnostico, seo, site } from "@/content/site";
 import { solucoes } from "@/content/solucoes";
 import { rotas } from "./rotas";
 
@@ -45,10 +45,10 @@ test("sitemap, robots e manifest", async ({ request, baseURL }) => {
   const xml = await sitemap.text();
   for (const rota of rotas) expect(xml).toContain(`<loc>${site.dominio}${rota.caminho}</loc>`);
   for (const s of solucoes.lista) expect(xml).toContain(`<loc>${site.dominio}/solucoes/${s.slug}/</loc>`);
-  // home + Agentes + Sobre + sete soluções + privacidade; âncoras e rotas antigas ficam fora.
-  const paginasNav = nav.filter((l) => !l.href.includes("#"));
-  expect(xml.match(/<url>/g)).toHaveLength(2 + paginasNav.length + solucoes.lista.length);
-  for (const antiga of ["/produtos/", "/spotlite/", "/tecnologias/", "/solucoes/</loc>", "#"])
+  // home + quatro páginas da navegação + diagnóstico + cinco soluções + privacidade; rotas antigas ficam fora.
+  expect(xml.match(/<url>/g)).toHaveLength(1 + (nav.length - 1) + 1 + solucoes.lista.length + 1);
+  expect(xml).toContain(`<loc>${site.dominio}${navDiagnostico.href}/</loc>`);
+  for (const antiga of ["/produtos/", "/spotlite/", "/agentes/</loc>", "/solucoes/scan/", "/solucoes/workshops/", "#"])
     expect(xml).not.toContain(antiga);
 
   const robots = await request.get("/robots.txt");

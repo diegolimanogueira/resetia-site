@@ -10,10 +10,11 @@ const renderHeader = (rota: string) => {
   rotaAtual = rota;
   return render(<Header />);
 };
+const principal = () => screen.getByRole("navigation", { name: "Principal" });
 
 describe("Header", () => {
   it("é sticky e carvão em todas as páginas", () => {
-    for (const rota of ["/", "/agentes/", "/solucoes/scan/"]) {
+    for (const rota of ["/", "/agentes-de-ia/", "/solucoes/governance/"]) {
       const { container, unmount } = renderHeader(rota);
       const header = container.querySelector("header")!;
       expect(header.getAttribute("data-tom")).toBe("carvao");
@@ -22,18 +23,21 @@ describe("Header", () => {
     }
   });
 
-  it("leva Método, Soluções e Tecnologias às âncoras da home", () => {
+  it("tem as cinco páginas e o diagnóstico gratuito como último item", () => {
     renderHeader("/");
-    const principal = screen.getByRole("navigation", { name: "Principal" });
-    const links = Array.from(principal.querySelectorAll("a")).map((a) => a.getAttribute("href"));
-    expect(links).toEqual(expect.arrayContaining(["/#metodo", "/#solucoes", "/agentes", "/#tecnologias", "/sobre"]));
+    const links = Array.from(principal().querySelectorAll("a")).map((a) => a.getAttribute("href"));
+    expect(links).toEqual(["/", "/solucoes", "/agentes-de-ia", "/tecnologias", "/sobre", "/diagnostico-gratuito"]);
   });
 
-  it("marca a página ativa, inclusive com barra final", () => {
-    renderHeader("/sobre/");
-    const principal = screen.getByRole("navigation", { name: "Principal" });
-    expect(principal.querySelector("a[href='/sobre']")!.getAttribute("aria-current")).toBe("page");
-    expect(principal.querySelector("a[href='/agentes']")!.getAttribute("aria-current")).toBeNull();
+  it("marca a página ativa, inclusive em subpáginas e com barra final", () => {
+    renderHeader("/solucoes/agent-factory/");
+    expect(principal().querySelector("a[href='/solucoes']")!.getAttribute("aria-current")).toBe("true");
+    expect(principal().querySelector("a[href='/']")!.getAttribute("aria-current")).toBeNull();
+  });
+
+  it("Início só fica ativo na home", () => {
+    renderHeader("/");
+    expect(principal().querySelector("a[href='/']")!.getAttribute("aria-current")).toBe("page");
   });
 
   it("o menu do celular abre e fecha pelo botão e pelo Esc", () => {

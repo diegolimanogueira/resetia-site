@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { site } from "@/content/site";
-import { waGeral, waSolucao, waUrl } from "@/lib/whatsapp";
+import { solucaoPorSlug } from "@/content/solucoes";
+import { waDiagnostico, waGeral, waUrl } from "@/lib/whatsapp";
 
 describe("waUrl", () => {
   it("aponta para o número da Reset IA com a mensagem geral codificada", () => {
@@ -9,13 +10,17 @@ describe("waUrl", () => {
     expect(url.searchParams.get("text")).toBe(site.mensagens.geral);
   });
 
+  it("o diagnóstico gratuito abre a conversa com a mensagem do RESET Scan", () => {
+    expect(new URL(waDiagnostico()).searchParams.get("text")).toBe(site.mensagens.diagnostico);
+    expect(waDiagnostico()).not.toBe(waGeral());
+  });
+
   it("cada solução tem mensagem própria com o nome dela", () => {
-    expect(new URL(waSolucao("RESET Scan")).searchParams.get("text")).toBe("Olá! Quero conhecer o RESET Scan.");
-    expect(waSolucao("RESET Scan")).not.toBe(waGeral());
+    const s = solucaoPorSlug("agent-factory")!;
+    expect(new URL(waUrl(s.cta.mensagem)).searchParams.get("text")).toContain("RESET Agent Factory");
   });
 
   it("codifica acentos e espaços (sem caracteres crus na URL)", () => {
-    const url = waUrl("Olá, equipe!");
-    expect(url).toBe(`https://wa.me/${site.whatsapp}?text=Ol%C3%A1%2C%20equipe!`);
+    expect(waUrl("Olá, equipe!")).toBe(`https://wa.me/${site.whatsapp}?text=Ol%C3%A1%2C%20equipe!`);
   });
 });

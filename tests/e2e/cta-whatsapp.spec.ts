@@ -1,17 +1,19 @@
 import { expect, test } from "@playwright/test";
 import { site } from "@/content/site";
-import { solucoes } from "@/content/solucoes";
-import { diagnosticoUrl } from "@/lib/diagnostico";
-import { waGeral, waSolucao } from "@/lib/whatsapp";
+import { solucaoPorSlug, solucoes } from "@/content/solucoes";
+import { testeSpotliteUrl } from "@/lib/teste-spotlite";
+import { waDiagnostico, waGeral, waUrl } from "@/lib/whatsapp";
 import { rotas } from "./rotas";
 
 /** Mensagem esperada pela origem do botão (data-cta). */
 function esperadoPara(origem: string) {
-  const solucao = solucoes.lista.find((s) => origem === `solucao-${s.slug}` || origem === `solucao-${s.slug}-final`);
-  return solucao ? waSolucao(solucao.nome) : waGeral();
+  if (origem.startsWith("diagnostico")) return waDiagnostico();
+  if (origem === "agentes-factory") return waUrl(solucaoPorSlug("agent-factory")!.cta.mensagem);
+  const s = solucoes.lista.find((x) => new RegExp(`^solucao-${x.slug}(-final|-quadro)?$`).test(origem));
+  return s ? waUrl(s.cta.mensagem) : waGeral();
 }
 
-/** O site existe para gerar conversa no WhatsApp: todo CTA precisa apontar para o número e a mensagem certos. */
+/** O site existe para gerar conversa: todo CTA precisa apontar para o número e a mensagem certos. */
 test.describe("CTAs de WhatsApp", () => {
   for (const rota of rotas) {
     test(`em ${rota.caminho} todo link wa.me tem a mensagem certa, nova aba e noopener`, async ({ page }) => {
@@ -30,33 +32,30 @@ test.describe("CTAs de WhatsApp", () => {
     });
   }
 
-  test("cada uma das sete soluções abre o WhatsApp com o nome dela", async ({ page }) => {
-    for (const s of solucoes.lista) {
-      await page.goto(`/solucoes/${s.slug}/`);
-      await expect(page.locator(`a[data-cta='solucao-${s.slug}']`)).toHaveAttribute("href", waSolucao(s.nome));
-      await expect(page.locator(`a[data-cta='solucao-${s.slug}-final']`)).toHaveAttribute("href", waSolucao(s.nome));
-    }
-  });
-
-  test("na home: hero, fecho e rodapé no WhatsApp; Spotlite e Fluxa com link para o próprio site", async ({ page }) => {
+  test("o diagnóstico gratuito aparece no hero, depois das soluções, no Scan e antes do rodapé da home", async ({
+    page,
+  }) => {
     await page.goto("/");
-    for (const cta of ["hero", "fecho", "footer", "header"])
-      await expect(page.locator(`a[data-cta='${cta}']`)).toHaveAttribute("href", waGeral());
+    for (const cta of ["diagnostico-hero", "diagnostico-solucoes", "diagnostico-home", "diagnostico-final"]) {
+      const a = page.locator(`a[data-cta='${cta}']`);
+      await expect(a, cta).toHaveAttribute("href", waDiagnostico());
+      await expect(a, cta).toHaveText(new RegExp(site.ctaDiagnostico));
+    }
     await expect(page.locator("a[data-cta='home-spotlite-site']")).toHaveAttribute("href", site.ferramentas.spotlite);
     await expect(page.locator("a[data-cta='home-fluxa-site']")).toHaveAttribute("href", site.ferramentas.fluxa);
   });
 
-  test("o teste de IA da Spotlite abre em nova aba com a origem da home", async ({ page }) => {
-    await page.goto("/");
-    const a = page.locator("a[data-cta='home-diagnostico']");
-    await expect(a).toHaveAttribute("href", diagnosticoUrl("home"));
-    await expect(a).toHaveAttribute("target", "_blank");
-    expect(await a.getAttribute("rel")).toContain("noopener");
+  test("a página do diagnóstico: WhatsApp no topo e o teste da Spotlite como alternativa", async ({ page }) => {
+    await page.goto("/diagnostico-gratuito/");
+    await expect(page.locator("a[data-cta='diagnostico-pagina']")).toHaveAttribute("href", waDiagnostico());
+    const teste = page.locator("a[data-cta='teste-spotlite']");
+    await expect(teste).toHaveAttribute("href", testeSpotliteUrl("diagnostico"));
+    await expect(teste).toHaveAttribute("target", "_blank");
   });
 
-  test("a mensagem decodificada é a do conteúdo", async ({ page }) => {
+  test("a mensagem decodificada do diagnóstico é a do conteúdo", async ({ page }) => {
     await page.goto("/");
-    const href = (await page.locator("a[data-cta='fecho']").getAttribute("href"))!;
-    expect(new URL(href).searchParams.get("text")).toBe(site.mensagens.geral);
+    const href = (await page.locator("a[data-cta='diagnostico-final']").getAttribute("href"))!;
+    expect(new URL(href).searchParams.get("text")).toBe(site.mensagens.diagnostico);
   });
 });
