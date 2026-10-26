@@ -11,7 +11,10 @@ const assinarScroll = (notificar: () => void) => {
   return () => window.removeEventListener("scroll", notificar);
 };
 
-/** Barra fixa de WhatsApp no celular. Aparece depois do hero (600px) para não competir com os botões dele. */
+/**
+ * WhatsApp sempre à mão depois do hero (600px): barra fixa no celular e botão flutuante no desktop.
+ * Antes disso fica fora da tela, invisível e inerte, para não competir com os botões do hero.
+ */
 export function BarraMobile() {
   const visivel = useSyncExternalStore(
     assinarScroll,
@@ -24,11 +27,13 @@ export function BarraMobile() {
       data-barra-mobile
       inert={!visivel}
       className={cn(
-        "border-line bg-carvao/90 fixed inset-x-0 bottom-0 z-40 border-t px-[6vw] pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur-[12px] transition-[transform,visibility] duration-300 ease-out md:hidden",
-        visivel ? "visible translate-y-0" : "invisible translate-y-full",
+        "fixed z-40 transition-[transform,visibility,opacity] duration-300 ease-out",
+        "border-line bg-carvao/90 inset-x-0 bottom-0 border-t px-[6vw] pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur-[12px]",
+        "md:inset-x-auto md:right-6 md:bottom-6 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none",
+        visivel ? "visible translate-y-0 opacity-100" : "invisible translate-y-full opacity-0",
       )}
     >
-      <Botao href={waGeral()} origem="barra-mobile" className="w-full">
+      <Botao href={waGeral()} origem="barra-mobile" className="w-full md:w-auto">
         {site.barraMobile}
       </Botao>
     </div>

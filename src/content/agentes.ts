@@ -52,10 +52,10 @@ const lista: Agente[] = [
 
 export const agentes = {
   hero: {
-    kicker: "RESET Agent Factory",
+    kicker: "Agentes de IA",
     titulo: ["Seu time, com", "*novas capacidades.*"],
     lead: "30 aplicações possíveis de agentes em Marketing, Vendas e Customer Success. Não vendemos robôs genéricos: desenhamos soluções adequadas ao processo, aos dados e às metas de cada operação.",
-    link: { label: "Entenda a Fábrica de Agentes", href: "/solucoes/agent-factory" },
+    link: { label: "Entenda a Agent Factory", href: "/solucoes/agent-factory" },
   },
   filtro: {
     rotulo: "Explore por área",
@@ -71,7 +71,61 @@ export const agentes = {
     titulo: ["Não é preciso somar", "*mais uma ferramenta.*"],
     texto:
       "Avaliamos licenças existentes, redundâncias e oportunidades de consolidação. Um agente pode complementar ou substituir tarefas de ferramentas específicas — desde que os testes comprovem qualidade, segurança e custo total vantajoso.",
-    link: { label: "Comece pelo RESET Scan", href: "/solucoes/scan" },
+    link: { label: "Conheça a Agent Factory", href: "/solucoes/agent-factory" },
   },
   cta: ctaPadrao,
+};
+
+/** As três frentes da Agent Factory, com exemplos por área (página da solução). */
+export const categoriasAgentes: Array<{ area: AreaId; nome: string; agentes: Array<{ nome: string; texto: string }> }> =
+  [
+    {
+      area: "marketing",
+      nome: "Marketing Intelligence",
+      agentes: [
+        { nome: "Social Content Agent", texto: "Produção de conteúdo para redes sociais." },
+        { nome: "Creative Studio Agent", texto: "Criação de conceitos e peças criativas." },
+        { nome: "Campaign Agent", texto: "Planejamento e estruturação de campanhas." },
+        { nome: "Market Intelligence Agent", texto: "Análise de concorrência e mercado." },
+        { nome: "Performance Agent", texto: "Análise de resultados de campanhas." },
+        { nome: "CRM Agent", texto: "Segmentação e personalização de comunicações." },
+      ],
+    },
+    {
+      area: "vendas",
+      nome: "Sales Intelligence",
+      agentes: [
+        { nome: "AI SDR Agent", texto: "Qualificação inicial de oportunidades." },
+        { nome: "Prospecting Agent", texto: "Inteligência para prospecção." },
+        { nome: "Follow-up Agent", texto: "Acompanhamento comercial." },
+        { nome: "Proposal Agent", texto: "Apoio à criação de propostas." },
+        { nome: "CRM Intelligence Agent", texto: "Análise de oportunidades e pipeline." },
+        { nome: "Sales Coach Agent", texto: "Apoio à evolução comercial." },
+      ],
+    },
+    {
+      area: "customer-success",
+      nome: "Customer Intelligence",
+      agentes: [
+        { nome: "Customer Support Agent", texto: "Atendimento inteligente." },
+        { nome: "Onboarding Agent", texto: "Apoio à integração de clientes." },
+        { nome: "Customer Health Agent", texto: "Análise da saúde da carteira." },
+        { nome: "Retention Agent", texto: "Identificação de riscos de cancelamento." },
+        { nome: "Expansion Agent", texto: "Oportunidades de upsell e cross-sell." },
+        { nome: "Voice of Customer Agent", texto: "Inteligência a partir de feedbacks." },
+      ],
+    },
+  ];
+
+/** Seção comercial da Agent Factory sobre ferramentas redundantes. Sem promessa de economia. */
+export const consolidacao = {
+  kicker: "Ferramentas redundantes",
+  titulo: ["Sua empresa pode estar pagando por mais ferramentas", "*do que realmente precisa.*"],
+  paragrafos: [
+    "Mapeamos as licenças e assinaturas em uso, as funcionalidades que se repetem entre ferramentas e as soluções subutilizadas. Onde faz sentido, um agente personalizado concentra tarefas que hoje estão espalhadas.",
+    "A recomendação considera o custo total: implementação, infraestrutura, modelos de IA e manutenção. Não prometemos substituição integral de ferramentas nem economia garantida; cada consolidação é validada com testes de qualidade, segurança e custo.",
+  ],
+  passos: ["Funcionalidades redundantes", "Soluções subutilizadas", "Oportunidades de consolidação"],
+  categorias: { kicker: "Casos de uso por área", titulo: ["Três frentes,", "*uma jornada de receita.*"] },
+  catalogo: { label: "Ver os 30 agentes do catálogo", href: "/agentes-de-ia" },
 };

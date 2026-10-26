@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import { Areas } from "@/components/sections/home/Areas";
-import { Diagnostico } from "@/components/sections/home/Diagnostico";
 import { Hero } from "@/components/sections/home/Hero";
-import { Metodo } from "@/components/sections/home/Metodo";
 import { Problema } from "@/components/sections/home/Problema";
+import { Prova } from "@/components/sections/home/Prova";
 import { QuemSomos } from "@/components/sections/home/QuemSomos";
+import { Reset360 } from "@/components/sections/home/Reset360";
+import { Scan } from "@/components/sections/home/Scan";
 import { Solucoes } from "@/components/sections/home/Solucoes";
 import { Tecnologias } from "@/components/sections/home/Tecnologias";
 import { CtaFinal } from "@/components/sections/shared/CtaFinal";
+import { Perguntas } from "@/components/sections/shared/Perguntas";
 import { seo } from "@/content/site";
-import { ctaPadrao } from "@/content/solucoes";
-import { waGeral } from "@/lib/whatsapp";
+import { ctaPadrao, perguntas, solucoes } from "@/content/solucoes";
 
 export const metadata: Metadata = {
   title: seo.home.title,
@@ -18,19 +19,24 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-/** Home na ordem do reset360, com o teste de IA da Spotlite depois de Tecnologias. */
+/**
+ * Jornada da home: entender a Reset → identificar a necessidade → explorar uma solução →
+ * conhecer a experiência → solicitar o diagnóstico gratuito.
+ */
 export default function Home() {
   return (
     <main data-tom="carvao" className="text-fg bg-(--bg)">
       <Hero />
+      <Prova />
       <Problema />
-      <Metodo />
+      <Reset360 />
       <Solucoes />
       <Areas />
+      <Scan />
       <Tecnologias />
-      <Diagnostico />
       <QuemSomos />
-      <CtaFinal cta={ctaPadrao} href={waGeral()} origem="fecho" />
+      <Perguntas kicker={solucoes.perguntas.kicker} titulo={solucoes.perguntas.titulo} itens={perguntas} />
+      <CtaFinal cta={ctaPadrao} origem="final" />
     </main>
   );
 }

@@ -1,6 +1,7 @@
 // Converte os PNGs de marca em WebP/AVIF e gera ícones PWA/favicon a partir do símbolo.
 // Rodar: npm run images. Saídas são commitadas; o build não depende deste script.
 import sharp from "sharp";
+import { existsSync } from "node:fs";
 import { stat } from "node:fs/promises";
 
 const BRAND = "public/brand";
@@ -38,17 +39,25 @@ await sharp(`${BRAND}/icone-dark.png`)
   .toFile(`${BRAND}/icone-dark.webp`);
 console.log(`icone-dark.png → icone-dark.webp (${await kb(`${BRAND}/icone-dark.webp`)})`);
 
-// Foto do Diego (design/fotos/diego.png): quadrado centrado no rosto, para o bloco compacto da página Sobre.
-for (const [fmt, file, opts] of [
-  ["avif", "diego.avif", { quality: 60 }],
-  ["webp", "diego.webp", { quality: 82 }],
-  ["jpeg", "diego.jpg", { quality: 84 }],
-]) {
-  await sharp("design/fotos/diego.png")
-    .resize(480, 480, { fit: "cover", position: sharp.strategy.attention })
-    [fmt](opts)
-    .toFile(`${BRAND}/${file}`);
-  console.log(`diego.png → ${file} (${await kb(`${BRAND}/${file}`)})`);
+// Fotos dos fundadores (design/fotos/<nome>.png): quadrado centrado no rosto, para os retratos redondos.
+// A da Élida entra quando o arquivo existir; depois, preencher `foto` dela em src/content/sobre.ts.
+for (const nome of ["diego", "elida"]) {
+  const origem = `design/fotos/${nome}.png`;
+  if (!existsSync(origem)) {
+    console.log(`${origem} não existe: pulando`);
+    continue;
+  }
+  for (const [fmt, file, opts] of [
+    ["avif", `${nome}.avif`, { quality: 60 }],
+    ["webp", `${nome}.webp`, { quality: 82 }],
+    ["jpeg", `${nome}.jpg`, { quality: 84 }],
+  ]) {
+    await sharp(origem)
+      .resize(480, 480, { fit: "cover", position: sharp.strategy.attention })
+      [fmt](opts)
+      .toFile(`${BRAND}/${file}`);
+    console.log(`${nome}.png → ${file} (${await kb(`${BRAND}/${file}`)})`);
+  }
 }
 
 // PLACEHOLDER brand: ícones gerados do PNG. Trocar pelo SVG oficial quando o Diego exportar.

@@ -6,10 +6,12 @@ module.exports = {
       staticDistDir: "./out",
       url: [
         "http://localhost/",
-        "http://localhost/solucoes/scan/",
-        "http://localhost/agentes/",
+        "http://localhost/solucoes/",
+        "http://localhost/solucoes/agent-factory/",
+        "http://localhost/agentes-de-ia/",
+        "http://localhost/tecnologias/",
         "http://localhost/sobre/",
-        "http://localhost/privacidade/",
+        "http://localhost/diagnostico-gratuito/",
       ],
       numberOfRuns: 3,
       settings: {

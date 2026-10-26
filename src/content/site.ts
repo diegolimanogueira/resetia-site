@@ -12,8 +12,9 @@ export const site = {
   whatsappFormatado: "+55 11 91617-0606",
   mensagens: {
     geral: "Olá! Quero conhecer as soluções da Reset 360.",
-    /** {solucao} vira o nome da solução, ex.: "RESET Scan". */
-    solucao: "Olá! Quero conhecer o {solucao}.",
+    /** RESET Scan: todo botão "Solicitar diagnóstico gratuito" abre o WhatsApp com esta mensagem. */
+    diagnostico:
+      "Olá! Conheci a Reset pelo site e gostaria de solicitar um diagnóstico gratuito para entender as oportunidades de IA na minha empresa.",
   },
   email: "contato@resetia.com.br",
   // [FALTA] confirmar os dois perfis (vieram do estudo de conteúdo RESET 360).
@@ -32,32 +33,41 @@ export const site = {
   },
   cidades: "Fortaleza e Campinas, Brasil",
   ano: 2026,
-  ctaHeader: "Vamos conversar",
+  /** Item destacado do menu: leva à página do diagnóstico. */
+  ctaMenu: "Diagnóstico gratuito",
+  /** Botões que abrem o WhatsApp com a mensagem do diagnóstico. */
+  ctaDiagnostico: "Solicitar diagnóstico gratuito",
+  assinatura: "IA sem hype. Resultado na prática.",
   ctaSpotliteSite: "Conhecer Spotlite",
   ctaFluxaSite: "Conhecer Fluxa BPM",
   barraMobile: "Falar no WhatsApp",
 } as const;
 
-/** Navegação do reset360: Método, Soluções e Tecnologias são seções da home. */
 export const nav: Link[] = [
-  { label: "Método", href: "/#metodo" },
-  { label: "Soluções", href: "/#solucoes" },
-  { label: "Agentes", href: "/agentes" },
-  { label: "Tecnologias", href: "/#tecnologias" },
-  { label: "Sobre", href: "/sobre" },
+  { label: "Início", href: "/" },
+  { label: "Soluções", href: "/solucoes" },
+  { label: "Agentes de IA", href: "/agentes-de-ia" },
+  { label: "Tecnologias", href: "/tecnologias" },
+  { label: "Sobre a Reset", href: "/sobre" },
 ];
 
-/** Link da navegação ativo na rota atual, inclusive em subpáginas. Âncoras da home nunca ficam ativas. */
-export const rotaAtiva = (caminho: string, href: string) => caminho === href || caminho.startsWith(`${href}/`);
+/** Página do RESET Scan: botão verde no fim do menu. */
+export const navDiagnostico: Link = { label: site.ctaMenu, href: "/diagnostico-gratuito" };
+
+/** Link da navegação ativo na rota atual, inclusive em subpáginas. A home só fica ativa nela mesma. */
+export const rotaAtiva = (caminho: string, href: string) =>
+  href === "/" ? caminho === "/" : caminho === href || caminho.startsWith(`${href}/`);
 
 export const footer = {
   frase: ["Um novo jeito de trabalhar.", "Uma nova forma de crescer."],
+  solucoes: { titulo: "Soluções" },
   explore: {
     titulo: "Explore",
     links: [
-      { label: "Soluções", href: "/#solucoes" },
-      { label: "Fábrica de agentes", href: "/agentes" },
-      { label: "Nossa história", href: "/sobre" },
+      { label: "Agentes de IA", href: "/agentes-de-ia" },
+      { label: "Tecnologias", href: "/tecnologias" },
+      { label: "Sobre a Reset", href: "/sobre" },
+      { label: "Diagnóstico gratuito", href: "/diagnostico-gratuito" },
     ] satisfies Link[],
   },
   contato: {
@@ -77,15 +87,32 @@ export const seo = {
   home: {
     title: "IA aplicada a Marketing, Vendas e CS | Reset IA",
     description:
-      "Transforme pessoas, processos e agentes em crescimento real com o RESET 360: IA aplicada a Marketing, Vendas e Customer Success.",
+      "Transformação de negócios com IA: líderes preparados, processos redesenhados e agentes inteligentes para Marketing, Vendas e Customer Success.",
+  },
+  solucoes: {
+    title: "Soluções RESET 360: cinco frentes de transformação | Reset IA",
+    description:
+      "AI Champions, Processos com IA, Agent Factory, Governance e Performance: contrate uma solução ou combine as cinco em um programa de transformação.",
   },
   agentes: {
-    title: "Catálogo de agentes | Reset IA",
-    description: "Conheça 30 casos de uso de agentes de IA para Marketing, Vendas e Customer Success.",
+    title: "Agentes de IA para Marketing, Vendas e CS | Reset IA",
+    description:
+      "Catálogo com 30 casos de uso de agentes de IA para Marketing, Vendas e Customer Success, desenhados para o processo e os dados de cada operação.",
+  },
+  tecnologias: {
+    title: "Tecnologias próprias: Spotlite e Fluxa BPM | Reset IA",
+    description:
+      "Spotlite para diagnóstico de maturidade e oportunidades de IA; Fluxa BPM para mapear e redesenhar processos com IA. Tecnologias próprias da Reset.",
   },
   sobre: {
-    title: "Sobre a Reset | Reset IA",
-    description: "Conheça Élida Almeida e Diego Nogueira, os profissionais por trás da Reset IA.",
+    title: "Sobre a Reset: Diego Nogueira e Élida Almeida | Reset IA",
+    description:
+      "Tecnologia e visão de negócio: conheça Diego Nogueira e Élida Almeida, os fundadores da Reset IA, e a proposta de transformação com IA.",
+  },
+  diagnostico: {
+    title: "Diagnóstico gratuito de IA (RESET Scan) | Reset IA",
+    description:
+      "Por onde sua empresa deveria começar com IA? Um diagnóstico inicial gratuito, pelo WhatsApp, para indicar oportunidades e próximos passos.",
   },
   privacidade: {
     title: "Política de privacidade | Reset IA",
@@ -96,15 +123,23 @@ export const seo = {
   },
 } as const;
 
-/** Rotas antigas que viraram redirecionamento no cliente: o conteúdo agora é seção da home. */
+/** Rotas antigas que viraram redirecionamento no cliente (a query, como ?area=, é mantida). */
 export const movidas = {
-  solucoes: {
-    titulo: "As soluções agora estão na página inicial.",
-    link: { label: "Ver as soluções", href: "/#solucoes" } satisfies Link,
+  scan: {
+    titulo: "O RESET Scan agora é o diagnóstico gratuito.",
+    link: { label: "Ir para o diagnóstico gratuito", href: "/diagnostico-gratuito/" } satisfies Link,
+  },
+  workshops: {
+    titulo: "Os workshops agora fazem parte do RESET AI Champions.",
+    link: { label: "Ir para o RESET AI Champions", href: "/solucoes/ai-champions/" } satisfies Link,
+  },
+  agentes: {
+    titulo: "O catálogo agora se chama Agentes de IA.",
+    link: { label: "Ir para Agentes de IA", href: "/agentes-de-ia/" } satisfies Link,
   },
   tecnologias: {
-    titulo: "As tecnologias agora estão na página inicial.",
-    link: { label: "Ver as tecnologias", href: "/#tecnologias" } satisfies Link,
+    titulo: "Esta página agora está em Tecnologias.",
+    link: { label: "Ir para Tecnologias", href: "/tecnologias/" } satisfies Link,
   },
 };
 

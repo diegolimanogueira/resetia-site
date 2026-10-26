@@ -8,7 +8,7 @@ import { createElement as h } from "react";
 const nome = "Reset IA";
 const dominio = "www.resetia.com.br";
 // Mesmo título do hero da home (src/content/home.ts).
-const [linha1, linha2] = ["Não é sobre ter mais IA.", "É sobre fazer mais negócio."];
+const [linha1, linha2] = ["Não é sobre ter mais IA.", "É sobre gerar mais resultado com ela."];
 const alt = `${nome} — ${linha1} ${linha2}`;
 
 const [inter700, inter400, icone] = await Promise.all([

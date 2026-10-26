@@ -6,4 +6,5 @@ export function waUrl(mensagem: string = site.mensagens.geral, numero: string = 
 }
 
 export const waGeral = () => waUrl(site.mensagens.geral);
-export const waSolucao = (nome: string) => waUrl(site.mensagens.solucao.replace("{solucao}", nome));
+/** RESET Scan: "Solicitar diagnóstico gratuito" em qualquer lugar do site. */
+export const waDiagnostico = () => waUrl(site.mensagens.diagnostico);

@@ -3,11 +3,12 @@
 import Script from "next/script";
 import { useReportWebVitals } from "next/web-vitals";
 import { useEffect } from "react";
-import { analytics, track } from "@/lib/analytics";
+import { SELETOR_CTA, analytics, eventoDoClique, track } from "@/lib/analytics";
 
 /**
- * Carrega o script de analytics escolhido por env e registra os eventos do site:
- * cliques em CTAs de WhatsApp e no teste da Spotlite (com `data-cta`) e Web Vitals. Sem env, não renderiza nada.
+ * Carrega o script de analytics escolhido por env e registra os eventos do site: cliques nos CTAs
+ * (WhatsApp, diagnóstico gratuito, página do diagnóstico, teste da Spotlite), com `data-cta`, e Web Vitals.
+ * Sem env, não renderiza nada.
  */
 export function Analytics() {
   useReportWebVitals((m) => {
@@ -21,12 +22,9 @@ export function Analytics() {
   useEffect(() => {
     if (!analytics.ativo) return;
     const aoClicar = (e: MouseEvent) => {
-      const alvo =
-        e.target instanceof Element
-          ? e.target.closest<HTMLAnchorElement>("a[href*='wa.me'], a[href*='spotlite.com.br/descoberta/']")
-          : null;
+      const alvo = e.target instanceof Element ? e.target.closest<HTMLAnchorElement>(SELETOR_CTA) : null;
       if (!alvo) return;
-      const evento = alvo.href.includes("wa.me") ? "cta_whatsapp" : "cta_diagnostico";
+      const evento = eventoDoClique({ href: alvo.href, cta: alvo.dataset.cta });
       track(evento, { origem: alvo.dataset.cta ?? "link", pagina: window.location.pathname });
     };
     document.addEventListener("click", aoClicar, { capture: true });

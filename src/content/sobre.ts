@@ -1,10 +1,11 @@
+import { home } from "./home";
 import { site } from "./site";
 import { ctaPadrao } from "./solucoes";
 import type { Link } from "./types";
 
 interface Fundador {
   nome: string;
-  areas: string;
+  especialidade: string;
   paragrafos: string[];
   link: Link;
   /** Sem foto, mostra o monograma no mesmo espaço. */
@@ -17,13 +18,24 @@ export const sobre = {
     kicker: "Sobre a Reset",
     titulo: ["Duas experiências.", "*Uma visão de futuro.*"],
     lead: "A tecnologia transforma possibilidades. A visão de negócio transforma possibilidades em resultados.",
+    apoio:
+      "A Reset une conhecimento técnico em inteligência artificial e inovação à experiência executiva em Marketing, Vendas e crescimento empresarial.",
   },
-  essencia: {
-    kicker: "Nossa essência",
-    titulo: ["Inteligência aplicada.", "*Crescimento real.*"],
+  historia: {
+    kicker: "Nossa história",
+    titulo: ["De treinamentos", "*à transformação.*"],
     paragrafos: [
-      "A Reset nasce da combinação entre experiência em inteligência artificial, inovação e construção de soluções digitais e uma trajetória dedicada a Marketing, Vendas e crescimento de negócios.",
+      "A Reset começou formando equipes para usar inteligência artificial no trabalho do dia a dia. Hoje, a atuação vai além da capacitação: conectamos pessoas, processos, tecnologia e resultados.",
+      "Nosso território é a aplicação de IA em Marketing, Vendas e Customer Success, com uma visão integrada de toda a jornada de receita.",
       "Acreditamos que o potencial da IA está em transformar rotinas, ampliar a capacidade das pessoas e criar operações mais inteligentes, não apenas em contratar novas plataformas.",
+    ],
+    prova: home.prova,
+  },
+  proposta: {
+    kicker: "Proposta de valor",
+    titulo: [
+      "A Reset não vende apenas treinamentos, agentes ou tecnologia.",
+      "*Ajuda empresas a desenvolver pessoas, transformar operações e gerar mais valor com IA.*",
     ],
   },
   fundadores: {
@@ -31,34 +43,38 @@ export const sobre = {
     titulo: ["Visões complementares.", "*Uma só direção.*"],
     pessoas: [
       {
-        nome: site.fundadores.elida.nome,
-        areas: "Estratégia · Marketing · Growth",
-        paragrafos: [
-          "Executiva com ampla experiência em Marketing Estratégico, Growth, posicionamento de marcas, liderança de equipes e estratégias comerciais. Sua atuação conecta as oportunidades da IA a desafios concretos de aquisição, conversão e geração de receita.",
-          "Na Reset, lidera a perspectiva de negócios: identificação de oportunidades, desenho da experiência do cliente e direcionamento de iniciativas para impacto comercial.",
-        ],
-        link: { label: "Ver LinkedIn", href: site.fundadores.elida.linkedin },
-        // [FALTA] foto autorizada da Élida. Até lá, monograma.
-        monograma: "ÉA",
-      },
-      {
         nome: site.fundadores.diego.nome,
-        areas: "Tecnologia · IA · Inovação",
+        especialidade: "Especialista em Inteligência Artificial, Tecnologia e Inovação",
         paragrafos: [
-          "Profissional com vasta experiência em tecnologia, projetos de inovação e inteligência artificial. Sua trajetória reúne arquitetura de soluções, produtos digitais, processos e transformação tecnológica em ambientes corporativos.",
-          "Na Reset, lidera a perspectiva técnica: arquitetura de IA, criação de agentes inteligentes, integração de sistemas e aplicação responsável de tecnologia à operação.",
+          "Profissional com sólida trajetória em tecnologia, inovação, arquitetura de soluções e inteligência artificial.",
+          "Sua experiência inclui atuação em projetos corporativos de transformação digital, automação e desenvolvimento de soluções inteligentes, incluindo sua trajetória na Unimed Nacional.",
+          "Na Reset, lidera a frente de tecnologia, arquitetura e desenvolvimento de soluções de inteligência artificial.",
         ],
         link: { label: "Ver LinkedIn", href: site.fundadores.diego.linkedin },
         foto: { base: "/brand/diego", alt: "Diego Nogueira, fundador da Reset IA" },
         monograma: "DN",
       },
+      {
+        nome: site.fundadores.elida.nome,
+        especialidade: "Especialista em Estratégia, Marketing, Vendas e Growth",
+        paragrafos: [
+          "Executiva com mais de 15 anos de experiência em Marketing, estratégias de crescimento e desenvolvimento de negócios.",
+          "Sua trajetória inclui posições de liderança em organizações como NP Digital e Gomes de Matos Consultoria, com atuação em geração de demanda, integração de Marketing e Vendas, liderança de equipes e crescimento orientado por dados.",
+          "Na Reset, conecta a inteligência artificial aos desafios comerciais e estratégicos das empresas, ajudando a transformar tecnologia em produtividade, oportunidades e geração de valor.",
+        ],
+        link: { label: "Ver LinkedIn", href: site.fundadores.elida.linkedin },
+        // [FALTA] foto autorizada da Élida (design/fotos/elida.png → npm run images). Até lá, monograma.
+        monograma: "ÉA",
+      },
     ] satisfies Fundador[],
   },
-  conviccao: {
-    kicker: "Nossa convicção",
-    titulo: ["IA não é o destino.", "*É o impulso para crescer.*"],
+  fechamento: {
+    titulo: [
+      "Élida entende os desafios de crescimento do negócio.",
+      "*Diego transforma esses desafios em soluções tecnológicas inteligentes.*",
+    ],
     texto:
-      "Unimos quem entende os desafios de negócio à experiência de quem sabe desenhar a tecnologia para resolvê-los. Da estratégia à execução, sem promessas vazias.",
+      "Juntos, conectam estratégia, pessoas, processos e IA para ajudar empresas a operar de maneira mais eficiente e competitiva.",
   },
   cta: ctaPadrao,
 };

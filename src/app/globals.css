@@ -86,7 +86,7 @@
     display: block;
   }
 
-  /* Os deslocamentos de hover usam motion-safe:; aqui some o resto do movimento. */
+  /* Os deslocamentos de hover usam motion-safe:; aqui some o resto do movimento (inclusive o fluxo do diagrama). */
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -95,6 +95,7 @@
     *::before,
     *::after {
       transition-duration: 0s !important;
+      animation: none !important;
     }
   }
 }
@@ -132,4 +133,47 @@
     linear-gradient(90deg, rgba(246, 247, 245, 0.025) 1px, transparent 1px);
   background-size: 76px 76px;
   mask-image: linear-gradient(to right, transparent, #000 65%);
+}
+/* Conexões do diagrama RESET 360: linha fina com um brilho verde que percorre o caminho. */
+@keyframes fluxo-x {
+  from {
+    background-position:
+      100% 0,
+      0 0;
+  }
+  to {
+    background-position:
+      -100% 0,
+      0 0;
+  }
+}
+@keyframes fluxo-y {
+  from {
+    background-position:
+      0 100%,
+      0 0;
+  }
+  to {
+    background-position:
+      0 -100%,
+      0 0;
+  }
+}
+@utility fluxo-x {
+  background-image:
+    linear-gradient(90deg, transparent 40%, var(--color-verde) 50%, transparent 60%),
+    linear-gradient(var(--line), var(--line));
+  background-size:
+    200% 100%,
+    100% 100%;
+  animation: fluxo-x 3.2s linear infinite;
+}
+@utility fluxo-y {
+  background-image:
+    linear-gradient(180deg, transparent 40%, var(--color-verde) 50%, transparent 60%),
+    linear-gradient(var(--line), var(--line));
+  background-size:
+    100% 200%,
+    100% 100%;
+  animation: fluxo-y 3.2s linear infinite;
 }

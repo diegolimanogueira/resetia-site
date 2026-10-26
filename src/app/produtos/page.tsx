@@ -5,10 +5,10 @@ import { movidas } from "@/content/site";
 export const metadata: Metadata = {
   title: `${movidas.tecnologias.titulo} | Reset IA`,
   robots: { index: false, follow: true },
-  alternates: { canonical: "/" },
+  alternates: { canonical: movidas.tecnologias.link.href },
 };
 
-/** Rota antiga (Produtos → Tecnologias → seção #tecnologias da home). */
+/** Rota antiga (Produtos → Tecnologias). */
 export default function ProdutosAntiga() {
   return <PaginaMovida titulo={movidas.tecnologias.titulo} link={movidas.tecnologias.link} />;
 }

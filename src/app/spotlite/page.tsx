@@ -5,10 +5,10 @@ import { movidas } from "@/content/site";
 export const metadata: Metadata = {
   title: `${movidas.tecnologias.titulo} | Reset IA`,
   robots: { index: false, follow: true },
-  alternates: { canonical: "/" },
+  alternates: { canonical: movidas.tecnologias.link.href },
 };
 
-/** Rota antiga: a Spotlite está na seção #tecnologias da home. */
+/** Rota antiga: a Spotlite está na página Tecnologias. */
 export default function SpotliteAntiga() {
   return <PaginaMovida titulo={movidas.tecnologias.titulo} link={movidas.tecnologias.link} />;
 }

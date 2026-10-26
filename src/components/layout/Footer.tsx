@@ -1,18 +1,19 @@
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
-import { footer } from "@/content/site";
+import { footer, site } from "@/content/site";
+import { solucoes } from "@/content/solucoes";
 import { waGeral } from "@/lib/whatsapp";
 
 const linkRodape = "text-fg/75 mb-[9px] block text-[13px]";
 
-/** Rodapé do reset360: marca e frase, Explore, Fale com a Reset; linha legal com a política de privacidade. */
+/** Rodapé: marca, as cinco soluções, Explore e Fale com a Reset; linha legal com a política de privacidade. */
 export function Footer() {
   return (
     <footer
       data-tom="carvao"
       className="gutter border-line text-fg relative border-t bg-(--bg) pt-[60px] pb-28 md:pt-[75px] md:pb-[25px]"
     >
-      <div className="container-site grid grid-cols-2 gap-x-10 gap-y-12 md:grid-cols-[2fr_1fr_1fr] md:gap-[60px]">
+      <div className="container-site grid grid-cols-2 gap-x-10 gap-y-12 md:grid-cols-[1.6fr_1fr_1fr_1fr] md:gap-[50px]">
         <div className="col-span-2 md:col-span-1">
           <Logo altura={38} />
           <p className="text-fg-2 mt-[30px] text-[15px] leading-[1.6]">
@@ -20,6 +21,15 @@ export function Footer() {
             <br />
             {footer.frase[1]}
           </p>
+          <p className="text-verde mt-4 text-[13px] font-semibold">{site.assinatura}</p>
+        </div>
+        <div>
+          <h2 className="mb-4 text-[13px] font-bold">{footer.solucoes.titulo}</h2>
+          {solucoes.lista.map((s) => (
+            <Link key={s.slug} href={`/solucoes/${s.slug}`} className={linkRodape}>
+              {s.nome}
+            </Link>
+          ))}
         </div>
         <div>
           <h2 className="mb-4 text-[13px] font-bold">{footer.explore.titulo}</h2>

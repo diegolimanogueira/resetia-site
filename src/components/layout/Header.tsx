@@ -5,13 +5,12 @@ import { usePathname } from "next/navigation";
 import { Logo } from "@/components/brand/Logo";
 import { MobileMenu } from "@/components/layout/MobileMenu";
 import { Botao } from "@/components/ui/botao";
-import { nav, rotaAtiva, site } from "@/content/site";
-import { waGeral } from "@/lib/whatsapp";
+import { nav, navDiagnostico, rotaAtiva, site } from "@/content/site";
 import { cn } from "@/lib/utils";
 
 const semBarra = (p: string) => (p.length > 1 ? p.replace(/\/$/, "") : p);
 
-/** Header do reset360: sticky em todas as páginas, carvão translúcido com blur. Sem animação de scroll. */
+/** Header sticky em todas as páginas, carvão translúcido com blur. O diagnóstico gratuito é o botão verde. */
 export function Header() {
   const pathname = semBarra(usePathname() ?? "/");
 
@@ -23,7 +22,7 @@ export function Header() {
       <Link href="/" aria-label={site.nome} className="flex items-center">
         <Logo altura={36} />
       </Link>
-      <nav aria-label="Principal" className="hidden items-center gap-8 md:flex">
+      <nav aria-label="Principal" className="hidden items-center gap-7 lg:flex">
         {nav.map((l) => {
           const ativo = rotaAtiva(pathname, l.href);
           return (
@@ -40,8 +39,13 @@ export function Header() {
             </Link>
           );
         })}
-        <Botao href={waGeral()} tamanho="sm" origem="header">
-          {site.ctaHeader}
+        <Botao
+          href={navDiagnostico.href}
+          tamanho="sm"
+          origem="menu"
+          aria-current={rotaAtiva(pathname, navDiagnostico.href) ? "page" : undefined}
+        >
+          {navDiagnostico.label}
         </Botao>
       </nav>
       <MobileMenu pathname={pathname} />

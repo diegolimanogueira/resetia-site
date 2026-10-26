@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Botao } from "@/components/ui/botao";
-import { nav, rotaAtiva, site } from "@/content/site";
+import { nav, navDiagnostico, rotaAtiva, site } from "@/content/site";
 import { waGeral } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
-/** Menu do celular (reset360): botão que abre um painel logo abaixo do header. Esc e clique em link fecham. */
+/** Menu do celular e do tablet: botão que abre um painel logo abaixo do header. Esc e clique em link fecham. */
 export function MobileMenu({ pathname }: { pathname: string }) {
   const [aberto, setAberto] = useState(false);
   const botao = useRef<HTMLButtonElement>(null);
@@ -34,7 +34,7 @@ export function MobileMenu({ pathname }: { pathname: string }) {
         aria-expanded={aberto}
         aria-controls="menu-mobile"
         onClick={() => setAberto((v) => !v)}
-        className="text-verde -mr-2 inline-flex h-11 w-11 cursor-pointer items-center justify-center md:hidden"
+        className="text-verde -mr-2 inline-flex h-11 w-11 cursor-pointer items-center justify-center lg:hidden"
       >
         <svg aria-hidden="true" width="26" height="26" viewBox="0 0 26 26" fill="none" stroke="currentColor">
           {aberto ? (
@@ -47,7 +47,7 @@ export function MobileMenu({ pathname }: { pathname: string }) {
       <div
         id="menu-mobile"
         hidden={!aberto}
-        className="gutter border-line bg-carvao absolute inset-x-0 top-[72px] border-b pt-2 pb-7 md:hidden"
+        className="gutter border-line bg-carvao absolute inset-x-0 top-[72px] max-h-[calc(100dvh-72px)] overflow-y-auto border-b pt-2 pb-7 lg:hidden"
       >
         <nav aria-label="Menu" className="flex flex-col">
           {nav.map((l) => {
@@ -65,9 +65,20 @@ export function MobileMenu({ pathname }: { pathname: string }) {
             );
           })}
         </nav>
-        <Botao href={waGeral()} origem="menu-mobile" onClick={fechar} className="mt-6 w-full">
-          {site.ctaHeader}
-        </Botao>
+        <div className="mt-6 flex flex-col gap-3">
+          <Botao href={navDiagnostico.href} origem="menu-mobile-diagnostico" onClick={fechar} className="w-full">
+            {navDiagnostico.label}
+          </Botao>
+          <Botao
+            href={waGeral()}
+            variante="secundario"
+            origem="menu-mobile-whatsapp"
+            onClick={fechar}
+            className="w-full"
+          >
+            {site.barraMobile}
+          </Botao>
+        </div>
       </div>
     </>
   );

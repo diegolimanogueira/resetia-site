@@ -3,14 +3,17 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { Linhas } from "@/components/ui/linhas";
 import { Section } from "@/components/ui/section";
 import type { CtaFinal as Cta } from "@/content/types";
+import { waDiagnostico } from "@/lib/whatsapp";
 
-type Props = { cta: Cta; href: string; origem: string };
+type Acao = { label: string; href: string; origem: string };
 
 /**
- * Fecho de todas as páginas (reset360 .final-cta). No protótipo é uma faixa verde; aqui fica na
- * superfície de contraste com destaque e botão verdes (verde não é fundo de seção no manual).
+ * Fecho de todas as páginas, antes do rodapé. Por padrão o botão é o diagnóstico gratuito (WhatsApp);
+ * nas soluções, o botão comercial da solução vem primeiro e o diagnóstico fica como segundo caminho.
  */
-export function CtaFinal({ cta, href, origem }: Props) {
+export function CtaFinal({ cta, origem, primario }: { cta: Cta; origem: string; primario?: Acao }) {
+  const diagnostico = { label: cta.botao, href: waDiagnostico(), origem: `diagnostico-${origem}` };
+  const principal = primario ?? diagnostico;
   return (
     <Section tom="contraste" className="border-line border-t text-center">
       <div className="container-site">
@@ -21,9 +24,16 @@ export function CtaFinal({ cta, href, origem }: Props) {
         {cta.apoio ? (
           <p className="text-fg-2 mx-auto mb-[35px] max-w-[560px] text-[18px] leading-[1.6]">{cta.apoio}</p>
         ) : null}
-        <Botao href={href} origem={origem}>
-          {cta.botao}
-        </Botao>
+        <div className="flex flex-wrap justify-center gap-3">
+          <Botao href={principal.href} origem={principal.origem}>
+            {principal.label}
+          </Botao>
+          {primario ? (
+            <Botao href={diagnostico.href} origem={diagnostico.origem} variante="secundario">
+              {diagnostico.label}
+            </Botao>
+          ) : null}
+        </div>
       </div>
     </Section>
   );
