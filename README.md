@@ -8,7 +8,7 @@
 
 **Staging (GitHub Pages, noindex):** https://diegolimanogueira.github.io/resetia-site/ · **Produção:** https://www.resetia.com.br
 
-Site de [www.resetia.com.br](https://www.resetia.com.br): RESET 360, IA aplicada a Marketing, Vendas e Customer Success. Layout do protótipo `design/reset360/` com a identidade Reset IA. Páginas `/` (com as seções Método, Soluções, Áreas, Tecnologias e o teste de IA da Spotlite), `/solucoes/[slug]` (as sete soluções), `/agentes` (catálogo com filtro por área), `/sobre` e `/privacidade`; `/solucoes`, `/tecnologias`, `/produtos` e `/spotlite` redirecionam para as seções da home. Um objetivo: gerar conversa no WhatsApp.
+Site de [www.resetia.com.br](https://www.resetia.com.br): RESET 360, IA aplicada a Marketing, Vendas e Customer Success. Layout do protótipo `design/reset360/` com a identidade Reset IA; arquitetura e conteúdo do brief de reestruturação (26/10). Páginas `/`, `/solucoes` e as cinco landing pages em `/solucoes/[slug]` (AI Champions, Processos com IA, Agent Factory, Governance, Performance), `/agentes-de-ia` (catálogo com filtro por área), `/tecnologias` (Spotlite e Fluxa BPM), `/sobre`, `/diagnostico-gratuito` (RESET Scan) e `/privacidade`. Rotas antigas (`/solucoes/scan`, `/solucoes/workshops`, `/agentes`, `/produtos`, `/spotlite`) redirecionam. Objetivo: levar ao diagnóstico gratuito pelo WhatsApp.
 
 ## Stack
 
@@ -40,25 +40,26 @@ Copie `.env.example` para `.env.local`.
 | `NEXT_PUBLIC_ANALYTICS_HOST`     | Umami self-hosted (padrão `https://cloud.umami.is`)                  |
 | `NEXT_PUBLIC_SITE_URL`           | URL pública; usada pelo deploy e pelo smoke                          |
 
-Os eventos de analytics que importam são `cta_whatsapp` (todo clique em link `wa.me`) e `cta_diagnostico` (todo clique no teste de IA da Spotlite), com a origem do botão (`hero`, `fecho`, `home-diagnostico`…). O link do teste leva `utm_source=resetia.<origem>`, que a Spotlite grava no lead.
+Eventos de analytics (todos com a origem do botão, `data-cta`): `cta_diagnostico_gratuito` (WhatsApp do RESET Scan, origens `diagnostico-*`), `cta_whatsapp` (demais conversas, inclusive os CTAs de cada solução `solucao-<slug>`), `cta_pagina_diagnostico` (links para `/diagnostico-gratuito`) e `cta_teste_spotlite` (teste da Spotlite, com `utm_source=resetia.<origem>`, que a Spotlite grava no lead).
 
 ## Trocar conteúdo
 
 Todo texto do site está em `src/content/`:
 
-| Arquivo          | O quê                                                                                 |
-| ---------------- | ------------------------------------------------------------------------------------- |
-| `site.ts`        | nome, WhatsApp e mensagens, e-mail, fundadores, navegação, rodapé, títulos de SEO     |
-| `home.ts`        | as seções da home, na ordem do protótipo reset360                                     |
-| `agentes.ts`     | catálogo dos 30 agentes por área, filtro, aviso                                       |
-| `solucoes.ts`    | as sete soluções (uma página cada), rótulos da página de solução e o CTA final padrão |
-| `tecnologias.ts` | os cards da Spotlite e da Fluxa BPM na seção Tecnologias da home                      |
-| `privacidade.ts` | política de privacidade                                                               |
-| `sobre.ts`       | essência, Élida e Diego, convicção                                                    |
+| Arquivo          | O quê                                                                                               |
+| ---------------- | --------------------------------------------------------------------------------------------------- |
+| `site.ts`        | nome, WhatsApp e mensagens (geral e diagnóstico), fundadores, navegação, rodapé, SEO, rotas movidas |
+| `home.ts`        | as seções da home (hero, RESET 360 e diagrama, áreas, Scan, tecnologias, fundadores)                |
+| `diagnostico.ts` | página do diagnóstico gratuito (RESET Scan) e o teste da Spotlite como alternativa                  |
+| `agentes.ts`     | catálogo dos 30 agentes, as três frentes da Agent Factory e a seção de consolidação                 |
+| `solucoes.ts`    | as cinco soluções (landing page cada), FAQ do site, rótulos e o CTA final padrão                    |
+| `tecnologias.ts` | Spotlite e Fluxa BPM (cards da home e página Tecnologias)                                           |
+| `privacidade.ts` | política de privacidade                                                                             |
+| `sobre.ts`       | história, Diego e Élida (especialidade, bio, LinkedIn), fechamento, proposta de valor               |
 
 Pendências usam a constante `FALTA` (`"[FALTA]"`): `npm run check:falta` lista onde elas aparecem no HTML gerado. Não invente copy: o que falta é fornecido pelo Diego (ver `docs/decisions.md`).
 
-Imagens de marca em `public/brand/`. `npm run images` reotimiza (WebP/AVIF), regenera favicon, ícones PWA, a foto do Sobre e a imagem de compartilhamento (`src/app/opengraph-image.png`).
+Imagens de marca em `public/brand/`. `npm run images` reotimiza (WebP/AVIF), regenera favicon, ícones PWA, as fotos dos fundadores (`design/fotos/diego.png` e, quando existir, `elida.png`) e a imagem de compartilhamento (`src/app/opengraph-image.png`).
 
 ## Testes e qualidade
 
@@ -81,7 +82,7 @@ Static Site no DigitalOcean App Platform, spec em `.do/app.yaml`. `npm run deplo
 src/app/            rotas, layout, metadados, sitemap, robots, manifest, 404
 src/components/     brand · layout (Header, MobileMenu, Footer, BarraMobile) · sections · ui
 src/content/        todo o copy, tipado
-src/lib/            waUrl(), diagnosticoUrl(), analytics
+src/lib/            waUrl()/waDiagnostico(), testeSpotliteUrl(), analytics
 scripts/            optimize-images, og-image, check-falta, screenshots
 tests/unit          Vitest · tests/e2e  Playwright
 design/reset360/    protótipo HTML (fonte de verdade do layout); design/handoff/ é o handoff antigo, histórico

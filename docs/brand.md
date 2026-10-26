@@ -13,7 +13,7 @@ Desde 25/10/2026 o layout, a estrutura e os efeitos seguem `design/reset360/`; a
 
 Derivados só por opacidade (nunca inventar hex novo): texto secundário `#9CA3AF`; linhas `rgba(156,163,175,.25)`. O site é todo escuro, como o protótipo; as superfícies são neutro sobre carvão (`color-mix`): seção **escura** 3%, seção de **contraste** 5%, **painel** (cards) 7%. Tokens `bg-escuro`, `bg-contraste`, `bg-painel` em `globals.css`.
 
-Glow (`radial-gradient` verde a 10–16%, transparente a partir de ~40–55%): no hero da home, no topo das páginas internas e no bloco do teste de IA. Nenhum outro gradiente, exceto a grade sutil do hero (linhas a 2,5% de neutro).
+Glow (`radial-gradient` verde a 10–16%, transparente a partir de ~40–55%): no hero da home, no topo das páginas internas, no bloco do RESET Scan, no hub do diagrama e nas faixas do diagnóstico. Nenhum outro gradiente, exceto a grade sutil do hero (linhas a 2,5% de neutro).
 
 Contraste: `#9CA3AF` sobre `#0B0F0E` ≈ 6,9:1; `rgba(11,15,14,.6)` sobre `#F6F7F5` ≈ 6,6:1. `#9CA3AF` sobre `#F6F7F5` **não passa** para texto pequeno.
 
@@ -36,7 +36,9 @@ Contraste: `#9CA3AF` sobre `#0B0F0E` ≈ 6,9:1; `rgba(11,15,14,.6)` sobre `#F6F7
 - Header sticky de 72px em todas as páginas, carvão a 94% com blur; link da página atual com sublinhado verde 2px
 - Cards quadrados (sem border-radius), borda `line`, fundo `painel`; no hover sobem 4px e a borda fica verde
 - Efeitos só em CSS; deslocamentos com `motion-safe:`; `prefers-reduced-motion` zera transições e scroll suave
-- Sem sombras em cards; o núcleo das órbitas tem um halo verde (parte do glow do hero). Sem emojis. Glifos tipográficos do protótipo (↗ ◎ ✳) são decorativos e `aria-hidden`
+- Sem sombras em cards; o núcleo das órbitas tem um halo verde (parte do glow do hero). Sem emojis.
+- Ícones de linha (traçado do Lucide, 1,5px, verde) só para identificar soluções, áreas e o diagnóstico: `components/ui/icone.tsx`, sempre `aria-hidden`. Glifos tipográficos (↗ → ✓ +) marcam links, listas e o FAQ.
+- Microinterações: cards sobem 4px e a borda fica verde no hover; o “+” do FAQ gira; nas conexões do diagrama RESET 360 corre um brilho verde lento. Tudo some com `prefers-reduced-motion`.
 - Foco: `outline: 2px solid #00E676; outline-offset: 3px`
 - Breakpoint: 861px (abaixo: menu mobile, grids em 1–2 colunas, rodapé 2 colunas)
 

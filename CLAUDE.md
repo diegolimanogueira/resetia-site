@@ -4,7 +4,7 @@ Leia também `AGENTS.md` (regras do Next.js 16 geradas pelo framework) e `docs/d
 
 ## O que é
 
-Site institucional estático da Reset IA (`www.resetia.com.br`). Next.js 16 App Router, `output: 'export'`, Tailwind v4. Sem `motion`, Lenis ou biblioteca de componentes (saíram em 25/10, ver `docs/decisions.md`). Deploy como Static Site no DigitalOcean App Platform. Objetivos do site: gerar conversa no WhatsApp e levar ao teste de IA para negócios da Spotlite (o lead deixa nome, e-mail e WhatsApp lá). Conteúdo: RESET 360 (estudo de 21/10/2026, ver `docs/decisions.md`).
+Site institucional estático da Reset IA (`www.resetia.com.br`). Next.js 16 App Router, `output: 'export'`, Tailwind v4. Sem `motion`, Lenis ou biblioteca de componentes (saíram em 25/10, ver `docs/decisions.md`). Deploy como Static Site no DigitalOcean App Platform. Objetivo do site: levar ao **diagnóstico gratuito (RESET Scan)**, uma conversa no WhatsApp; o teste de IA da Spotlite é caminho secundário, só na página do diagnóstico. Conteúdo: RESET 360 reestruturado em 26/10/2026 (cinco soluções, ver `docs/decisions.md`).
 
 ## Regras
 
@@ -13,7 +13,9 @@ Site institucional estático da Reset IA (`www.resetia.com.br`). Next.js 16 App 
 - **Tom por seção** via `data-tom` (`Section`: `carvao`, `escuro`, `contraste`): use `text-fg`, `text-fg-2`, `border-line`, `bg-painel`, nunca cores fixas em componentes compartilhados.
 - **Títulos em linhas** (`string[]` no conteúdo); destaque verde com `*trecho*`, renderizado por `Linhas`.
 - **Efeitos só em CSS** (hover, header sticky, scroll suave nativo). Deslocamentos com `motion-safe:`; `prefers-reduced-motion` zera transições e o scroll suave. Nada de biblioteca de animação ou listener de scroll para efeito.
-- Links externos: `target="_blank" rel="noopener"`. CTAs de WhatsApp sempre via `waUrl()` em `src/lib/whatsapp.ts`; links do teste da Spotlite sempre via `diagnosticoUrl(origem)` em `src/lib/diagnostico.ts`.
+- Links externos: `target="_blank" rel="noopener"`. CTAs de WhatsApp sempre via `src/lib/whatsapp.ts` (`waDiagnostico()` para "Solicitar diagnóstico gratuito", `waUrl(s.cta.mensagem)` nas soluções, `waGeral()`); teste da Spotlite via `testeSpotliteUrl(origem)` em `src/lib/teste-spotlite.ts`.
+- Todo CTA leva `data-cta` único na página; botões do diagnóstico começam com `diagnostico-` (o analytics separa o evento `cta_diagnostico_gratuito`).
+- Ícones: só os de `components/ui/icone.tsx` (traçados do Lucide em SVG puro, sem dependência no cliente).
 - Cada fase fecha com `npm run build`, `npm run lint`, `npm run typecheck` passando.
 
 ## Comandos
