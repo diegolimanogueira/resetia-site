@@ -111,3 +111,11 @@ Brief do Diego ("Reestruturação completa do site Reset IA"). A Reset deixa de 
 - **Ícones e efeitos.** Ícones de linha por solução e área, traçados do Lucide copiados como SVG (o `lucide-react` 1.x é componente de cliente e levava ~10 KB de JS). Microinterações só em CSS: hover dos cards e do FAQ (`<details>`), e um brilho que percorre as conexões do diagrama, desligado com `prefers-reduced-motion`.
 - **Analytics.** Eventos separados: `cta_diagnostico_gratuito`, `cta_whatsapp`, `cta_pagina_diagnostico`, `cta_teste_spotlite`, sempre com `data-cta` único por página.
 - **Conteúdo escrito a partir do brief** (sem números, clientes ou depoimentos novos): desafios de Processos, Agent Factory, Governance e Performance, as quatro etapas de cada solução, o FAQ e o "como funciona" do diagnóstico, derivados dos entregáveis e do conteúdo já validado. Revisar com o Diego.
+
+## 2026-10-26 · Detalhamento das cinco soluções
+
+O Diego mandou o texto completo de cada produto. As landing pages passaram a seguir a estrutura dele: hero (headline, dois parágrafos, CTA principal e um secundário que leva a uma seção da página), Sobre a solução, Benefícios numerados com título e texto, O que entregamos, Para quem é ("Ideal para empresas que…"), Como funciona em cinco passos e um CTA final próprio de cada solução, com o diagnóstico gratuito como segundo botão.
+
+- **Blocos próprios:** Processos com IA apresenta o Fluxa BPM depois dos entregáveis; Agent Factory traz os exemplos por frente (com a descrição de cada uma e o aviso de que são possibilidades) e "Reduza complexidade. Extraia mais valor."; Governance tem a nota sobre Jurídico, Segurança da Informação e Privacidade; Performance tem "O que podemos medir" com seis grupos de indicadores e o aviso sobre atribuição à IA.
+- **Saíram** os trechos que eu tinha derivado do brief anterior: desafios de cada solução, quatro etapas, formatos do AI Champions, "governança que acelera", indicadores resumidos e o quadro "Como medimos". Continuam escritos por mim o FAQ do site e o "como funciona" do diagnóstico gratuito.
+- Mantidos: a faixa do diagnóstico gratuito em cada página, as soluções relacionadas e as mensagens de WhatsApp por solução.
