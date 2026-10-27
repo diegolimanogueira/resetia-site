@@ -77,55 +77,77 @@ export const agentes = {
 };
 
 /** As três frentes da Agent Factory, com exemplos por área (página da solução). */
-export const categoriasAgentes: Array<{ area: AreaId; nome: string; agentes: Array<{ nome: string; texto: string }> }> =
-  [
-    {
-      area: "marketing",
-      nome: "Marketing Intelligence",
-      agentes: [
-        { nome: "Social Content Agent", texto: "Produção de conteúdo para redes sociais." },
-        { nome: "Creative Studio Agent", texto: "Criação de conceitos e peças criativas." },
-        { nome: "Campaign Agent", texto: "Planejamento e estruturação de campanhas." },
-        { nome: "Market Intelligence Agent", texto: "Análise de concorrência e mercado." },
-        { nome: "Performance Agent", texto: "Análise de resultados de campanhas." },
-        { nome: "CRM Agent", texto: "Segmentação e personalização de comunicações." },
-      ],
-    },
-    {
-      area: "vendas",
-      nome: "Sales Intelligence",
-      agentes: [
-        { nome: "AI SDR Agent", texto: "Qualificação inicial de oportunidades." },
-        { nome: "Prospecting Agent", texto: "Inteligência para prospecção." },
-        { nome: "Follow-up Agent", texto: "Acompanhamento comercial." },
-        { nome: "Proposal Agent", texto: "Apoio à criação de propostas." },
-        { nome: "CRM Intelligence Agent", texto: "Análise de oportunidades e pipeline." },
-        { nome: "Sales Coach Agent", texto: "Apoio à evolução comercial." },
-      ],
-    },
-    {
-      area: "customer-success",
-      nome: "Customer Intelligence",
-      agentes: [
-        { nome: "Customer Support Agent", texto: "Atendimento inteligente." },
-        { nome: "Onboarding Agent", texto: "Apoio à integração de clientes." },
-        { nome: "Customer Health Agent", texto: "Análise da saúde da carteira." },
-        { nome: "Retention Agent", texto: "Identificação de riscos de cancelamento." },
-        { nome: "Expansion Agent", texto: "Oportunidades de upsell e cross-sell." },
-        { nome: "Voice of Customer Agent", texto: "Inteligência a partir de feedbacks." },
-      ],
-    },
-  ];
+export const categoriasAgentes: Array<{
+  area: AreaId;
+  nome: string;
+  descricao: string;
+  agentes: Array<{ nome: string; texto: string }>;
+}> = [
+  {
+    area: "marketing",
+    nome: "Marketing Intelligence",
+    descricao: "Agentes para transformar a forma como sua empresa planeja, cria e executa Marketing.",
+    agentes: [
+      {
+        nome: "Social Content Agent",
+        texto: "Criação de pautas, calendários, legendas, roteiros e conteúdos para redes sociais.",
+      },
+      {
+        nome: "Creative Studio Agent",
+        texto: "Apoio à produção de conceitos visuais, criativos e variações de campanhas.",
+      },
+      { nome: "Campaign Agent", texto: "Planejamento de campanhas, mensagens e ofertas." },
+      { nome: "Market Intelligence Agent", texto: "Análise de concorrentes, tendências e oportunidades." },
+      {
+        nome: "Performance Agent",
+        texto: "Análise de resultados de campanhas e identificação de oportunidades de otimização.",
+      },
+      { nome: "CRM Agent", texto: "Segmentação de clientes e apoio à personalização de comunicações." },
+    ],
+  },
+  {
+    area: "vendas",
+    nome: "Sales Intelligence",
+    descricao: "Agentes para apoiar times comerciais, reduzir atividades operacionais e melhorar conversão.",
+    agentes: [
+      { nome: "AI SDR Agent", texto: "Qualificação inicial de oportunidades." },
+      { nome: "Prospecting Agent", texto: "Pesquisa de contas e preparação de abordagens." },
+      { nome: "Follow-up Agent", texto: "Organização e execução supervisionada de cadências comerciais." },
+      { nome: "Proposal Agent", texto: "Elaboração de propostas comerciais." },
+      { nome: "CRM Intelligence Agent", texto: "Análise de pipeline, oportunidades paradas e prioridades comerciais." },
+      { nome: "Sales Coach Agent", texto: "Apoio à capacitação e evolução da equipe de vendas." },
+    ],
+  },
+  {
+    area: "customer-success",
+    nome: "Customer Intelligence",
+    descricao: "Agentes para fortalecer o relacionamento com clientes e desenvolver a receita existente.",
+    agentes: [
+      { nome: "Customer Support Agent", texto: "Atendimento inicial e resolução de demandas recorrentes." },
+      { nome: "Onboarding Agent", texto: "Apoio à jornada de entrada de novos clientes." },
+      { nome: "Customer Health Agent", texto: "Acompanhamento de sinais de saúde e engajamento da carteira." },
+      { nome: "Retention Agent", texto: "Identificação de riscos e apoio a estratégias de retenção." },
+      { nome: "Expansion Agent", texto: "Identificação de oportunidades de cross-sell e upsell." },
+      { nome: "Voice of Customer Agent", texto: "Análise de feedbacks e identificação de melhorias na experiência." },
+    ],
+  },
+];
 
-/** Seção comercial da Agent Factory sobre ferramentas redundantes. Sem promessa de economia. */
+/** Agent Factory: exemplos por frente e a seção sobre ferramentas redundantes (sem promessa de economia). */
 export const consolidacao = {
-  kicker: "Ferramentas redundantes",
-  titulo: ["Sua empresa pode estar pagando por mais ferramentas", "*do que realmente precisa.*"],
+  exemplos: {
+    kicker: "Exemplos de agentes",
+    titulo: ["Uma fábrica.", "*Múltiplas possibilidades.*"],
+    aviso:
+      "Os exemplos representam possibilidades de aplicação. Cada solução é definida conforme os processos, dados, integrações e necessidades do cliente.",
+  },
+  kicker: "Reduza complexidade. Extraia mais valor.",
+  titulo: ["Sua empresa pode estar pagando por mais tecnologia", "*do que realmente precisa.*"],
   paragrafos: [
-    "Mapeamos as licenças e assinaturas em uso, as funcionalidades que se repetem entre ferramentas e as soluções subutilizadas. Onde faz sentido, um agente personalizado concentra tarefas que hoje estão espalhadas.",
-    "A recomendação considera o custo total: implementação, infraestrutura, modelos de IA e manutenção. Não prometemos substituição integral de ferramentas nem economia garantida; cada consolidação é validada com testes de qualidade, segurança e custo.",
+    "Avaliamos as ferramentas utilizadas pelas equipes para identificar funcionalidades redundantes, assinaturas subutilizadas e atividades que podem ser atendidas por soluções inteligentes personalizadas.",
+    "Nosso objetivo não é substituir ferramentas indiscriminadamente. É encontrar a combinação mais eficiente entre agentes, plataformas existentes e necessidades reais do negócio.",
+    "Consideramos os custos de implementação, operação e manutenção para identificar oportunidades de economia sustentável.",
   ],
-  passos: ["Funcionalidades redundantes", "Soluções subutilizadas", "Oportunidades de consolidação"],
-  categorias: { kicker: "Casos de uso por área", titulo: ["Três frentes,", "*uma jornada de receita.*"] },
+  passos: ["Funcionalidades redundantes", "Assinaturas subutilizadas", "Atividades para agentes personalizados"],
   catalogo: { label: "Ver os 30 agentes do catálogo", href: "/agentes-de-ia" },
 };

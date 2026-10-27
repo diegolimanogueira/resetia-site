@@ -9,7 +9,7 @@ import { rotas } from "./rotas";
 function esperadoPara(origem: string) {
   if (origem.startsWith("diagnostico")) return waDiagnostico();
   if (origem === "agentes-factory") return waUrl(solucaoPorSlug("agent-factory")!.cta.mensagem);
-  const s = solucoes.lista.find((x) => new RegExp(`^solucao-${x.slug}(-final|-quadro)?$`).test(origem));
+  const s = solucoes.lista.find((x) => new RegExp(`^solucao-${x.slug}(-final)?$`).test(origem));
   return s ? waUrl(s.cta.mensagem) : waGeral();
 }
 

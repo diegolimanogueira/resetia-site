@@ -22,91 +22,115 @@ const lista: Solucao[] = [
     ],
     descricao: [
       "Formamos líderes, gestores e multiplicadores capazes de transformar inteligência artificial em uma nova forma de trabalhar.",
-      "O programa combina formação executiva, workshops personalizados, capacitação prática e desenvolvimento de multiplicadores internos.",
+      "Da capacitação prática à aplicação no dia a dia, ajudamos sua empresa a desenvolver as competências necessárias para incorporar IA aos processos, à gestão e à geração de resultados.",
     ],
-    problemas: [
-      "A empresa paga ChatGPT, Claude, Gemini ou outras ferramentas e utiliza pouco.",
-      "Gestores sem preparo para liderar a adoção de IA.",
-      "Equipes que não sabem como aplicar IA às suas atividades.",
-      "Conhecimento restrito a profissionais isolados.",
-      "Ausência de uma estratégia prática de capacitação.",
-    ],
-    beneficios: [
-      "Maior produtividade.",
-      "Melhor aproveitamento das ferramentas contratadas.",
-      "Formação de lideranças.",
-      "Desenvolvimento de multiplicadores.",
-      "Adoção prática e estruturada da IA.",
-    ],
-    entregaveis: [
-      "Trilhas de formação",
-      "Workshops personalizados por área e ferramenta",
-      "Capacitação de líderes e multiplicadores",
-      "Exercícios aplicados ao trabalho real",
-      "Desenvolvimento de casos de uso",
-      "Plano de adoção",
-      "Indicadores de evolução",
-    ],
-    paraQuem:
-      "Lideranças, gestores e equipes de Marketing, Vendas, Customer Success e áreas de apoio, além dos talentos que serão referência de IA na organização.",
+    cta: {
+      label: "Quero preparar meu time",
+      mensagem: "Olá! Conheci a Reset pelo site e quero preparar meu time para IA com o RESET AI Champions.",
+    },
+    ctaSecundario: { label: "Conhecer o programa", href: "#sobre" },
+    sobre: {
+      titulo: ["A transformação com IA", "*começa pelas pessoas.*"],
+      paragrafos: [
+        "Ter acesso às melhores ferramentas não significa, necessariamente, saber utilizá-las para gerar resultados.",
+        "Muitas empresas já investem em ChatGPT, Gemini, Claude e outras soluções, mas enfrentam o mesmo desafio: profissionais que utilizam apenas uma pequena parte do potencial dessas tecnologias.",
+        "O RESET AI Champions foi desenvolvido para mudar esse cenário.",
+        "Criamos programas de formação personalizados, que combinam capacitação, workshops práticos e desenvolvimento de multiplicadores internos.",
+        "Nossa metodologia conecta tecnologia, estratégia e desafios reais da operação para preparar gestores e equipes para trabalhar com IA de forma estruturada, produtiva e orientada ao negócio.",
+        "Não ensinamos apenas a utilizar ferramentas. Preparamos profissionais para repensar suas atividades, identificar oportunidades e liderar novas formas de trabalhar.",
+      ],
+    },
+    beneficios: {
+      titulo: ["Sua equipe preparada para", "*uma nova era de trabalho.*"],
+      itens: [
+        {
+          titulo: "Mais produtividade",
+          texto:
+            "Capacite profissionais para reduzir tarefas repetitivas, acelerar entregas e concentrar esforços em atividades de maior valor.",
+        },
+        {
+          titulo: "Melhor aproveitamento das ferramentas",
+          texto:
+            "Extraia mais valor das tecnologias de IA que sua empresa já contrata, reduzindo subutilização e desperdício.",
+        },
+        {
+          titulo: "Lideranças preparadas",
+          texto:
+            "Desenvolva gestores capazes de identificar oportunidades, orientar equipes e incorporar IA às decisões e rotinas de trabalho.",
+        },
+        {
+          titulo: "Conhecimento que se multiplica",
+          texto:
+            "Forme profissionais de referência que disseminam boas práticas e impulsionam a adoção da IA em diferentes áreas.",
+        },
+        {
+          titulo: "Aplicação prática desde o início",
+          texto: "Transforme o aprendizado em casos de uso reais, conectados aos processos e objetivos da organização.",
+        },
+      ],
+    },
+    entregaveis: {
+      titulo: ["Uma jornada de capacitação feita", "*para a realidade da sua empresa.*"],
+      itens: [
+        "Diagnóstico inicial de necessidades de capacitação e maturidade das equipes.",
+        "Workshops personalizados em ChatGPT, Gemini, Claude e outras ferramentas relevantes.",
+        "Formação de gestores e lideranças para atuação com IA.",
+        "Desenvolvimento de multiplicadores internos, os AI Champions.",
+        "Capacitação aplicada aos processos de Marketing, Vendas e Customer Success.",
+        "Exercícios práticos e desafios de aplicação.",
+        "Biblioteca inicial de casos de uso, prompts e boas práticas.",
+        "Plano de adoção com prioridades e orientações para continuidade.",
+        "Indicadores de participação, adoção e aplicação prática.",
+      ],
+    },
+    paraQuem: {
+      titulo: ["Ideal para empresas", "*que querem:*"],
+      itens: [
+        "Preparar seus times para trabalhar com inteligência artificial.",
+        "Aproveitar melhor licenças e ferramentas já contratadas.",
+        "Formar líderes para conduzir a transformação.",
+        "Desenvolver uma cultura de inovação e aprendizado contínuo.",
+        "Levar IA para diferentes áreas de forma estruturada.",
+        "Sair de treinamentos genéricos e avançar para aplicações reais.",
+      ],
+    },
     etapas: [
       {
         numero: "01",
-        titulo: "Leitura do time",
-        texto: "Entendemos funções, ferramentas contratadas e o nível de uso de IA de cada área.",
+        titulo: "Entendemos o negócio",
+        texto: "Identificamos o perfil dos profissionais, os desafios da operação e as oportunidades de aplicação.",
       },
       {
         numero: "02",
-        titulo: "Trilhas e formatos",
-        texto: "Desenhamos as trilhas e escolhemos os formatos: formação executiva, workshops e capacitação prática.",
+        titulo: "Personalizamos a formação",
+        texto: "Desenhamos workshops e trilhas de aprendizado adequados ao nível de maturidade de cada grupo.",
       },
       {
         numero: "03",
-        titulo: "Formação aplicada",
-        texto: "Exercícios com materiais autorizados e tarefas reais, que viram casos de uso da própria empresa.",
+        titulo: "Colocamos a IA em prática",
+        texto: "Desenvolvemos exercícios e aplicações conectados ao trabalho real dos participantes.",
       },
       {
         numero: "04",
-        titulo: "Multiplicadores e adoção",
-        texto:
-          "Champions internos, plano de adoção e indicadores de evolução para a IA não depender de poucas pessoas.",
+        titulo: "Formamos multiplicadores",
+        texto: "Preparamos profissionais para disseminar conhecimento e apoiar a evolução da empresa.",
+      },
+      {
+        numero: "05",
+        titulo: "Medimos a evolução",
+        texto: "Acompanhamos a adoção, as aplicações desenvolvidas e as oportunidades de continuidade.",
       },
     ],
-    medimos:
-      "Adoção ativa das ferramentas, tarefas aceleradas, casos de uso implantados e engajamento dos multiplicadores.",
-    cta: {
-      label: "Quero preparar meu time para IA",
-      mensagem: "Olá! Conheci a Reset pelo site e quero preparar meu time para IA com o RESET AI Champions.",
+    ctaFinal: {
+      titulo: ["O futuro da sua empresa depende das competências", "*que seu time desenvolve hoje.*"],
+      texto: "Prepare suas lideranças e transforme o potencial da IA em capacidade real de execução.",
+      botao: "Quero desenvolver meu time com IA",
     },
     relacionadas: ["processos-com-ia", "agent-factory", "governance"],
     seo: {
       title: "RESET AI Champions: líderes e equipes prontos para IA | Reset IA",
       description:
-        "Formação executiva, workshops personalizados e multiplicadores internos para transformar a IA em uma nova forma de trabalhar na sua empresa.",
-    },
-    formatos: {
-      kicker: "Workshops fazem parte do programa",
-      titulo: ["Formatos que se combinam", "*conforme o seu time.*"],
-      itens: [
-        {
-          titulo: "Formação executiva",
-          texto:
-            "Lideranças e gestores preparados para decidir onde a IA entra e para conduzir a adoção nas suas áreas.",
-        },
-        {
-          titulo: "Workshops personalizados",
-          texto:
-            "Por área e por ferramenta, para equipes que já utilizam ChatGPT, Gemini Workspace ou Claude, mas ainda exploram pouco o potencial dessas plataformas.",
-        },
-        {
-          titulo: "Capacitação prática",
-          texto: "Exercícios aplicados ao trabalho real, bibliotecas de prompts e assistentes para o dia a dia.",
-        },
-        {
-          titulo: "Multiplicadores internos",
-          texto: "Champions que identificam oportunidades, conduzem experimentos e disseminam IA com segurança.",
-        },
-      ],
+        "Formação de líderes, workshops personalizados e multiplicadores internos para transformar a IA em uma nova forma de trabalhar na sua empresa.",
     },
   },
   {
@@ -117,70 +141,121 @@ const lista: Solucao[] = [
     frase: "Antes de automatizar, redesenhe o trabalho.",
     headline: ["Automatizar processos ruins não é transformação.", "*É acelerar a ineficiência.*"],
     descricao: [
-      "Redesenhamos processos para que pessoas, tecnologia e inteligência artificial trabalhem de maneira mais inteligente.",
-      "Identificamos gargalos, atividades redundantes e oportunidades de eficiência antes de recomendar automações ou agentes.",
+      "Redesenhamos processos para que pessoas, tecnologia e inteligência artificial trabalhem de forma mais inteligente.",
+      "Identificamos gargalos, eliminamos desperdícios e estruturamos operações preparadas para ganhar produtividade, escalar resultados e incorporar IA com propósito.",
     ],
-    problemas: [
-      "Retrabalho e etapas que se repetem sem agregar valor.",
-      "Gargalos na passagem entre áreas, como de Marketing para Vendas e de Vendas para Customer Success.",
-      "Processos pouco padronizados, que dependem de quem executa.",
-      "Automações feitas em cima de fluxos que já não funcionavam.",
-      "Dificuldade de saber onde a IA realmente ajuda.",
-    ],
-    beneficios: [
-      "Redução de retrabalho.",
-      "Mais eficiência operacional.",
-      "Integração entre áreas.",
-      "Identificação de oportunidades de automação.",
-      "Processos preparados para crescimento.",
-    ],
-    entregaveis: [
-      "Mapeamento de processos atuais",
-      "Identificação de gargalos",
-      "Redesenho de fluxos futuros",
-      "Identificação de aplicações de IA",
-      "Priorização de melhorias",
-      "Documentação de processos",
-      "Roadmap de evolução operacional",
-    ],
-    paraQuem: "Empresas com retrabalho, gargalos operacionais ou processos pouco padronizados.",
-    etapas: [
-      {
-        numero: "01",
-        titulo: "Processo atual",
-        texto: "Mapeamos como o trabalho acontece hoje, com quem executa e com os dados reais do processo.",
-      },
-      {
-        numero: "02",
-        titulo: "Gargalos e redundâncias",
-        texto: "Evidenciamos etapas desnecessárias, esperas, retrabalho e riscos.",
-      },
-      {
-        numero: "03",
-        titulo: "Fluxo futuro",
-        texto: "Redesenhamos o processo e marcamos onde entram pessoas, automações, IA e agentes.",
-      },
-      {
-        numero: "04",
-        titulo: "Prioridades e roadmap",
-        texto: "Priorizamos as melhorias, documentamos o processo e montamos o roadmap de evolução operacional.",
-      },
-    ],
-    medimos: "Tempo de ciclo, retrabalho, capacidade e economia validada.",
     cta: {
       label: "Quero transformar meus processos",
       mensagem: "Olá! Conheci a Reset pelo site e quero transformar meus processos com o RESET Processos com IA.",
+    },
+    ctaSecundario: { label: "Entender como funciona", href: "#como-funciona" },
+    sobre: {
+      titulo: ["Antes de implementar IA,", "*é preciso entender como o trabalho acontece.*"],
+      paragrafos: [
+        "Processos fragmentados, atividades manuais, retrabalho e falta de integração ainda limitam o desempenho de muitas empresas.",
+        "Quando a inteligência artificial é implementada sem uma revisão da operação, esses problemas não desaparecem. Muitas vezes, apenas ganham uma nova camada tecnológica.",
+        "O RESET Processos com IA propõe um caminho diferente.",
+        "Analisamos como o trabalho acontece hoje, identificamos oportunidades de melhoria e redesenhamos fluxos mais eficientes, integrados e preparados para incorporar agentes e automações inteligentes.",
+        "Nossa atuação combina visão de negócio, gestão de processos e tecnologia para criar operações mais simples, produtivas e escaláveis.",
+      ],
+    },
+    beneficios: {
+      titulo: ["Processos mais simples.", "*Operações mais inteligentes.*"],
+      itens: [
+        {
+          titulo: "Menos retrabalho",
+          texto:
+            "Identifique atividades duplicadas, etapas desnecessárias e falhas de comunicação que prejudicam a produtividade.",
+        },
+        {
+          titulo: "Mais eficiência operacional",
+          texto: "Redesenhe fluxos para reduzir esforço manual, atrasos e desperdícios.",
+        },
+        {
+          titulo: "Clareza sobre onde aplicar IA",
+          texto:
+            "Descubra quais atividades realmente podem se beneficiar de agentes inteligentes, automações ou outras tecnologias.",
+        },
+        {
+          titulo: "Melhor integração entre áreas",
+          texto: "Conecte Marketing, Vendas, CS e demais funções envolvidas na jornada do cliente.",
+        },
+        {
+          titulo: "Estrutura preparada para crescer",
+          texto: "Crie processos documentados, mensuráveis e preparados para evoluir conforme o negócio ganha escala.",
+        },
+      ],
+    },
+    entregaveis: {
+      titulo: ["Do entendimento da operação", "*ao desenho do futuro.*"],
+      itens: [
+        "Mapeamento dos processos atuais.",
+        "Identificação de gargalos e oportunidades de eficiência.",
+        "Análise de atividades manuais e repetitivas.",
+        "Redesenho dos processos futuros com IA.",
+        "Identificação de casos de uso de agentes e automações.",
+        "Definição de etapas, responsáveis e pontos de decisão.",
+        "Priorização das oportunidades conforme impacto e viabilidade.",
+        "Desenho de indicadores para acompanhar eficiência.",
+        "Roadmap de implantação e evolução operacional.",
+        "Documentação dos fluxos e recomendações de melhoria.",
+      ],
+    },
+    tecnologia: {
+      ferramenta: "fluxa",
+      kicker: "Tecnologia que potencializa a transformação",
+      titulo: ["Conheça o", "*Fluxa BPM.*"],
+      paragrafos: [
+        "Para apoiar o desenho e a organização dos processos, contamos com o Fluxa BPM, uma tecnologia de mapeamento de processos com inteligência artificial.",
+        "O Fluxa BPM pode ser utilizado como acelerador dos projetos conduzidos pela Reset, ajudando a estruturar e visualizar processos com maior agilidade.",
+        "Além de apoiar nossos serviços, a ferramenta possui uma proposta de valor independente.",
+      ],
+      cta: "Conhecer o Fluxa BPM",
+    },
+    paraQuem: {
+      titulo: ["Ideal para", "*empresas que:*"],
+      itens: [
+        "Precisam organizar e melhorar seus processos.",
+        "Possuem atividades manuais ou excesso de retrabalho.",
+        "Desejam implementar IA, mas não sabem por onde começar.",
+        "Querem integrar melhor diferentes áreas.",
+        "Precisam aumentar produtividade e escalabilidade.",
+        "Buscam reduzir custos operacionais e desperdícios.",
+      ],
+    },
+    etapas: [
+      {
+        numero: "01",
+        titulo: "Mapeamos",
+        texto: "Entendemos os processos atuais, os responsáveis e os principais desafios.",
+      },
+      {
+        numero: "02",
+        titulo: "Identificamos",
+        texto: "Localizamos gargalos, desperdícios e oportunidades de melhoria.",
+      },
+      {
+        numero: "03",
+        titulo: "Redesenhamos",
+        texto: "Estruturamos fluxos mais inteligentes, considerando pessoas, processos e tecnologia.",
+      },
+      { numero: "04", titulo: "Priorizamos", texto: "Definimos onde a IA e a automação podem gerar maior valor." },
+      {
+        numero: "05",
+        titulo: "Preparamos a evolução",
+        texto: "Entregamos processos futuros, documentação e um plano de implantação.",
+      },
+    ],
+    ctaFinal: {
+      titulo: ["O próximo salto de produtividade da sua empresa", "*pode começar pelos processos.*"],
+      texto: "Antes de investir em novas tecnologias, descubra como sua operação pode trabalhar melhor.",
+      botao: "Quero redesenhar minha operação",
     },
     relacionadas: ["agent-factory", "ai-champions", "performance"],
     seo: {
       title: "RESET Processos com IA: redesenho de processos | Reset IA",
       description:
-        "Mapeamos processos, eliminamos gargalos e redesenhamos fluxos para que pessoas, tecnologia e IA trabalhem melhor, com apoio da Fluxa BPM.",
-    },
-    tecnologia: {
-      ferramenta: "fluxa",
-      texto:
-        "A Fluxa BPM é a tecnologia própria da Reset para mapear, documentar e redesenhar processos com IA. Ela apoia os projetos de Processos com IA, mas é uma ferramenta independente, com proposta própria: não é um sexto produto de consultoria.",
+        "Mapeamos processos, eliminamos gargalos e redesenhamos fluxos para que pessoas, tecnologia e IA trabalhem melhor, com apoio do Fluxa BPM.",
     },
   },
   {
@@ -189,69 +264,120 @@ const lista: Solucao[] = [
     nome: "RESET Agent Factory",
     icone: "agentes",
     frase: "Agentes inteligentes feitos para desafios reais.",
-    headline: ["Agentes inteligentes", "*feitos para desafios reais.*"],
+    headline: ["E se sua empresa pudesse fazer mais,", "*sem precisar multiplicar ferramentas e tarefas?*"],
     descricao: [
-      "Crie agentes de IA personalizados para transformar a produtividade, reduzir desperdícios e ampliar os resultados de Marketing, Vendas e Customer Success.",
-      "Planejamos, prototipamos, testamos e implementamos cada agente com integrações e supervisão adequadas ao processo, aos dados e às metas da operação.",
+      "Criamos agentes inteligentes que trabalham com seus times, automatizam atividades e ampliam a capacidade de gerar resultados.",
+      "Da criação de conteúdo à inteligência comercial, desenvolvemos soluções de IA personalizadas para os desafios de Marketing, Vendas e Customer Success.",
     ],
-    problemas: [
-      "Equipes presas em atividades manuais e repetitivas.",
-      "Produção de conteúdo, atendimento, prospecção e análises que não escalam com o time atual.",
-      "Ferramentas contratadas que se sobrepõem e são pouco usadas.",
-      "Soluções genéricas que não conversam com o processo nem com os dados da empresa.",
-    ],
-    beneficios: [
-      "Redução de atividades manuais.",
-      "Maior produtividade das equipes.",
-      "Automação inteligente.",
-      "Possibilidade de consolidar ferramentas redundantes.",
-      "Soluções personalizadas.",
-      "Aplicações conectadas à geração de receita.",
-    ],
-    entregaveis: [
-      "Identificação de oportunidades",
-      "Desenho da arquitetura dos agentes",
-      "Desenvolvimento e configuração",
-      "Integrações, quando tecnicamente viáveis",
-      "Testes de qualidade e segurança",
-      "Implantação",
-      "Capacitação dos usuários",
-      "Acompanhamento inicial e evolução",
-    ],
-    paraQuem: "Empresas que precisam escalar produção, atendimento, prospecção e análises.",
-    etapas: [
-      {
-        numero: "01",
-        titulo: "Oportunidades",
-        texto: "Priorizamos os casos em que um agente gera mais valor, com o processo e os dados disponíveis.",
-      },
-      {
-        numero: "02",
-        titulo: "Arquitetura e protótipo",
-        texto: "Desenhamos o agente, as fontes de informação, as integrações e os pontos de supervisão humana.",
-      },
-      {
-        numero: "03",
-        titulo: "Desenvolvimento e testes",
-        texto: "Configuramos, integramos quando é viável e testamos qualidade, segurança e custo.",
-      },
-      {
-        numero: "04",
-        titulo: "Implantação e evolução",
-        texto: "Colocamos em uso, capacitamos quem vai operar e acompanhamos a evolução.",
-      },
-    ],
-    medimos: "Qualidade de respostas, utilização, horas poupadas e impacto no funil de receita.",
     cta: {
       label: "Quero criar agentes para minha empresa",
       mensagem:
         "Olá! Conheci a Reset pelo site e quero criar agentes de IA para minha empresa com o RESET Agent Factory.",
     },
+    ctaSecundario: { label: "Explorar aplicações", href: "#casos-de-uso" },
+    sobre: {
+      titulo: ["Menos trabalho operacional.", "*Mais inteligência para o negócio.*"],
+      paragrafos: [
+        "A maioria das empresas não precisa apenas de mais ferramentas. Precisa de soluções que resolvam problemas reais.",
+        "Hoje, equipes convivem com múltiplas plataformas, atividades repetitivas, informações fragmentadas e processos que consomem tempo sem necessariamente gerar mais valor.",
+        "O RESET Agent Factory foi criado para transformar esse cenário.",
+        "Nossa Fábrica de Agentes desenha e desenvolve soluções inteligentes adaptadas à operação da empresa, conectando tecnologias de IA, dados, processos e objetivos de negócio.",
+        "Os agentes podem apoiar profissionais na execução de atividades, realizar análises, produzir materiais, organizar informações e automatizar etapas de fluxos de trabalho, conforme os limites definidos para cada solução.",
+        "O resultado é uma operação com mais capacidade produtiva, menos complexidade e novas possibilidades de crescimento.",
+      ],
+    },
+    beneficios: {
+      titulo: ["Agentes que trabalham", "*para o seu negócio.*"],
+      itens: [
+        {
+          titulo: "Menos ferramentas redundantes",
+          texto: "Identifique oportunidades de consolidar funcionalidades e reduzir custos com soluções subutilizadas.",
+        },
+        {
+          titulo: "Mais produtividade para os times",
+          texto: "Automatize atividades repetitivas e libere profissionais para decisões e ações de maior valor.",
+        },
+        {
+          titulo: "Soluções personalizadas",
+          texto: "Tenha agentes desenhados para os processos, necessidades e particularidades da sua operação.",
+        },
+        {
+          titulo: "Mais velocidade de execução",
+          texto: "Acelere análises, produção de materiais, atendimento e fluxos comerciais.",
+        },
+        {
+          titulo: "Potencial de crescimento de receita",
+          texto: "Apoie atividades que influenciam aquisição, conversão, retenção e expansão de clientes.",
+        },
+        {
+          titulo: "Evolução contínua",
+          texto: "Aprimore os agentes conforme a operação evolui, com monitoramento de qualidade e desempenho.",
+        },
+      ],
+    },
+    entregaveis: {
+      titulo: ["Do desafio de negócio", "*ao agente em operação.*"],
+      itens: [
+        "Identificação e priorização de oportunidades.",
+        "Desenho da solução e definição de funcionalidades.",
+        "Arquitetura dos agentes e escolha das tecnologias.",
+        "Configuração ou desenvolvimento personalizado.",
+        "Integração com ferramentas, bases e sistemas disponíveis, quando viável.",
+        "Definição de limites de autonomia e critérios de segurança.",
+        "Testes funcionais e validação dos resultados.",
+        "Implantação e capacitação dos usuários.",
+        "Documentação e orientações de utilização.",
+        "Acompanhamento inicial e recomendações de evolução.",
+      ],
+    },
+    paraQuem: {
+      titulo: ["Ideal para", "*empresas que:*"],
+      itens: [
+        "Querem incorporar agentes inteligentes à operação.",
+        "Precisam acelerar a produtividade de Marketing, Vendas e CS.",
+        "Possuem processos repetitivos e intensivos em informação.",
+        "Desejam reduzir dependência de ferramentas fragmentadas.",
+        "Precisam de aplicações de IA personalizadas.",
+        "Querem transformar tecnologia em eficiência e oportunidades de receita.",
+      ],
+    },
+    etapas: [
+      {
+        numero: "01",
+        titulo: "Descobrimos a oportunidade",
+        texto: "Analisamos o problema de negócio e os resultados esperados.",
+      },
+      {
+        numero: "02",
+        titulo: "Desenhamos a solução",
+        texto: "Definimos o papel do agente, suas funcionalidades, integrações e limites de atuação.",
+      },
+      {
+        numero: "03",
+        titulo: "Construímos e testamos",
+        texto: "Desenvolvemos a solução e validamos qualidade, segurança e funcionamento.",
+      },
+      {
+        numero: "04",
+        titulo: "Implantamos",
+        texto: "Integramos o agente ao fluxo de trabalho e orientamos os usuários.",
+      },
+      {
+        numero: "05",
+        titulo: "Evoluímos",
+        texto: "Acompanhamos resultados e identificamos oportunidades de melhoria.",
+      },
+    ],
+    ctaFinal: {
+      titulo: ["Seus times têm desafios reais.", "*Seus agentes também deveriam ter.*"],
+      texto: "Descubra o que a inteligência artificial pode executar, simplificar e transformar na sua operação.",
+      botao: "Quero desenvolver meus agentes",
+    },
     relacionadas: ["processos-com-ia", "governance", "performance"],
     seo: {
       title: "RESET Agent Factory: agentes de IA personalizados | Reset IA",
       description:
-        "Agentes de IA sob medida para Marketing, Vendas e Customer Success: menos trabalho manual, mais produtividade e ferramentas consolidadas.",
+        "Agentes de IA sob medida para Marketing, Vendas e Customer Success: menos trabalho operacional, mais produtividade e menos ferramentas redundantes.",
     },
   },
   {
@@ -260,74 +386,118 @@ const lista: Solucao[] = [
     nome: "RESET Governance",
     icone: "governanca",
     frase: "Inovação com clareza, responsabilidade e controle.",
-    headline: ["Inovação com clareza,", "*responsabilidade e controle.*"],
+    headline: ["Quanto mais a IA avança, mais importante é saber", "*quem decide, como utiliza e o que pode fazer.*"],
     descricao: [
-      "Apoiamos empresas na estruturação de políticas, diretrizes, responsabilidades e mecanismos de governança para adoção segura e responsável da inteligência artificial.",
+      "Estruturamos a governança de inteligência artificial para que sua empresa inove com segurança, responsabilidade e clareza.",
+      "Políticas, comitês, diretrizes e processos de decisão para transformar o uso de IA em uma prática organizada e sustentável.",
     ],
-    problemas: [
-      "Uso de IA sem regras claras, cada área de um jeito.",
-      "Dúvidas sobre o que pode e o que não pode ser compartilhado com ferramentas de IA.",
-      "Iniciativas que surgem sem avaliação de riscos.",
-      "Falta de responsáveis e de critérios para aprovar novas soluções.",
-    ],
-    beneficios: [
-      "Uso responsável de IA.",
-      "Maior clareza institucional.",
-      "Segurança na utilização de informações.",
-      "Redução de riscos.",
-      "Decisões coordenadas.",
-      "Evolução sustentável.",
-    ],
-    entregaveis: [
-      "Política corporativa de uso de IA",
-      "Diretrizes de segurança e privacidade",
-      "Estruturação do comitê multidisciplinar",
-      "Papéis e responsabilidades",
-      "Critérios de avaliação de soluções",
-      "Processo de aprovação de iniciativas",
-      "Orientações sobre supervisão humana",
-      "Inventário de aplicações e ferramentas",
-      "Recomendações de acompanhamento",
-    ],
-    paraQuem: "Empresas que querem escalar IA com segurança, conformidade e alinhamento entre áreas.",
+    cta: {
+      label: "Quero estruturar a governança de IA",
+      mensagem:
+        "Olá! Conheci a Reset pelo site e quero estruturar a governança de IA da minha empresa com o RESET Governance.",
+    },
+    ctaSecundario: { label: "Conhecer a solução", href: "#sobre" },
+    sobre: {
+      titulo: ["Inovar com inteligência também significa", "*estabelecer limites.*"],
+      paragrafos: [
+        "A inteligência artificial já faz parte da rotina de muitas empresas, frequentemente antes mesmo de existir uma estratégia institucional para sua utilização.",
+        "Profissionais compartilham informações com ferramentas externas, áreas desenvolvem iniciativas independentes e decisões passam a contar com o apoio de sistemas inteligentes.",
+        "Sem direcionamento, esse movimento pode gerar riscos, conflitos, desperdícios e falta de visibilidade.",
+        "O RESET Governance ajuda sua empresa a estruturar um modelo de governança adequado ao seu nível de maturidade, estabelecendo regras, responsabilidades e mecanismos de acompanhamento para o uso de IA.",
+        "Criamos as condições para que a inovação avance de forma responsável, coordenada e alinhada aos objetivos do negócio.",
+      ],
+    },
+    beneficios: {
+      titulo: ["Mais segurança para inovar.", "*Mais clareza para evoluir.*"],
+      itens: [
+        {
+          titulo: "Uso responsável da IA",
+          texto:
+            "Estabeleça diretrizes claras sobre privacidade, proteção de informações e uso adequado das tecnologias.",
+        },
+        {
+          titulo: "Responsabilidades definidas",
+          texto: "Organize quem pode propor, aprovar, implementar e acompanhar iniciativas de inteligência artificial.",
+        },
+        {
+          titulo: "Decisões mais consistentes",
+          texto: "Crie critérios para priorizar projetos conforme valor de negócio, viabilidade e nível de risco.",
+        },
+        {
+          titulo: "Menos iniciativas dispersas",
+          texto: "Conecte tecnologia, negócio, pessoas e processos sob uma estratégia de evolução compartilhada.",
+        },
+        {
+          titulo: "Mais confiança organizacional",
+          texto: "Desenvolva um ambiente de inovação com transparência, controle e supervisão humana.",
+        },
+      ],
+    },
+    entregaveis: {
+      titulo: ["Uma estrutura de governança", "*adaptada à realidade da empresa.*"],
+      itens: [
+        "Avaliação inicial de práticas e riscos relacionados à IA.",
+        "Elaboração de política corporativa de uso de IA.",
+        "Diretrizes para utilização de ferramentas e tratamento de informações.",
+        "Definição de papéis e responsabilidades.",
+        "Estruturação de comitê multidisciplinar de IA.",
+        "Critérios para avaliação, priorização e aprovação de iniciativas.",
+        "Orientações para revisão humana e controle de qualidade.",
+        "Modelo de inventário de ferramentas e aplicações de IA.",
+        "Recomendações para acompanhamento de riscos e incidentes.",
+        "Plano de comunicação e sensibilização das equipes.",
+      ],
+      nota: "A governança é desenvolvida em conjunto com as áreas responsáveis da empresa, incluindo Jurídico, Segurança da Informação e Privacidade quando aplicável.",
+    },
+    paraQuem: {
+      titulo: ["Ideal para", "*empresas que:*"],
+      itens: [
+        "Já utilizam IA em diferentes áreas, mas não possuem diretrizes claras.",
+        "Desejam formalizar políticas internas.",
+        "Precisam organizar iniciativas e responsabilidades.",
+        "Querem evitar o uso descontrolado de ferramentas e informações.",
+        "Buscam escalar a adoção da IA com maior segurança.",
+        "Precisam alinhar tecnologia, negócio e gestão de riscos.",
+      ],
+    },
     etapas: [
       {
         numero: "01",
-        titulo: "Uso atual",
-        texto: "Levantamos as aplicações e ferramentas de IA em uso e como as informações circulam.",
+        titulo: "Avaliamos o cenário",
+        texto: "Entendemos como a empresa utiliza IA e quais são seus principais riscos e necessidades.",
       },
       {
         numero: "02",
-        titulo: "Política e diretrizes",
-        texto: "Definimos a política de uso, as diretrizes de segurança e privacidade e a supervisão humana.",
+        titulo: "Estabelecemos diretrizes",
+        texto: "Desenhamos princípios, políticas e critérios de utilização.",
       },
       {
         numero: "03",
-        titulo: "Comitê e aprovação",
-        texto: "Estruturamos o comitê, os papéis e o fluxo de aprovação de novas iniciativas.",
+        titulo: "Organizamos a governança",
+        texto: "Estruturamos papéis, responsabilidades e o modelo de comitê.",
       },
       {
         numero: "04",
-        titulo: "Acompanhamento",
-        texto: "Deixamos critérios de avaliação e recomendações para a governança evoluir com a empresa.",
+        titulo: "Orientamos a adoção",
+        texto: "Apoiamos a comunicação e a implementação das diretrizes.",
+      },
+      {
+        numero: "05",
+        titulo: "Preparamos o acompanhamento",
+        texto: "Definimos rotinas para revisar iniciativas, riscos e evolução da governança.",
       },
     ],
-    medimos: "Aderência às políticas, riscos tratados e projetos avaliados.",
-    cta: {
-      label: "Quero estruturar nossa governança de IA",
-      mensagem:
-        "Olá! Conheci a Reset pelo site e quero estruturar a governança de IA da minha empresa com o RESET Governance.",
+    ctaFinal: {
+      titulo: ["Sua empresa pode acelerar a inovação", "*sem abrir mão do controle.*"],
+      texto:
+        "Crie uma estrutura que permita adotar inteligência artificial com confiança, responsabilidade e visão de futuro.",
+      botao: "Quero construir nossa governança de IA",
     },
     relacionadas: ["ai-champions", "agent-factory", "performance"],
     seo: {
       title: "RESET Governance: governança de IA | Reset IA",
       description:
-        "Política de uso, diretrizes de segurança e privacidade, comitê, papéis e aprovação de iniciativas para adotar IA com responsabilidade e velocidade.",
-    },
-    destaque: {
-      titulo: ["Governança que acelera,", "*não que trava.*"],
-      texto:
-        "Regras claras dão segurança para as áreas experimentarem: cada iniciativa sabe o que pode fazer, quem aprova e como será acompanhada. Menos dúvida no caminho, mais inovação com responsabilidade.",
+        "Políticas, comitê, diretrizes e processos de decisão para sua empresa inovar com IA com segurança, responsabilidade e clareza.",
     },
   },
   {
@@ -336,80 +506,146 @@ const lista: Solucao[] = [
     nome: "RESET Performance",
     icone: "performance",
     frase: "Implantar é o começo. Evoluir é o diferencial.",
-    headline: ["Implantar IA é o começo.", "*Evoluir é o diferencial.*"],
+    headline: ["Sua empresa já implementou IA.", "*Agora é hora de provar o valor que ela gera.*"],
     descricao: [
-      "Acompanhamos a adoção, a eficiência e os resultados das soluções implementadas para transformar iniciativas isoladas em uma jornada contínua de evolução.",
+      "Transformamos iniciativas de inteligência artificial em uma jornada contínua de acompanhamento, otimização e resultados.",
+      "Monitoramos adoção, produtividade, eficiência e indicadores de negócio para ajudar sua empresa a evoluir com inteligência.",
     ],
-    problemas: [
-      "Projetos de IA implantados sem linha de base para comparar.",
-      "Dificuldade de mostrar o retorno do que foi investido.",
-      "Adoção que cai depois da implantação.",
-      "Agentes e processos sem acompanhamento de qualidade.",
-    ],
-    beneficios: [
-      "Visibilidade sobre os resultados.",
-      "Melhor aproveitamento dos investimentos.",
-      "Otimização contínua.",
-      "Acompanhamento da adoção.",
-      "Identificação de novas oportunidades.",
-      "Decisões orientadas por indicadores.",
-    ],
-    entregaveis: [
-      "Definição de indicadores",
-      "Estruturação de linha de base",
-      "Monitoramento de adoção",
-      "Acompanhamento de eficiência",
-      "Análise do desempenho de agentes e processos",
-      "Relatórios executivos",
-      "Recomendações de melhoria",
-      "Roadmap de evolução",
-      "Reuniões periódicas de performance",
-    ],
-    paraQuem: "Empresas que desejam transformar implantação em resultados contínuos.",
-    etapas: [
-      {
-        numero: "01",
-        titulo: "Indicadores e linha de base",
-        texto: "Escolhemos o que medir e registramos o ponto de partida antes de qualquer comparação.",
-      },
-      {
-        numero: "02",
-        titulo: "Monitoramento",
-        texto: "Acompanhamos adoção, eficiência e o desempenho de agentes e processos.",
-      },
-      {
-        numero: "03",
-        titulo: "Rituais e relatórios",
-        texto: "Reuniões periódicas de performance e relatórios executivos para quem decide.",
-      },
-      {
-        numero: "04",
-        titulo: "Evolução",
-        texto: "Recomendações de melhoria, novas oportunidades e o roadmap do próximo ciclo.",
-      },
-    ],
-    medimos: "Adoção, custo total, retenção, produtividade e receita incremental validada.",
     cta: {
       label: "Quero evoluir meus resultados com IA",
       mensagem: "Olá! Conheci a Reset pelo site e quero evoluir meus resultados com IA com o RESET Performance.",
+    },
+    ctaSecundario: { label: "Conhecer o acompanhamento", href: "#como-funciona" },
+    sobre: {
+      titulo: ["Implementar IA é uma conquista.", "*Fazer ela gerar valor continuamente é o verdadeiro desafio.*"],
+      paragrafos: [
+        "Muitas empresas investem em capacitação, agentes inteligentes e automações, mas encontram dificuldades para responder a perguntas essenciais:",
+        "As equipes estão utilizando as soluções? O tempo operacional diminuiu? Os processos melhoraram? Houve impacto nos indicadores de Marketing, Vendas e relacionamento com clientes?",
+        "O RESET Performance foi criado para responder a essas perguntas.",
+        "Atuamos no acompanhamento e na evolução das iniciativas de IA, conectando indicadores de adoção e eficiência aos resultados esperados pelo negócio.",
+        "Nossa proposta é transformar projetos isolados em uma prática contínua de melhoria, aprendizado e geração de valor.",
+      ],
+    },
+    beneficios: {
+      titulo: ["IA não pode ser apenas uma iniciativa.", "*Precisa fazer parte do resultado.*"],
+      itens: [
+        {
+          titulo: "Visibilidade sobre o impacto",
+          texto: "Acompanhe o uso das soluções e os resultados observados na operação.",
+        },
+        {
+          titulo: "Maior aproveitamento do investimento",
+          texto: "Identifique soluções subutilizadas e oportunidades de melhorar o retorno sobre a tecnologia.",
+        },
+        {
+          titulo: "Otimização contínua",
+          texto: "Evolua agentes, processos e rotinas a partir de dados, feedbacks e necessidades reais.",
+        },
+        {
+          titulo: "Decisões orientadas por evidências",
+          texto: "Priorize novas iniciativas com base em indicadores, impacto esperado e viabilidade.",
+        },
+        {
+          titulo: "Evolução sustentável",
+          texto: "Crie uma dinâmica de melhoria contínua para acompanhar as mudanças da tecnologia e do negócio.",
+        },
+      ],
+    },
+    entregaveis: {
+      titulo: ["Inteligência aplicada", "*ao acompanhamento dos resultados.*"],
+      itens: [
+        "Definição de indicadores e metas para cada iniciativa.",
+        "Estruturação da linha de base para comparação.",
+        "Acompanhamento da adoção de IA pelas equipes.",
+        "Monitoramento de indicadores de produtividade e eficiência.",
+        "Avaliação de qualidade e desempenho dos agentes.",
+        "Identificação de problemas, oportunidades e necessidades de ajuste.",
+        "Recomendações para otimização das soluções implantadas.",
+        "Relatórios executivos de evolução e resultados.",
+        "Reuniões periódicas de acompanhamento.",
+        "Roadmap de novas oportunidades e melhorias.",
+      ],
+    },
+    medicao: {
+      kicker: "O que podemos medir",
+      titulo: ["Indicadores", "*conectados ao negócio.*"],
+      itens: [
+        {
+          area: "Produtividade e eficiência",
+          texto: "Tempo de execução, horas operacionais, redução de retrabalho e volume de atividades processadas.",
+        },
+        {
+          area: "Adoção de IA",
+          texto: "Utilização das soluções, participação das equipes, frequência de uso e aplicação em processos.",
+        },
+        {
+          area: "Marketing",
+          texto: "Produtividade de campanhas, geração de leads, conversão e eficiência das iniciativas.",
+        },
+        { area: "Vendas", texto: "Tempo de resposta, produtividade comercial, conversão e evolução do pipeline." },
+        {
+          area: "Customer Success",
+          texto: "Tempo de atendimento, retenção, satisfação e oportunidades de expansão de receita.",
+        },
+        {
+          area: "Eficiência financeira",
+          texto: "Custos de ferramentas, despesas operacionais, economia efetiva e custo de manutenção das soluções.",
+        },
+      ],
+      aviso:
+        "Os indicadores serão definidos conforme a realidade de cada projeto e a disponibilidade dos dados. Sempre que possível, utilizamos comparações estruturadas para distinguir resultados observados de impactos efetivamente atribuíveis à IA.",
+    },
+    paraQuem: {
+      titulo: ["Ideal para", "*empresas que:*"],
+      itens: [
+        "Já implantaram soluções de IA e desejam acompanhar resultados.",
+        "Precisam justificar investimentos em tecnologia.",
+        "Querem aumentar a adoção e a utilização das soluções.",
+        "Buscam evolução contínua de processos e agentes.",
+        "Desejam identificar novas oportunidades de crescimento.",
+        "Precisam de uma parceria para sustentar a transformação no longo prazo.",
+      ],
+    },
+    etapas: [
+      {
+        numero: "01",
+        titulo: "Definimos o sucesso",
+        texto: "Alinhamos os objetivos e os indicadores que serão acompanhados.",
+      },
+      {
+        numero: "02",
+        titulo: "Estruturamos a mensuração",
+        texto: "Estabelecemos a linha de base e organizamos as fontes de informação.",
+      },
+      {
+        numero: "03",
+        titulo: "Monitoramos",
+        texto: "Acompanhamos utilização, desempenho e resultados das iniciativas.",
+      },
+      {
+        numero: "04",
+        titulo: "Otimizamos",
+        texto: "Recomendamos ajustes e melhorias para ampliar o valor das soluções.",
+      },
+      {
+        numero: "05",
+        titulo: "Evoluímos",
+        texto: "Priorizamos novas oportunidades para manter a operação em transformação.",
+      },
+    ],
+    ctaFinal: {
+      titulo: [
+        "O valor da IA não está apenas no que ela consegue fazer.",
+        "*Está no resultado que sua empresa consegue alcançar.*",
+      ],
+      texto: "Transforme o investimento em inteligência artificial em uma jornada contínua de evolução.",
+      botao: "Quero acompanhar e evoluir meus resultados",
     },
     relacionadas: ["agent-factory", "processos-com-ia", "ai-champions"],
     seo: {
       title: "RESET Performance: resultados de IA medidos | Reset IA",
       description:
-        "Indicadores, linha de base, monitoramento de adoção e relatórios executivos para transformar iniciativas de IA em uma jornada contínua de evolução.",
-    },
-    indicadores: {
-      kicker: "Indicadores possíveis",
-      titulo: ["O que acompanhamos,", "*área por área.*"],
-      itens: [
-        { area: "Marketing", texto: "Conversão, produtividade e geração de oportunidades." },
-        { area: "Vendas", texto: "Tempo de resposta, taxa de conversão, produtividade e pipeline." },
-        { area: "Customer Success", texto: "Retenção, churn, satisfação e expansão." },
-        { area: "Eficiência", texto: "Tempo operacional, redução de desperdícios, utilização e custos." },
-      ],
-      aviso:
-        "Impacto financeiro só é apresentado com linha de base e método de mensuração acordados. Os indicadores de cada projeto são definidos com a empresa.",
+        "Acompanhamento de adoção, produtividade, eficiência e indicadores de negócio para transformar iniciativas de IA em evolução contínua.",
     },
   },
 ];
@@ -474,14 +710,11 @@ export const solucoes = {
   },
   detalhe: {
     voltar: { label: "Todas as soluções", href: "/solucoes" },
-    kicker: "Solução RESET 360",
-    problemas: { kicker: "O que resolve", titulo: ["Os desafios que", "*esta solução enfrenta.*"] },
-    beneficios: { kicker: "Benefícios", titulo: ["O que muda", "*na prática.*"] },
-    entregaveis: { kicker: "Entregáveis", titulo: ["O que você", "*recebe.*"] },
+    sobre: "Sobre a solução",
+    beneficios: "Benefícios",
+    entregaveis: "O que entregamos",
     paraQuem: "Para quem é",
-    medimos: "Como medimos",
-    etapas: { kicker: "Como funciona", titulo: ["Do primeiro passo", "*à evolução.*"] },
-    tecnologia: "Tecnologia relacionada",
+    etapas: "Como funciona",
     relacionadas: { kicker: "Soluções relacionadas", titulo: ["Uma solução conecta", "*a próxima.*"] },
     diagnostico: {
       titulo: "Ainda não sabe se é por aqui que sua empresa deve começar?",

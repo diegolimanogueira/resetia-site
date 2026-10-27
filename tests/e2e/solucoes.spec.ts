@@ -24,19 +24,26 @@ test.describe("Soluções", () => {
   });
 
   for (const s of solucoes.lista) {
-    test(`${s.nome}: headline, desafios, benefícios, entregáveis, etapas e CTAs`, async ({ page }) => {
+    test(`${s.nome}: hero, sobre, benefícios, entregáveis, para quem, etapas e CTAs`, async ({ page }) => {
       await page.goto(`/solucoes/${s.slug}/`);
       await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(s.headline.map(semMarcas).join(" "));
-      for (const p of s.problemas) await expect(page.getByText(p, { exact: true })).toBeVisible();
-      for (const b of s.beneficios)
-        await expect(page.getByRole("listitem").filter({ hasText: b }).first()).toBeVisible();
-      for (const e of s.entregaveis)
+      for (const p of s.sobre.paragrafos) await expect(page.getByText(p, { exact: true })).toBeVisible();
+      for (const b of s.beneficios.itens) {
+        await expect(page.getByRole("heading", { name: b.titulo, exact: true })).toBeVisible();
+        await expect(page.getByText(b.texto, { exact: true })).toBeVisible();
+      }
+      for (const e of s.entregaveis.itens)
         await expect(page.getByRole("listitem").filter({ hasText: e }).first()).toBeVisible();
+      for (const p of s.paraQuem.itens)
+        await expect(page.getByRole("listitem").filter({ hasText: p }).first()).toBeVisible();
       for (const e of s.etapas) await expect(page.getByRole("heading", { name: e.titulo, exact: true })).toBeVisible();
-      await expect(page.getByText(s.paraQuem)).toBeVisible();
-      await expect(page.locator(`a[data-cta='solucao-${s.slug}']`)).toHaveAttribute("href", waUrl(s.cta.mensagem));
-      await expect(page.locator(`a[data-cta='solucao-${s.slug}']`)).toHaveText(new RegExp(s.cta.label));
-      await expect(page.locator(`a[data-cta='diagnostico-solucao-${s.slug}']`)).toHaveAttribute(
+      const principal = page.locator(`a[data-cta='solucao-${s.slug}']`);
+      await expect(principal).toHaveAttribute("href", waUrl(s.cta.mensagem));
+      await expect(principal).toHaveText(new RegExp(s.cta.label));
+      const final = page.locator(`a[data-cta='solucao-${s.slug}-final']`);
+      await expect(final).toHaveAttribute("href", waUrl(s.cta.mensagem));
+      await expect(final).toHaveText(new RegExp(s.ctaFinal.botao));
+      await expect(page.locator(`a[data-cta='diagnostico-solucao-${s.slug}-faixa']`)).toHaveAttribute(
         "href",
         waDiagnostico(),
       );
@@ -46,12 +53,14 @@ test.describe("Soluções", () => {
         "href",
         "/solucoes/",
       );
+      await page.getByRole("link", { name: s.ctaSecundario.label }).click();
+      await expect(page).toHaveURL(new RegExp(`${s.ctaSecundario.href}$`));
     });
   }
 
   test("Processos com IA apresenta a Fluxa BPM como tecnologia, não como produto", async ({ page }) => {
     await page.goto("/solucoes/processos-com-ia/");
-    await expect(page.getByText("não é um sexto produto de consultoria", { exact: false })).toBeVisible();
+    await expect(page.getByText("possui uma proposta de valor independente", { exact: false })).toBeVisible();
     await expect(page.locator("a[data-cta='solucao-processos-com-ia-fluxa-site']")).toHaveAttribute(
       "href",
       "https://www.fluxabpm.com.br/",

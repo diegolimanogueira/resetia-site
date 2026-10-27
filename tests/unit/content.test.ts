@@ -22,17 +22,23 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
     expect(solucaoPorSlug("workshops")).toBeUndefined();
   });
 
-  it("cada solução é uma landing page completa: desafios, benefícios, entregáveis, público, etapas e CTA próprio", () => {
+  it("cada solução é uma landing page completa: sobre, benefícios, entregáveis, para quem, 5 etapas e CTAs", () => {
     for (const s of solucoes.lista) {
       expect(s.headline.length, s.slug).toBeGreaterThan(0);
-      expect(s.descricao.length, s.slug).toBeGreaterThan(0);
-      expect(s.problemas.length, s.slug).toBeGreaterThanOrEqual(4);
-      expect(s.beneficios.length, s.slug).toBeGreaterThanOrEqual(5);
-      expect(s.entregaveis.length, s.slug).toBeGreaterThanOrEqual(7);
-      expect(s.etapas, s.slug).toHaveLength(4);
-      expect(s.paraQuem.trim().length, s.slug).toBeGreaterThan(0);
+      expect(s.descricao, s.slug).toHaveLength(2);
+      expect(s.sobre.paragrafos.length, s.slug).toBeGreaterThanOrEqual(5);
+      expect(s.beneficios.itens.length, s.slug).toBeGreaterThanOrEqual(5);
+      for (const b of s.beneficios.itens) expect(b.texto.length, `${s.slug}: ${b.titulo}`).toBeGreaterThan(20);
+      expect(s.entregaveis.itens.length, s.slug).toBeGreaterThanOrEqual(9);
+      expect(s.paraQuem.itens, s.slug).toHaveLength(6);
+      expect(
+        s.etapas.map((e) => e.numero),
+        s.slug,
+      ).toEqual(["01", "02", "03", "04", "05"]);
       expect(s.cta.label, s.slug).toMatch(/^Quero /);
+      expect(s.ctaFinal.botao, s.slug).toMatch(/^Quero /);
       expect(s.cta.mensagem, s.slug).toContain(s.nome);
+      expect(s.ctaSecundario.href, s.slug).toMatch(/^#(sobre|como-funciona|casos-de-uso)$/);
       for (const r of s.relacionadas) {
         expect(solucaoPorSlug(r), `${s.slug} → ${r}`).toBeDefined();
         expect(r).not.toBe(s.slug);
@@ -41,15 +47,12 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
   });
 
   it("os blocos próprios estão nas soluções certas", () => {
-    expect(solucaoPorSlug("ai-champions")?.formatos?.itens.map((f) => f.titulo)).toContain("Workshops personalizados");
+    expect(solucaoPorSlug("ai-champions")?.entregaveis.itens.join(" ")).toMatch(/Workshops personalizados/);
     expect(solucaoPorSlug("processos-com-ia")?.tecnologia?.ferramenta).toBe("fluxa");
-    expect(solucaoPorSlug("governance")?.destaque).toBeDefined();
-    expect(solucaoPorSlug("performance")?.indicadores?.itens.map((i) => i.area)).toEqual([
-      "Marketing",
-      "Vendas",
-      "Customer Success",
-      "Eficiência",
-    ]);
+    expect(solucaoPorSlug("governance")?.entregaveis.nota).toMatch(/Jurídico, Segurança da Informação e Privacidade/);
+    expect(solucaoPorSlug("performance")?.medicao?.itens).toHaveLength(6);
+    const comBloco = solucoes.lista.filter((s) => s.tecnologia || s.medicao).map((s) => s.slug);
+    expect(comBloco).toEqual(["processos-com-ia", "performance"]);
   });
 
   it("Agent Factory: três frentes com seis exemplos cada; catálogo com 30 agentes, 10 por área", () => {
@@ -58,7 +61,11 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
       "Sales Intelligence",
       "Customer Intelligence",
     ]);
-    for (const c of categoriasAgentes) expect(c.agentes, c.nome).toHaveLength(6);
+    for (const c of categoriasAgentes) {
+      expect(c.agentes, c.nome).toHaveLength(6);
+      expect(c.descricao, c.nome).toMatch(/^Agentes para /);
+    }
+    expect(consolidacao.exemplos.aviso).toMatch(/possibilidades de aplicação/);
     expect(agentes.lista).toHaveLength(30);
     expect(agentes.hero.lead).toContain(String(agentes.lista.length));
     for (const a of areas)
@@ -151,8 +158,7 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
   it("não há métricas, depoimentos ou promessas de economia inventados", () => {
     const tudo = JSON.stringify({ home, solucoes, agentes, consolidacao, categoriasAgentes, sobre, diagnostico });
     expect(tudo).not.toMatch(/\d+\s?%|R\$\s?\d|depoimento/i);
-    // "economia garantida" só aparece negada ("Não prometemos … nem economia garantida").
-    expect(tudo).not.toMatch(/garantimos|resultado garantido|retorno garantido/i);
-    expect(tudo).toContain("Não prometemos substituição integral de ferramentas nem economia garantida");
+    expect(tudo).not.toMatch(/garantimos|resultado garantido|retorno garantido|economia garantida/i);
+    expect(tudo).toContain("Nosso objetivo não é substituir ferramentas indiscriminadamente.");
   });
 });

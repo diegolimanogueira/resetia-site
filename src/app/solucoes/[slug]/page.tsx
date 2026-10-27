@@ -18,7 +18,7 @@ import { site } from "@/content/site";
 import { seoSolucao, solucaoPorSlug, solucoes } from "@/content/solucoes";
 import { ferramentas } from "@/content/tecnologias";
 import type { Solucao } from "@/content/types";
-import { waDiagnostico, waUrl } from "@/lib/whatsapp";
+import { waUrl } from "@/lib/whatsapp";
 
 // Export estático: só as cinco soluções existem; qualquer outro slug é 404 (scan e workshops têm rota própria).
 export const dynamicParams = false;
@@ -35,133 +35,106 @@ export async function generateMetadata({ params }: PageProps<"/solucoes/[slug]">
 }
 
 const d = solucoes.detalhe;
+const numero = (i: number) => String(i + 1).padStart(2, "0");
 
-/** Lista com marcador verde (benefícios, desafios, entregáveis). */
-function Lista({ itens, marcador = "✓", colunas = false }: { itens: string[]; marcador?: string; colunas?: boolean }) {
+/** Agent Factory: as três frentes em abas, logo depois dos benefícios. */
+function Exemplos() {
+  const e = consolidacao.exemplos;
   return (
-    <ul className={colunas ? "grid gap-x-8 gap-y-3 sm:grid-cols-2" : "flex flex-col gap-3"}>
-      {itens.map((item) => (
-        <li key={item} className="flex gap-3 text-[16px] leading-[1.55]">
-          <span aria-hidden="true" className="text-verde shrink-0">
-            {marcador}
-          </span>
-          {item}
-        </li>
-      ))}
-    </ul>
+    <Section tom="escuro" id="casos-de-uso">
+      <div className="container-site">
+        <CabecalhoSecao kicker={e.kicker} titulo={e.titulo} />
+        <CategoriasAgentes
+          icones={categoriasAgentes.map((c) => (
+            <Icone key={c.area} id={c.area} tamanho={18} />
+          ))}
+        />
+        <div className="mt-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <p className="text-fg-2 max-w-[80ch] text-[13px] leading-[1.6]">{e.aviso}</p>
+          <LinkSeta href={consolidacao.catalogo.href} seta="→" className="shrink-0">
+            {consolidacao.catalogo.label}
+          </LinkSeta>
+        </div>
+      </div>
+    </Section>
   );
 }
 
-/** Bloco próprio de cada solução: formatos (Champions), Fluxa (Processos), frentes e consolidação (Agent Factory),
- * governança que acelera (Governance), indicadores (Performance). */
-function Extras({ s }: { s: Solucao }) {
+/** Blocos depois dos entregáveis: Fluxa BPM (Processos), ferramentas redundantes (Agent Factory), medição (Performance). */
+function DepoisDosEntregaveis({ s }: { s: Solucao }) {
+  const t = s.tecnologia;
+  const m = s.medicao;
   return (
     <>
-      {s.formatos ? (
-        <Section tom="escuro">
-          <div className="container-site">
-            <CabecalhoSecao kicker={s.formatos.kicker} titulo={s.formatos.titulo} />
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {s.formatos.itens.map((f) => (
-                <li key={f.titulo} className="border-line bg-painel border p-6">
-                  <h3 className="mb-2 text-[20px] font-bold tracking-[-0.02em]">{f.titulo}</h3>
-                  <p className="text-fg-2 text-[15px] leading-[1.6]">{f.texto}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </Section>
-      ) : null}
-
-      {s.tecnologia ? (
-        <Section tom="escuro">
-          <div className="container-site border-line bg-painel grid gap-6 border p-[26px] md:grid-cols-[auto_1fr_auto] md:items-center md:gap-10 md:p-10">
+      {t ? (
+        <Section>
+          <div className="container-site border-line bg-painel grid gap-8 border p-[26px] md:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)] md:gap-[70px] md:p-[50px]">
             <div>
-              <p className="eyebrow text-verde mb-3 text-[11px]">{d.tecnologia}</p>
-              <MarcaFerramenta qual={s.tecnologia.ferramenta} className="text-[30px] tracking-[-0.04em]" />
+              <Eyebrow>{t.kicker}</Eyebrow>
+              <h2 className="display-h2 mb-6">
+                <Linhas itens={t.titulo} />
+              </h2>
+              <MarcaFerramenta qual={t.ferramenta} className="text-[30px] tracking-[-0.04em]" />
             </div>
-            <p className="text-fg-2 max-w-[62ch] text-[16px] leading-[1.7]">{s.tecnologia.texto}</p>
-            <a
-              href={ferramentas[s.tecnologia.ferramenta].site.href}
-              target="_blank"
-              rel="noopener"
-              data-cta={`solucao-${s.slug}-${s.tecnologia.ferramenta}-site`}
-              className="text-verde hover:text-fg text-[14px] font-bold whitespace-nowrap"
-            >
-              {ferramentas[s.tecnologia.ferramenta].site.label} <span aria-hidden="true">↗</span>
-            </a>
+            <div>
+              {t.paragrafos.map((p) => (
+                <p key={p} className="text-fg-2 mb-4 text-[17px] leading-[1.75]">
+                  {p}
+                </p>
+              ))}
+              <Botao
+                href={ferramentas[t.ferramenta].site.href}
+                variante="secundario"
+                origem={`solucao-${s.slug}-${t.ferramenta}-site`}
+                className="mt-4"
+              >
+                {t.cta}
+              </Botao>
+            </div>
           </div>
         </Section>
       ) : null}
 
       {s.slug === "agent-factory" ? (
-        <>
-          <Section tom="escuro" id="casos-de-uso">
-            <div className="container-site">
-              <CabecalhoSecao kicker={consolidacao.categorias.kicker} titulo={consolidacao.categorias.titulo} />
-              <CategoriasAgentes
-                icones={categoriasAgentes.map((c) => (
-                  <Icone key={c.area} id={c.area} tamanho={18} />
-                ))}
-              />
-              <div className="mt-8">
-                <LinkSeta href={consolidacao.catalogo.href} seta="→">
-                  {consolidacao.catalogo.label}
-                </LinkSeta>
-              </div>
+        <Section>
+          <div className="container-site grid gap-[30px] md:grid-cols-2 md:gap-[90px]">
+            <div>
+              <Eyebrow>{consolidacao.kicker}</Eyebrow>
+              <h2 className="display-h2">
+                <Linhas itens={consolidacao.titulo} />
+              </h2>
             </div>
-          </Section>
-          <Section>
-            <div className="container-site grid gap-[30px] md:grid-cols-2 md:gap-[90px]">
-              <div>
-                <Eyebrow>{consolidacao.kicker}</Eyebrow>
-                <h2 className="display-h2">
-                  <Linhas itens={consolidacao.titulo} />
-                </h2>
-              </div>
-              <div>
-                {consolidacao.paragrafos.map((p) => (
-                  <p key={p} className="text-fg-2 mb-5 text-[18px] leading-[1.75]">
+            <div>
+              {consolidacao.paragrafos.map((p) => (
+                <p key={p} className="text-fg-2 mb-5 text-[18px] leading-[1.75]">
+                  {p}
+                </p>
+              ))}
+              <ul className="mt-6 grid gap-2 sm:grid-cols-3">
+                {consolidacao.passos.map((p) => (
+                  <li key={p} className="border-line bg-painel border px-4 py-3 text-[14px] font-semibold">
                     {p}
-                  </p>
+                  </li>
                 ))}
-                <ul className="mt-6 grid gap-2 sm:grid-cols-3">
-                  {consolidacao.passos.map((p) => (
-                    <li key={p} className="border-line bg-painel border px-4 py-3 text-[14px] font-semibold">
-                      {p}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+              </ul>
             </div>
-          </Section>
-        </>
-      ) : null}
-
-      {s.destaque ? (
-        <Section tom="escuro">
-          <div className="container-site max-w-[1000px] text-center">
-            <h2 className="display-h2 mb-6">
-              <Linhas itens={s.destaque.titulo} />
-            </h2>
-            <p className="text-fg-2 mx-auto max-w-[680px] text-[19px] leading-[1.7]">{s.destaque.texto}</p>
           </div>
         </Section>
       ) : null}
 
-      {s.indicadores ? (
-        <Section tom="escuro">
+      {m ? (
+        <Section id="medicao">
           <div className="container-site">
-            <CabecalhoSecao kicker={s.indicadores.kicker} titulo={s.indicadores.titulo} />
-            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {s.indicadores.itens.map((i) => (
+            <CabecalhoSecao kicker={m.kicker} titulo={m.titulo} />
+            <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {m.itens.map((i) => (
                 <li key={i.area} className="border-line bg-painel border p-6">
                   <h3 className="text-verde mb-2 text-[18px] font-bold">{i.area}</h3>
                   <p className="text-fg-2 text-[15px] leading-[1.6]">{i.texto}</p>
                 </li>
               ))}
             </ul>
-            <p className="text-fg-2 mt-6 max-w-[80ch] text-[13px] leading-[1.6]">{s.indicadores.aviso}</p>
+            <p className="text-fg-2 mt-6 max-w-[90ch] text-[13px] leading-[1.6]">{m.aviso}</p>
           </div>
         </Section>
       ) : null}
@@ -174,7 +147,7 @@ export default async function SolucaoPagina({ params }: PageProps<"/solucoes/[sl
   const s = solucaoPorSlug((await params).slug);
   if (!s) notFound();
   const relacionadas = s.relacionadas.map((slug) => solucaoPorSlug(slug)!).filter(Boolean);
-  const cta = { label: s.cta.label, href: waUrl(s.cta.mensagem) };
+  const href = waUrl(s.cta.mensagem);
 
   return (
     <main data-tom="carvao" className="text-fg bg-(--bg)">
@@ -196,81 +169,103 @@ export default async function SolucaoPagina({ params }: PageProps<"/solucoes/[sl
           </p>
         ))}
         <div className="flex flex-wrap gap-3">
-          <Botao href={cta.href} origem={`solucao-${s.slug}`}>
-            {cta.label}
+          <Botao href={href} origem={`solucao-${s.slug}`}>
+            {s.cta.label}
           </Botao>
-          <Botao href={waDiagnostico()} origem={`diagnostico-solucao-${s.slug}`} variante="secundario">
-            {site.ctaDiagnostico}
+          <Botao href={s.ctaSecundario.href} variante="secundario" seta="↓">
+            {s.ctaSecundario.label}
           </Botao>
         </div>
       </HeroPagina>
 
-      <Section tom="escuro">
-        <div className="container-site">
-          <CabecalhoSecao kicker={d.problemas.kicker} titulo={d.problemas.titulo} />
-          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {s.problemas.map((p, i) => (
-              <li key={p} className="border-line bg-painel border p-6">
-                <span className="text-verde text-[12px] tracking-[.15em]">{String(i + 1).padStart(2, "0")}</span>
-                <p className="mt-3 text-[17px] leading-[1.5]">{p}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </Section>
-
-      <Section>
-        <div className="container-site grid gap-[30px] md:grid-cols-[minmax(0,1fr)_420px] md:gap-[90px]">
+      <Section tom="escuro" id="sobre">
+        <div className="container-site grid gap-[30px] md:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] md:gap-[90px]">
           <div>
-            <Eyebrow>{d.beneficios.kicker}</Eyebrow>
-            <h2 className="display-h2 mb-10">
-              <Linhas itens={d.beneficios.titulo} />
+            <Eyebrow>{d.sobre}</Eyebrow>
+            <h2 className="text-[clamp(30px,3.4vw,48px)] leading-[1.08] font-bold tracking-[-0.03em]">
+              <Linhas itens={s.sobre.titulo} />
             </h2>
-            <Lista itens={s.beneficios} colunas />
           </div>
-          <aside className="border-line bg-painel h-max border p-[30px]">
-            <Icone id={s.icone} tamanho={32} />
-            <div className="border-line mt-6 mb-5 border-b pb-5">
-              <h3 className="eyebrow text-verde text-[11px]">{d.paraQuem}</h3>
-              <p className="text-fg/85 mt-2 text-[16px] leading-[1.6]">{s.paraQuem}</p>
-            </div>
-            <div className="mb-6">
-              <h3 className="eyebrow text-verde text-[11px]">{d.medimos}</h3>
-              <p className="text-fg/85 mt-2 text-[16px] leading-[1.6]">{s.medimos}</p>
-            </div>
-            <Botao href={cta.href} origem={`solucao-${s.slug}-quadro`} className="w-full whitespace-normal">
-              {cta.label}
-            </Botao>
-          </aside>
+          <div className="text-fg-2 flex flex-col gap-4 text-[18px] leading-[1.75]">
+            {s.sobre.paragrafos.map((p) => (
+              <p key={p}>{p}</p>
+            ))}
+          </div>
         </div>
       </Section>
 
-      <Extras s={s} />
-
-      <Section tom="contraste">
+      <Section id="beneficios">
         <div className="container-site">
-          <CabecalhoSecao kicker={d.entregaveis.kicker} titulo={d.entregaveis.titulo} />
+          <CabecalhoSecao kicker={d.beneficios} titulo={s.beneficios.titulo} />
           <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {s.entregaveis.map((e, i) => (
-              <li key={e} className="border-line bg-painel flex items-start gap-4 border p-5">
-                <span className="text-verde text-[20px] leading-none font-bold tracking-[-0.03em]">
-                  {String(i + 1).padStart(2, "0")}
-                </span>
-                <span className="text-[16px] leading-[1.45]">{e}</span>
+            {s.beneficios.itens.map((b, i) => (
+              <li key={b.titulo} className="border-line bg-painel border p-6 md:p-7">
+                <span className="text-verde text-[13px] font-bold tracking-[.12em]">{numero(i)}</span>
+                <h3 className="mt-4 mb-2 text-[21px] leading-[1.2] font-bold tracking-[-0.02em]">{b.titulo}</h3>
+                <p className="text-fg-2 text-[15px] leading-[1.6]">{b.texto}</p>
               </li>
             ))}
           </ol>
         </div>
       </Section>
 
-      <Section>
+      {s.slug === "agent-factory" ? <Exemplos /> : null}
+
+      <Section tom="contraste" id="entregaveis">
         <div className="container-site">
-          <CabecalhoSecao kicker={d.etapas.kicker} titulo={d.etapas.titulo} />
-          <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <CabecalhoSecao kicker={d.entregaveis} titulo={s.entregaveis.titulo} />
+          <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {s.entregaveis.itens.map((e) => (
+              <li
+                key={e}
+                className="border-line bg-painel flex items-start gap-3 border p-5 text-[16px] leading-[1.45]"
+              >
+                <span aria-hidden="true" className="text-verde">
+                  ✓
+                </span>
+                {e}
+              </li>
+            ))}
+          </ul>
+          {s.entregaveis.nota ? (
+            <p className="border-verde text-fg/85 mt-6 max-w-[90ch] border-l-2 pl-4 text-[15px] leading-[1.6]">
+              {s.entregaveis.nota}
+            </p>
+          ) : null}
+        </div>
+      </Section>
+
+      <DepoisDosEntregaveis s={s} />
+
+      <Section tom="escuro" id="para-quem">
+        <div className="container-site grid gap-[30px] md:grid-cols-[minmax(0,.8fr)_minmax(0,1.2fr)] md:gap-[90px]">
+          <div>
+            <Eyebrow>{d.paraQuem}</Eyebrow>
+            <h2 className="display-h2">
+              <Linhas itens={s.paraQuem.titulo} />
+            </h2>
+          </div>
+          <ul className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
+            {s.paraQuem.itens.map((p) => (
+              <li key={p} className="border-line flex gap-3 border-t pt-4 text-[16px] leading-[1.55]">
+                <span aria-hidden="true" className="text-verde">
+                  ✓
+                </span>
+                {p}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Section>
+
+      <Section id="como-funciona">
+        <div className="container-site">
+          <h2 className="eyebrow text-verde mb-6">{d.etapas}</h2>
+          <ol className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
             {s.etapas.map((e) => (
               <li key={e.numero} className="border-line bg-painel border px-6 py-[30px]">
-                <span className="text-verde text-[11px] tracking-[.1em]">{e.numero}</span>
-                <h3 className="mt-5 mb-2 text-[22px] leading-[1.2] font-bold tracking-[-0.02em]">{e.titulo}</h3>
+                <span className="text-verde text-[28px] leading-none font-bold tracking-[-0.03em]">{e.numero}</span>
+                <h3 className="mt-5 mb-2 text-[20px] leading-[1.2] font-bold tracking-[-0.02em]">{e.titulo}</h3>
                 <p className="text-fg-2 text-[14px] leading-[1.6]">{e.texto}</p>
               </li>
             ))}
@@ -296,9 +291,10 @@ export default async function SolucaoPagina({ params }: PageProps<"/solucoes/[sl
       </Section>
 
       <CtaFinal
-        cta={solucoes.cta}
+        cta={{ titulo: s.ctaFinal.titulo, apoio: s.ctaFinal.texto, botao: site.ctaDiagnostico }}
+        menor
         origem={`solucao-${s.slug}-final`}
-        primario={{ label: cta.label, href: cta.href, origem: `solucao-${s.slug}-final` }}
+        primario={{ label: s.ctaFinal.botao, href, origem: `solucao-${s.slug}-final` }}
       />
     </main>
   );

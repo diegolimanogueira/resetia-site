@@ -14,7 +14,7 @@ export function CategoriasAgentes({ icones }: { icones: ReactNode[] }) {
   const [ativa, setAtiva] = useState(0);
   return (
     <div>
-      <div role="tablist" aria-label={consolidacao.categorias.kicker} className="mb-8 flex flex-wrap gap-2">
+      <div role="tablist" aria-label={consolidacao.exemplos.kicker} className="mb-8 flex flex-wrap gap-2">
         {categoriasAgentes.map((c, i) => (
           <button
             key={c.area}
@@ -50,6 +50,7 @@ export function CategoriasAgentes({ icones }: { icones: ReactNode[] }) {
           aria-labelledby={`aba-${c.area}`}
           hidden={i !== ativa}
         >
+          <p className="text-fg-2 mb-5 max-w-[70ch] text-[16px] leading-[1.6]">{c.descricao}</p>
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {c.agentes.map((a) => (
               <li key={a.nome}>
