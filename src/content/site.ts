@@ -17,10 +17,14 @@ export const site = {
       "Olá! Conheci a Reset pelo site e gostaria de solicitar um diagnóstico gratuito para entender as oportunidades de IA na minha empresa.",
   },
   email: "contato@resetia.com.br",
-  // [FALTA] confirmar os dois perfis (vieram do estudo de conteúdo RESET 360).
+  // [FALTA] confirmar os dois perfis do LinkedIn (vieram do estudo de conteúdo RESET 360).
   fundadores: {
-    elida: { nome: "Élida Almeida", linkedin: "https://www.linkedin.com/in/elidaalmeida/" },
-    diego: { nome: "Diego Nogueira", linkedin: "https://www.linkedin.com/in/diegonogueira1/" },
+    elida: { nome: "Élida Almeida", cargo: "Co-founder & CEO", linkedin: "https://www.linkedin.com/in/elidaalmeida/" },
+    diego: {
+      nome: "Diego Nogueira",
+      cargo: "Co-founder & CTO",
+      linkedin: "https://www.linkedin.com/in/diegonogueira1/",
+    },
   },
   /** Produtos da Reset IA. Sempre que o site fala deles, aponta para cá. */
   ferramentas: {
@@ -105,9 +109,9 @@ export const seo = {
       "Spotlite para diagnóstico de maturidade e oportunidades de IA; Fluxa BPM para mapear e redesenhar processos com IA. Tecnologias próprias da Reset.",
   },
   sobre: {
-    title: "Sobre a Reset: Diego Nogueira e Élida Almeida | Reset IA",
+    title: "Sobre a Reset: Élida Almeida e Diego Nogueira | Reset IA",
     description:
-      "Tecnologia e visão de negócio: conheça Diego Nogueira e Élida Almeida, os fundadores da Reset IA, e a proposta de transformação com IA.",
+      "Visão de negócio e tecnologia: conheça Élida Almeida, co-founder e CEO, e Diego Nogueira, co-founder e CTO da Reset IA.",
   },
   diagnostico: {
     title: "Diagnóstico gratuito de IA (RESET Scan) | Reset IA",

@@ -5,8 +5,8 @@ import type { Link } from "./types";
 
 interface Fundador {
   nome: string;
-  especialidade: string;
-  paragrafos: string[];
+  cargo: string;
+  descricao: string;
   link: Link;
   /** Sem foto, mostra o monograma no mesmo espaço. */
   foto?: { base: string; alt: string };
@@ -43,28 +43,22 @@ export const sobre = {
     titulo: ["Visões complementares.", "*Uma só direção.*"],
     pessoas: [
       {
-        nome: site.fundadores.diego.nome,
-        especialidade: "Especialista em Inteligência Artificial, Tecnologia e Inovação",
-        paragrafos: [
-          "Profissional com sólida trajetória em tecnologia, inovação, arquitetura de soluções e inteligência artificial.",
-          "Sua experiência inclui atuação em projetos corporativos de transformação digital, automação e desenvolvimento de soluções inteligentes, incluindo sua trajetória na Unimed Nacional.",
-          "Na Reset, lidera a frente de tecnologia, arquitetura e desenvolvimento de soluções de inteligência artificial.",
-        ],
-        link: { label: "Ver LinkedIn", href: site.fundadores.diego.linkedin },
-        foto: { base: "/brand/diego", alt: "Diego Nogueira, fundador da Reset IA" },
-        monograma: "DN",
+        nome: site.fundadores.elida.nome,
+        cargo: site.fundadores.elida.cargo,
+        descricao:
+          "Especialista em marketing e crescimento, com experiência em estratégias de geração de demanda e receita. Atua na conexão entre marketing e negócios para impulsionar o crescimento das empresas.",
+        link: { label: "Ver LinkedIn", href: site.fundadores.elida.linkedin },
+        foto: { base: "/brand/elida", alt: "Élida Almeida, co-founder e CEO da Reset IA" },
+        monograma: "ÉA",
       },
       {
-        nome: site.fundadores.elida.nome,
-        especialidade: "Especialista em Estratégia, Marketing, Vendas e Growth",
-        paragrafos: [
-          "Executiva com mais de 15 anos de experiência em Marketing, estratégias de crescimento e desenvolvimento de negócios.",
-          "Sua trajetória inclui posições de liderança em organizações como NP Digital e Gomes de Matos Consultoria, com atuação em geração de demanda, integração de Marketing e Vendas, liderança de equipes e crescimento orientado por dados.",
-          "Na Reset, conecta a inteligência artificial aos desafios comerciais e estratégicos das empresas, ajudando a transformar tecnologia em produtividade, oportunidades e geração de valor.",
-        ],
-        link: { label: "Ver LinkedIn", href: site.fundadores.elida.linkedin },
-        // [FALTA] foto autorizada da Élida (design/fotos/elida.png → npm run images). Até lá, monograma.
-        monograma: "ÉA",
+        nome: site.fundadores.diego.nome,
+        cargo: site.fundadores.diego.cargo,
+        descricao:
+          "Arquiteto e consultor de inteligência artificial, com experiência em gestão de produtos e projetos de inovação. Ajuda empresas a transformar processos e implementar soluções de IA para ganhar eficiência e escala.",
+        link: { label: "Ver LinkedIn", href: site.fundadores.diego.linkedin },
+        foto: { base: "/brand/diego", alt: "Diego Nogueira, co-founder e CTO da Reset IA" },
+        monograma: "DN",
       },
     ] satisfies Fundador[],
   },

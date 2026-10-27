@@ -119,3 +119,7 @@ O Diego mandou o texto completo de cada produto. As landing pages passaram a seg
 - **Blocos próprios:** Processos com IA apresenta o Fluxa BPM depois dos entregáveis; Agent Factory traz os exemplos por frente (com a descrição de cada uma e o aviso de que são possibilidades) e "Reduza complexidade. Extraia mais valor."; Governance tem a nota sobre Jurídico, Segurança da Informação e Privacidade; Performance tem "O que podemos medir" com seis grupos de indicadores e o aviso sobre atribuição à IA.
 - **Saíram** os trechos que eu tinha derivado do brief anterior: desafios de cada solução, quatro etapas, formatos do AI Champions, "governança que acelera", indicadores resumidos e o quadro "Como medimos". Continuam escritos por mim o FAQ do site e o "como funciona" do diagnóstico gratuito.
 - Mantidos: a faixa do diagnóstico gratuito em cada página, as soluções relacionadas e as mensagens de WhatsApp por solução.
+
+## 2026-10-27 · Cargos, descrições e foto da Élida
+
+Élida Almeida é Co-founder & CEO e Diego Nogueira é Co-founder & CTO (texto do Diego). Os dois aparecem nessa ordem no Sobre e na home, cada um com uma descrição curta no lugar das bios longas do brief de 26/10; o cargo também entra no JSON-LD (`jobTitle`). A foto da Élida (`design/fotos/elida.png`, 800×800) é recortada no rosto pelo `npm run images` e substitui o monograma.

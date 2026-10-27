@@ -126,14 +126,19 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
     for (const t of titulos) expect((t.match(/\*/g) ?? []).length % 2, t).toBe(0);
   });
 
-  it("Sobre apresenta Diego e Élida com especialidade e LinkedIn; rodapé sem CNPJ", () => {
-    expect(sobre.fundadores.pessoas.map((p) => p.nome)).toEqual(["Diego Nogueira", "Élida Almeida"]);
+  it("Sobre apresenta Élida (CEO) e Diego (CTO) com foto, cargo, descrição e LinkedIn; rodapé sem CNPJ", () => {
+    expect(sobre.fundadores.pessoas.map((p) => [p.nome, p.cargo])).toEqual([
+      ["Élida Almeida", "Co-founder & CEO"],
+      ["Diego Nogueira", "Co-founder & CTO"],
+    ]);
     for (const p of sobre.fundadores.pessoas) {
-      expect(p.especialidade).toMatch(/^Especialista em /);
+      expect(p.descricao.length, p.nome).toBeGreaterThan(80);
       expect(p.link.href).toMatch(/^https:\/\/www\.linkedin\.com\/in\//);
     }
-    const diego = sobre.fundadores.pessoas[0];
-    expect("foto" in diego && diego.foto?.base).toBe("/brand/diego");
+    expect(sobre.fundadores.pessoas.map((p) => ("foto" in p ? p.foto?.base : undefined))).toEqual([
+      "/brand/elida",
+      "/brand/diego",
+    ]);
     expect(footer.legal).not.toMatch(/CNPJ/);
   });
 

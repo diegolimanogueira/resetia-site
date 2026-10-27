@@ -6,7 +6,7 @@ import { Section } from "@/components/ui/section";
 import { home } from "@/content/home";
 import { sobre } from "@/content/sobre";
 
-/** Quem está por trás: a mensagem dos dois fundadores e os retratos com a especialidade de cada um. */
+/** Quem está por trás: a mensagem dos dois fundadores e os retratos com o cargo de cada um. */
 export function QuemSomos() {
   const q = home.quemSomos;
   return (
@@ -35,7 +35,8 @@ export function QuemSomos() {
                 className="size-[96px] text-[32px]"
               />
               <p className="mt-5 text-[22px] font-bold tracking-[-0.02em]">{p.nome}</p>
-              <p className="text-fg-2 mt-1 text-[14px] leading-[1.5]">{p.especialidade}</p>
+              <p className="text-verde mt-1 text-[13px] font-semibold">{p.cargo}</p>
+              <p className="text-fg-2 mt-3 text-[14px] leading-[1.55]">{p.descricao}</p>
             </li>
           ))}
         </ul>

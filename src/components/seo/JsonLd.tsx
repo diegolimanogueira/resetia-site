@@ -11,7 +11,12 @@ export function JsonLd() {
     description: seo.home.description,
     email: site.email,
     sameAs: [site.ferramentas.spotlite, site.ferramentas.fluxa],
-    founder: Object.values(site.fundadores).map((f) => ({ "@type": "Person", name: f.nome, sameAs: f.linkedin })),
+    founder: Object.values(site.fundadores).map((f) => ({
+      "@type": "Person",
+      name: f.nome,
+      jobTitle: f.cargo,
+      sameAs: f.linkedin,
+    })),
     contactPoint: {
       "@type": "ContactPoint",
       contactType: "sales",

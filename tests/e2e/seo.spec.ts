@@ -33,9 +33,9 @@ test("JSON-LD Organization com nome, URL, logo, fundadores e ferramentas", async
   expect(dados.url).toBe(`${site.dominio}/`);
   expect(dados.logo).toMatch(/^https:\/\/.*logo/);
   expect(dados.sameAs).toEqual(expect.arrayContaining([site.ferramentas.spotlite, site.ferramentas.fluxa]));
-  expect(dados.founder.map((f: { name: string }) => f.name)).toEqual([
-    site.fundadores.elida.nome,
-    site.fundadores.diego.nome,
+  expect(dados.founder.map((f: { name: string; jobTitle: string }) => [f.name, f.jobTitle])).toEqual([
+    [site.fundadores.elida.nome, site.fundadores.elida.cargo],
+    [site.fundadores.diego.nome, site.fundadores.diego.cargo],
   ]);
 });
 

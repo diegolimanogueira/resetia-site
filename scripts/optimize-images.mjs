@@ -40,8 +40,9 @@ await sharp(`${BRAND}/icone-dark.png`)
 console.log(`icone-dark.png → icone-dark.webp (${await kb(`${BRAND}/icone-dark.webp`)})`);
 
 // Fotos dos fundadores (design/fotos/<nome>.png): quadrado centrado no rosto, para os retratos redondos.
-// A da Élida entra quando o arquivo existir; depois, preencher `foto` dela em src/content/sobre.ts.
-for (const nome of ["diego", "elida"]) {
+// `recorte` enquadra o rosto quando a foto já é quadrada (a da Élida é 800×800 com o rosto no terço de cima).
+const fotos = [{ nome: "diego" }, { nome: "elida", recorte: { left: 170, top: 10, width: 520, height: 520 } }];
+for (const { nome, recorte } of fotos) {
   const origem = `design/fotos/${nome}.png`;
   if (!existsSync(origem)) {
     console.log(`${origem} não existe: pulando`);
@@ -52,7 +53,8 @@ for (const nome of ["diego", "elida"]) {
     ["webp", `${nome}.webp`, { quality: 82 }],
     ["jpeg", `${nome}.jpg`, { quality: 84 }],
   ]) {
-    await sharp(origem)
+    const imagem = sharp(origem);
+    await (recorte ? imagem.extract(recorte) : imagem)
       .resize(480, 480, { fit: "cover", position: sharp.strategy.attention })
       [fmt](opts)
       .toFile(`${BRAND}/${file}`);

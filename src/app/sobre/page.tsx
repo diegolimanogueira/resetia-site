@@ -61,13 +61,9 @@ export default function Sobre() {
                   />
                 </div>
                 <div className="p-[30px]">
-                  <p className="eyebrow text-verde mb-3 text-[11px]">{f.especialidade}</p>
+                  <p className="eyebrow text-verde mb-3 text-[11px]">{f.cargo}</p>
                   <h3 className="mb-5 text-[35px] leading-[1.1] font-bold tracking-[-0.03em]">{f.nome}</h3>
-                  {f.paragrafos.map((t) => (
-                    <p key={t} className="text-fg/80 mb-4 text-[16px] leading-[1.7]">
-                      {t}
-                    </p>
-                  ))}
+                  <p className="text-fg/80 mb-4 text-[16px] leading-[1.7]">{f.descricao}</p>
                   <LinkSeta href={f.link.href} className="mt-2">
                     {f.link.label}
                   </LinkSeta>
