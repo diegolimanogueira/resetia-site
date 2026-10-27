@@ -8,7 +8,7 @@ import { createElement as h } from "react";
 const nome = "Reset IA";
 const dominio = "www.resetia.com.br";
 // Mesmo título do hero da home (src/content/home.ts).
-const [linha1, linha2] = ["Não é sobre ter mais IA.", "É sobre gerar mais resultado com ela."];
+const [linha1, linha2] = ["Sua parceira na transformação", "digital e comercial do seu negócio."];
 const alt = `${nome} — ${linha1} ${linha2}`;
 
 const [inter700, inter400, icone] = await Promise.all([
@@ -61,7 +61,7 @@ const arvore = h(
           letterSpacing: "-0.03em",
         },
       },
-      h("span", { style: { color: "#9CA3AF" } }, linha1),
+      h("span", null, linha1),
       h("span", null, linha2),
     ),
     h("div", { style: { width: 140, height: 6, background: "#00E676", marginTop: 36 } }),
@@ -73,7 +73,7 @@ const arvore = h(
         display: "flex",
         justifyContent: "space-between",
         fontSize: 26,
-        color: "#9CA3AF",
+        color: "#F6F7F5",
         letterSpacing: "0.02em",
       },
     },

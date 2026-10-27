@@ -11,7 +11,7 @@ Desde 25/10/2026 o layout, a estrutura e os efeitos seguem `design/reset360/`; a
 | verde reset | `#00E676` | acento único: CTAs, numerais, traços, foco. **Nunca fundo de seção inteira.** |
 | cinza       | `#9CA3AF` | texto secundário em fundo escuro                                              |
 
-Derivados só por opacidade (nunca inventar hex novo): texto secundário `#9CA3AF`; linhas `rgba(156,163,175,.25)`. O site é todo escuro, como o protótipo; as superfícies são neutro sobre carvão (`color-mix`): seção **escura** 3%, seção de **contraste** 5%, **painel** (cards) 7%. Tokens `bg-escuro`, `bg-contraste`, `bg-painel` em `globals.css`.
+Derivados só por opacidade (nunca inventar hex novo). **Todo texto é branco (neutro `#F6F7F5`)**, inclusive o de apoio (`text-fg-2`), a pedido do Diego em 27/10: no fundo preto lê melhor que o cinza. O cinza `#9CA3AF` fica só nas linhas e bordas (`rgba(156,163,175,.25)`). O site é todo escuro, como o protótipo; as superfícies são neutro sobre carvão (`color-mix`): seção **escura** 3%, seção de **contraste** 5%, **painel** (cards) 7%. Tokens `bg-escuro`, `bg-contraste`, `bg-painel` em `globals.css`.
 
 Glow (`radial-gradient` verde a 10–16%, transparente a partir de ~40–55%): no hero da home, no topo das páginas internas, no bloco do RESET Scan, no hub do diagrama e nas faixas do diagnóstico. Nenhum outro gradiente, exceto a grade sutil do hero (linhas a 2,5% de neutro).
 

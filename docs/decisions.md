@@ -123,3 +123,7 @@ O Diego mandou o texto completo de cada produto. As landing pages passaram a seg
 ## 2026-10-27 · Cargos, descrições e foto da Élida
 
 Élida Almeida é Co-founder & CEO e Diego Nogueira é Co-founder & CTO (texto do Diego). Os dois aparecem nessa ordem no Sobre e na home, cada um com uma descrição curta no lugar das bios longas do brief de 26/10; o cargo também entra no JSON-LD (`jobTitle`). A foto da Élida (`design/fotos/elida.png`, 800×800) é recortada no rosto pelo `npm run images` e substitui o monograma.
+
+## 2026-10-27 · Título do hero e texto branco
+
+Título principal da home: "Sua parceira na transformação digital e comercial do seu negócio." (destaque verde em "transformação digital e comercial"); o resto do hero não muda. A imagem de compartilhamento acompanha o título. Todo texto cinza virou branco (`--fg-2` passou a neutro e os `text-fg/75–85` viraram `text-fg`); o cinza continua só nas linhas e bordas.

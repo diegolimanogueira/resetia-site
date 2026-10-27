@@ -30,7 +30,7 @@ export function Areas() {
               <p className="text-verde mt-1 text-[14px] font-semibold">{item.papel}</p>
               <p className="text-fg-2 mt-4 text-[16px] leading-[1.6]">{item.texto}</p>
               <p className="eyebrow text-fg-2 mt-6 mb-2 text-[11px]">{a.exemplosRotulo}</p>
-              <ul className="text-fg/85 flex flex-wrap gap-2 text-[13px]">
+              <ul className="text-fg flex flex-wrap gap-2 text-[13px]">
                 {item.exemplos.map((e) => (
                   <li key={e} className="border-line border px-2.5 py-1">
                     {e}

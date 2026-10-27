@@ -20,7 +20,7 @@ function CardSolucao({ s, detalhado = false }: { s: Solucao; detalhado?: boolean
       <h3 className="mt-6 mb-2.5 text-[24px] leading-[1.15] font-bold tracking-[-0.02em]">{s.nome}</h3>
       <p className="text-fg-2 text-[15px] leading-[1.6]">{s.frase}</p>
       {detalhado ? (
-        <ul className="text-fg/80 mt-5 flex flex-col gap-1.5 text-[14px]">
+        <ul className="text-fg mt-5 flex flex-col gap-1.5 text-[14px]">
           {s.beneficios.itens.slice(0, 3).map((b) => (
             <li key={b.titulo} className="flex gap-2">
               <span aria-hidden="true" className="text-verde">

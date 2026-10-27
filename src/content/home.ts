@@ -8,7 +8,7 @@ import type { AreaId, Link } from "./types";
 export const home = {
   hero: {
     eyebrow: "Reset 360 · IA aplicada ao crescimento do negócio",
-    titulo: ["Não é sobre", "ter mais IA.", "*É sobre gerar*", "*mais resultado*", "*com ela.*"],
+    titulo: ["Sua parceira na *transformação digital e comercial* do seu negócio."],
     lead: "Transformamos a forma como empresas trabalham com inteligência artificial. Desenvolvemos líderes, redesenhamos processos e criamos agentes inteligentes para potencializar Marketing, Vendas e Customer Success.",
     /** Abre o WhatsApp com a mensagem do diagnóstico. */
     ctaPrimario: site.ctaDiagnostico,

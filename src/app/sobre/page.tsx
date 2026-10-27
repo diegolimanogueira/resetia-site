@@ -22,7 +22,7 @@ export default function Sobre() {
   return (
     <main data-tom="carvao" className="text-fg bg-(--bg)">
       <HeroPagina kicker={s.hero.kicker} titulo={<Linhas itens={s.hero.titulo} />} lead={s.hero.lead}>
-        <p className="text-fg/85 max-w-[760px] text-[18px] leading-[1.7]">{s.hero.apoio}</p>
+        <p className="text-fg max-w-[760px] text-[18px] leading-[1.7]">{s.hero.apoio}</p>
       </HeroPagina>
 
       <Section>
@@ -37,7 +37,7 @@ export default function Sobre() {
             {s.historia.paragrafos.map((t) => (
               <p key={t}>{t}</p>
             ))}
-            <p className="border-verde text-fg/85 border-l-2 pl-4 text-[15px]">
+            <p className="border-verde text-fg border-l-2 pl-4 text-[15px]">
               {p.antes} {p.empresas.join(", ").replace(/, ([^,]*)$/, " e $1")}, {p.depois}
             </p>
           </div>
@@ -63,7 +63,7 @@ export default function Sobre() {
                 <div className="p-[30px]">
                   <p className="eyebrow text-verde mb-3 text-[11px]">{f.cargo}</p>
                   <h3 className="mb-5 text-[35px] leading-[1.1] font-bold tracking-[-0.03em]">{f.nome}</h3>
-                  <p className="text-fg/80 mb-4 text-[16px] leading-[1.7]">{f.descricao}</p>
+                  <p className="text-fg mb-4 text-[16px] leading-[1.7]">{f.descricao}</p>
                   <LinkSeta href={f.link.href} className="mt-2">
                     {f.link.label}
                   </LinkSeta>

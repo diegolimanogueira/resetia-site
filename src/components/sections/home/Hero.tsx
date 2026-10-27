@@ -70,7 +70,7 @@ export function Hero() {
             <span className="bg-verde inline-block size-[7px] rounded-full shadow-[0_0_12px_#00e676]" />
             {h.eyebrow}
           </p>
-          <h1 className="mb-[30px] text-[clamp(40px,5vw,74px)] leading-[1.02] font-bold tracking-[-0.04em]">
+          <h1 className="mb-[30px] text-[clamp(38px,4.4vw,64px)] leading-[1.04] font-bold tracking-[-0.035em]">
             <Linhas itens={h.titulo} />
           </h1>
           <p className="text-fg-2 max-w-[550px] text-[18px] leading-[1.75]">{h.lead}</p>

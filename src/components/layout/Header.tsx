@@ -32,7 +32,7 @@ export function Header() {
               aria-current={pathname === l.href ? "page" : ativo ? "true" : undefined}
               className={cn(
                 "border-b-2 py-1 text-[14px] font-medium transition-colors",
-                ativo ? "border-verde text-fg" : "text-fg/80 border-transparent",
+                ativo ? "border-verde text-fg" : "text-fg border-transparent",
               )}
             >
               {l.label}

@@ -30,7 +30,8 @@
 [data-tom="carvao"] {
   --bg: #0b0f0e;
   --fg: #f6f7f5;
-  --fg-2: #9ca3af;
+  /* Texto de apoio em branco (pedido do Diego, 27/10): no fundo preto lê melhor que o cinza. Linhas continuam cinza. */
+  --fg-2: #f6f7f5;
   --line: rgba(156, 163, 175, 0.25);
 }
 

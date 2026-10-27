@@ -4,7 +4,7 @@ import { footer, site } from "@/content/site";
 import { solucoes } from "@/content/solucoes";
 import { waGeral } from "@/lib/whatsapp";
 
-const linkRodape = "text-fg/75 mb-[9px] block text-[13px]";
+const linkRodape = "text-fg mb-[9px] block text-[13px]";
 
 /** Rodapé: marca, as cinco soluções, Explore e Fale com a Reset; linha legal com a política de privacidade. */
 export function Footer() {
@@ -55,7 +55,7 @@ export function Footer() {
         <span>{footer.legal}</span>
         <span className="flex flex-col gap-2 md:flex-row md:gap-6">
           <span>{footer.aviso}</span>
-          <Link href={footer.privacidade.href} className="text-fg/75">
+          <Link href={footer.privacidade.href} className="text-fg">
             {footer.privacidade.label}
           </Link>
         </span>

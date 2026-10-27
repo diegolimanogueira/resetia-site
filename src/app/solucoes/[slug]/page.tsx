@@ -228,7 +228,7 @@ export default async function SolucaoPagina({ params }: PageProps<"/solucoes/[sl
             ))}
           </ul>
           {s.entregaveis.nota ? (
-            <p className="border-verde text-fg/85 mt-6 max-w-[90ch] border-l-2 pl-4 text-[15px] leading-[1.6]">
+            <p className="border-verde text-fg mt-6 max-w-[90ch] border-l-2 pl-4 text-[15px] leading-[1.6]">
               {s.entregaveis.nota}
             </p>
           ) : null}
