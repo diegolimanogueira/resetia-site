@@ -12,9 +12,12 @@ export const site = {
   whatsappFormatado: "+55 11 91617-0606",
   mensagens: {
     geral: "Olá! Quero conhecer as soluções da Reset 360.",
-    /** RESET Scan: todo botão "Solicitar diagnóstico gratuito" abre o WhatsApp com esta mensagem. */
+    /**
+     * Análise Estratégica RESET: todo botão "Falar com um especialista" abre o WhatsApp com esta mensagem.
+     * Na tela de resultado do AI Score a mensagem leva a nota e as lacunas (ver resultadoTextos.mensagem).
+     */
     diagnostico:
-      "Olá! Conheci a Reset pelo site e gostaria de solicitar um diagnóstico gratuito para entender as oportunidades de IA na minha empresa.",
+      "Olá! Conheci a Reset pelo site e gostaria de conversar com um especialista sobre a Análise Estratégica RESET para a minha empresa.",
   },
   email: "contato@resetia.com.br",
   // [FALTA] confirmar os dois perfis do LinkedIn (vieram do estudo de conteúdo RESET 360).
@@ -37,10 +40,12 @@ export const site = {
   },
   cidades: "Fortaleza e Campinas, Brasil",
   ano: 2026,
-  /** Item destacado do menu: leva à página do diagnóstico. */
-  ctaMenu: "Diagnóstico gratuito",
-  /** Botões que abrem o WhatsApp com a mensagem do diagnóstico. */
-  ctaDiagnostico: "Solicitar diagnóstico gratuito",
+  /** Item destacado do menu: leva ao RESET AI Score. */
+  ctaMenu: "Descubra seu AI Score",
+  /** Botões que abrem o WhatsApp com a mensagem da Análise Estratégica (caminho secundário). */
+  ctaDiagnostico: "Falar com um especialista",
+  /** Botões que levam ao RESET AI Score (/ai-score), a porta de entrada do site. */
+  ctaAiScore: "Descobrir meu AI Score",
   assinatura: "IA sem hype. Resultado na prática.",
   ctaSpotliteSite: "Conhecer Spotlite",
   ctaFluxaSite: "Conhecer Fluxa BPM",
@@ -55,8 +60,8 @@ export const nav: Link[] = [
   { label: "Sobre a Reset", href: "/sobre" },
 ];
 
-/** Página do RESET Scan: botão verde no fim do menu. */
-export const navDiagnostico: Link = { label: site.ctaMenu, href: "/diagnostico-gratuito" };
+/** RESET AI Score: botão verde no fim do menu. */
+export const navDiagnostico: Link = { label: site.ctaMenu, href: "/ai-score" };
 
 /** Link da navegação ativo na rota atual, inclusive em subpáginas. A home só fica ativa nela mesma. */
 export const rotaAtiva = (caminho: string, href: string) =>
@@ -71,7 +76,8 @@ export const footer = {
       { label: "Agentes de IA", href: "/agentes-de-ia" },
       { label: "Tecnologias", href: "/tecnologias" },
       { label: "Sobre a Reset", href: "/sobre" },
-      { label: "Diagnóstico gratuito", href: "/diagnostico-gratuito" },
+      { label: "RESET AI Score", href: "/ai-score" },
+      { label: "Análise Estratégica", href: "/diagnostico-gratuito" },
     ] satisfies Link[],
   },
   contato: {
@@ -114,13 +120,27 @@ export const seo = {
       "Visão de negócio e tecnologia: conheça Élida Almeida, co-founder e CEO, e Diego Nogueira, co-founder e CTO da Reset IA.",
   },
   diagnostico: {
-    title: "Diagnóstico gratuito de IA (RESET Scan) | Reset IA",
+    title: "Análise Estratégica RESET: IA com especialistas | Reset IA",
     description:
-      "Por onde sua empresa deveria começar com IA? Um diagnóstico inicial gratuito, pelo WhatsApp, para indicar oportunidades e próximos passos.",
+      "Seu AI Score mostrou onde sua empresa está. Converse com especialistas da Reset para validar o resultado e definir prioridades de IA.",
+  },
+  aiScore: {
+    title: "RESET AI Score: maturidade em IA da sua empresa | Reset IA",
+    description:
+      "Descubra gratuitamente o AI Score da sua empresa: nota de 0 a 100, nível de maturidade em IA, seis dimensões e próximos passos, em cerca de 5 minutos.",
+  },
+  aiScoreAvaliacao: {
+    title: "Avaliação RESET AI Score | Reset IA",
+    description: "Responda às perguntas do RESET AI Score e descubra o nível de maturidade em IA da sua empresa.",
+  },
+  aiScoreResultado: {
+    title: "Seu resultado RESET AI Score | Reset IA",
+    description: "Seu AI Score: nota de 0 a 100, nível de maturidade em IA, resultado por dimensão e próximos passos.",
   },
   privacidade: {
     title: "Política de privacidade | Reset IA",
-    description: "Como a Reset IA trata os dados de quem visita o site e entra em contato por WhatsApp ou e-mail.",
+    description:
+      "Como a Reset IA trata os dados de quem visita o site, responde ao RESET AI Score ou entra em contato por WhatsApp ou e-mail.",
   },
   naoEncontrada: {
     title: "Página não encontrada | Reset IA",
@@ -130,8 +150,8 @@ export const seo = {
 /** Rotas antigas que viraram redirecionamento no cliente (a query, como ?area=, é mantida). */
 export const movidas = {
   scan: {
-    titulo: "O RESET Scan agora é o diagnóstico gratuito.",
-    link: { label: "Ir para o diagnóstico gratuito", href: "/diagnostico-gratuito/" } satisfies Link,
+    titulo: "O RESET Scan agora é o RESET AI Score.",
+    link: { label: "Descobrir meu AI Score", href: "/ai-score/" } satisfies Link,
   },
   workshops: {
     titulo: "Os workshops agora fazem parte do RESET AI Champions.",

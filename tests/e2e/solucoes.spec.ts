@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { semMarcas } from "@/components/ui/linhas";
 import { categoriasAgentes } from "@/content/agentes";
 import { solucoes } from "@/content/solucoes";
-import { waDiagnostico, waUrl } from "@/lib/whatsapp";
+import { waUrl } from "@/lib/whatsapp";
 
 const linkDaSolucao = (page: import("@playwright/test").Page, nome: string) =>
   page.getByRole("link").filter({ has: page.getByRole("heading", { name: nome, exact: true }) });
@@ -43,9 +43,13 @@ test.describe("Soluções", () => {
       const final = page.locator(`a[data-cta='solucao-${s.slug}-final']`);
       await expect(final).toHaveAttribute("href", waUrl(s.cta.mensagem));
       await expect(final).toHaveText(new RegExp(s.ctaFinal.botao));
-      await expect(page.locator(`a[data-cta='diagnostico-solucao-${s.slug}-faixa']`)).toHaveAttribute(
+      await expect(page.locator(`a[data-cta='ai-score-solucao-${s.slug}-faixa']`)).toHaveAttribute(
         "href",
-        waDiagnostico(),
+        "/ai-score/",
+      );
+      await expect(page.locator(`a[data-cta='ai-score-solucao-${s.slug}-final']`)).toHaveAttribute(
+        "href",
+        "/ai-score/",
       );
       for (const r of s.relacionadas)
         await expect(page.locator(`main a[href='/solucoes/${r}/']`).first()).toBeVisible();

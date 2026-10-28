@@ -9,7 +9,7 @@ import { LinkSeta } from "@/components/ui/link-seta";
 import { Section } from "@/components/ui/section";
 import { agentes } from "@/content/agentes";
 import { solucaoPorSlug } from "@/content/solucoes";
-import { seo } from "@/content/site";
+import { seo, site } from "@/content/site";
 import { waUrl } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
@@ -57,6 +57,7 @@ export default function Agentes() {
         cta={agentes.cta}
         origem="agentes"
         primario={{ label: factory.cta.label, href: waUrl(factory.cta.mensagem), origem: "agentes-factory" }}
+        secundario={{ label: site.ctaAiScore, href: "/ai-score/", origem: "ai-score-agentes" }}
       />
     </main>
   );

@@ -34,6 +34,9 @@ jobs:
           NEXT_PUBLIC_BASE_PATH: /resetia-site
           NEXT_PUBLIC_STAGING: "true"
           NEXT_TELEMETRY_DISABLED: 1
+          # Staging não grava no banco de produção: vazias = RESET AI Score em modo demonstração.
+          NEXT_PUBLIC_SUPABASE_URL: ""
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ""
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

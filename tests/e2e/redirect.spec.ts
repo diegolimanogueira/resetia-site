@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 
 /** Rotas antigas e o destino novo (a query segue junto). */
 const antigas = [
-  ["/solucoes/scan/", /\/diagnostico-gratuito\/$/],
+  ["/solucoes/scan/", /\/ai-score\/$/],
   ["/solucoes/workshops/", /\/solucoes\/ai-champions\/$/],
   ["/agentes/", /\/agentes-de-ia\/$/],
   ["/agentes/?area=vendas", /\/agentes-de-ia\/\?area=vendas$/],

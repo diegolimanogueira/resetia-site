@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import { Botao } from "@/components/ui/botao";
 import { site } from "@/content/site";
@@ -11,16 +12,21 @@ const assinarScroll = (notificar: () => void) => {
   return () => window.removeEventListener("scroll", notificar);
 };
 
+/** Questionário e resultado do AI Score e admin: a barra cobriria os botões de avançar e enviar. */
+const SEM_BARRA = /^\/(ai-score\/(avaliacao|resultado)|admin)(\/|$)/;
+
 /**
  * WhatsApp sempre à mão depois do hero (600px): barra fixa no celular e botão flutuante no desktop.
  * Antes disso fica fora da tela, invisível e inerte, para não competir com os botões do hero.
  */
 export function BarraMobile() {
+  const pathname = usePathname() ?? "/";
   const visivel = useSyncExternalStore(
     assinarScroll,
     () => window.scrollY > 600,
     () => false,
   );
+  if (SEM_BARRA.test(pathname)) return null;
 
   return (
     <div

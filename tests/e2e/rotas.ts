@@ -12,6 +12,7 @@ export const rotas = [
   { nome: "agentes-de-ia", caminho: "/agentes-de-ia/", titulo: seo.agentes.title },
   { nome: "tecnologias", caminho: "/tecnologias/", titulo: seo.tecnologias.title },
   { nome: "sobre", caminho: "/sobre/", titulo: seo.sobre.title },
+  { nome: "ai-score", caminho: "/ai-score/", titulo: seo.aiScore.title },
   { nome: "diagnostico-gratuito", caminho: "/diagnostico-gratuito/", titulo: seo.diagnostico.title },
   { nome: "privacidade", caminho: "/privacidade/", titulo: seo.privacidade.title },
 ] as const;

@@ -52,6 +52,13 @@ const tracos: Record<IconeId, ReactNode> = {
       <path d="m16 16-1.9-1.9" />
     </>
   ),
+  /* gauge */
+  "ai-score": (
+    <>
+      <path d="m12 14 4-4" />
+      <path d="M3.34 19a10 10 0 1 1 17.32 0" />
+    </>
+  ),
   marketing: (
     <>
       <path d="M11 6a13 13 0 0 0 8.4-2.8A1 1 0 0 1 21 4v12a1 1 0 0 1-1.6.8A13 13 0 0 0 11 14H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" />

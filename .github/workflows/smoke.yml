@@ -47,9 +47,16 @@ jobs:
         if: steps.site.outputs.http == '200'
       - run: npx playwright install --with-deps chromium
         if: steps.site.outputs.http == '200'
+      - name: RESET AI Score ligado ao Supabase (sem isso, os leads se perdem)
+        if: steps.site.outputs.http == '200'
+        run: |
+          curl -sL --max-time 20 "$BASE_URL/ai-score/" | grep -q 'data-ai-score-modo="producao"' || {
+            echo "::error title=AI Score em modo demonstração::$BASE_URL/ai-score/ foi publicado sem NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY (ver docs/deploy.md)."
+            exit 1
+          }
       - name: CTAs, SEO e 404 em produção
         if: steps.site.outputs.http == '200'
-        run: npx playwright test --project=desktop-chromium tests/e2e/cta-whatsapp.spec.ts tests/e2e/seo.spec.ts tests/e2e/404.spec.ts
+        run: npx playwright test --project=desktop-chromium tests/e2e/cta-whatsapp.spec.ts tests/e2e/seo.spec.ts tests/e2e/404.spec.ts tests/e2e/ai-score.spec.ts
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

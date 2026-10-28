@@ -2,7 +2,7 @@
   {
     "name": "JavaScript (todos os chunks, gzip)",
     "path": "out/_next/static/chunks/**/*.js",
-    "limit": "220 kB",
+    "limit": "280 kB",
     "gzip": true
   },
   {

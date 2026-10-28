@@ -5,7 +5,7 @@ import type { Solucao } from "@/content/types";
 import { cn } from "@/lib/utils";
 
 /** Card de solução: número, ícone, nome, frase e "Conhecer solução ↗". O card inteiro é o link. */
-function CardSolucao({ s, detalhado = false }: { s: Solucao; detalhado?: boolean }) {
+export function CardSolucao({ s, detalhado = false }: { s: Solucao; detalhado?: boolean }) {
   return (
     <Link
       href={`/solucoes/${s.slug}/`}

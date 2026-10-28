@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 const semBarra = (p: string) => (p.length > 1 ? p.replace(/\/$/, "") : p);
 
-/** Header sticky em todas as páginas, carvão translúcido com blur. O diagnóstico gratuito é o botão verde. */
+/** Header sticky em todas as páginas, carvão translúcido com blur. O RESET AI Score é o botão verde. */
 export function Header() {
   const pathname = semBarra(usePathname() ?? "/");
 

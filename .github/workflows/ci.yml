@@ -33,6 +33,16 @@ jobs:
       - run: npm run knip
       - run: npm run test
 
+  banco:
+    name: Migração do Supabase (RLS e permissões) num Postgres local
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # O runner já traz o PostgreSQL (fora do PATH); o teste sobe um cluster temporário, sem serviço.
+      - run: |
+          export PATH="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1):$PATH"
+          bash scripts/testar-banco.sh
+
   build:
     name: Build estático e checagens do out/
     runs-on: ubuntu-latest
@@ -45,10 +55,16 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # Supabase fictício: o e2e intercepta a REST e o GoTrue e confere o que o site grava e lê.
+          NEXT_PUBLIC_SUPABASE_URL: https://supabase.invalid
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: chave-de-teste-do-ci
       - name: HTML válido
         run: npm run check:html
       - name: Peso dos bundles
         run: npm run check:size
+      - name: JS por página (inclui AI Score e admin)
+        run: npm run check:rotas
       - name: Pendências [FALTA] (aviso, não falha)
         run: npm run check:falta
       - name: Links internos e âncoras (lychee, offline)

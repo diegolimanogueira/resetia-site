@@ -5,7 +5,7 @@ import { sobre } from "@/content/sobre";
 import { linksNav, rotas } from "./rotas";
 
 test.describe("navegação", () => {
-  test("header: cinco páginas, o diagnóstico em destaque, aria-current e logo de volta à home", async ({
+  test("header: cinco páginas, o AI Score em destaque, aria-current e logo de volta à home", async ({
     page,
     isMobile,
   }) => {
@@ -16,7 +16,7 @@ test.describe("navegação", () => {
     await expect(nav.getByRole("link", { name: "Agentes de IA" })).toHaveAttribute("aria-current", "page");
     await expect(nav.getByRole("link", { name: "Início" })).not.toHaveAttribute("aria-current", /.*/);
     await nav.getByRole("link", { name: navDiagnostico.label }).click();
-    await expect(page).toHaveURL(/\/diagnostico-gratuito\/$/);
+    await expect(page).toHaveURL(/\/ai-score\/$/);
     await nav.getByRole("link", { name: "Soluções" }).click();
     await expect(page).toHaveURL(/\/solucoes\/$/);
     await page.getByRole("link", { name: site.nome, exact: true }).click();
@@ -31,7 +31,7 @@ test.describe("navegação", () => {
     });
   }
 
-  test("menu mobile: links, diagnóstico e WhatsApp; fecha com Esc e navega", async ({ page, isMobile }) => {
+  test("menu mobile: links, AI Score e WhatsApp; fecha com Esc e navega", async ({ page, isMobile }) => {
     test.skip(!isMobile, "só mobile");
     await page.goto("/");
     await expect(page.getByRole("navigation", { name: "Principal" })).toBeHidden();

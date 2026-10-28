@@ -12,6 +12,7 @@ module.exports = {
         "http://localhost/tecnologias/",
         "http://localhost/sobre/",
         "http://localhost/diagnostico-gratuito/",
+        "http://localhost/ai-score/",
       ],
       numberOfRuns: 3,
       settings: {

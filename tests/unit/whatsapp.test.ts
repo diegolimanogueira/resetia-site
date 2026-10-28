@@ -10,7 +10,7 @@ describe("waUrl", () => {
     expect(url.searchParams.get("text")).toBe(site.mensagens.geral);
   });
 
-  it("o diagnóstico gratuito abre a conversa com a mensagem do RESET Scan", () => {
+  it("falar com um especialista abre a conversa com a mensagem da Análise Estratégica", () => {
     expect(new URL(waDiagnostico()).searchParams.get("text")).toBe(site.mensagens.diagnostico);
     expect(waDiagnostico()).not.toBe(waGeral());
   });
