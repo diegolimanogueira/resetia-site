@@ -32,10 +32,16 @@ import {
 } from "@/lib/ai-score/navegador";
 import { recomendar } from "@/lib/ai-score/recomendar";
 import type { RespostasCompletas } from "@/lib/ai-score/tipos";
-import { reenviarPendentes, supabase } from "@/lib/supabase";
+import { consultarLiberacao, reenviarPendentes, supabase } from "@/lib/supabase";
 import { waUrl } from "@/lib/whatsapp";
 
 const AVALIACAO = "/ai-score/avaliacao/";
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+/** O link do e-mail traz `&lead=<id>` no hash; ele libera o relatório, mas não vai junto quando a pessoa compartilha. */
+const leadDoHash = (hash: string | null) => {
+  const id = new URLSearchParams((hash ?? "").replace(/^#/, "")).get("lead");
+  return id && UUID.test(id) ? id : null;
+};
 const dimensao = (id: string) => dimensoes.find((d) => d.id === id)!;
 
 const topo =
@@ -98,7 +104,7 @@ export function Resultado({ cartoes, exemplo }: { cartoes: Record<string, ReactN
   if (respostas === undefined) return <SemResultado carregando />;
   if (!completas(respostas)) return <SemResultado carregando={false} />;
   const modo: Modo = exemplo ? { tipo: "exemplo", ...exemplo } : admin ? { tipo: "admin" } : { tipo: "publico" };
-  return <Pronto respostas={respostas} codigo={texto!} cartoes={cartoes} modo={modo} />;
+  return <Pronto respostas={respostas} codigo={texto!} cartoes={cartoes} modo={modo} leadDoLink={leadDoHash(hash)} />;
 }
 
 function Pronto({
@@ -106,11 +112,13 @@ function Pronto({
   codigo,
   cartoes,
   modo,
+  leadDoLink,
 }: {
   respostas: RespostasCompletas;
   codigo: string;
   cartoes: Record<string, ReactNode>;
   modo: Modo;
+  leadDoLink: string | null;
 }) {
   const resultado = useMemo(() => calcular(r), [r]);
   const rec = useMemo(() => recomendar(resultado, r.desafios), [resultado, r.desafios]);
@@ -123,6 +131,28 @@ function Pronto({
   );
   const liberacao = useMemo(() => lerLiberacao(liberadoTexto), [liberadoTexto]);
   const [foco, setFoco] = useState<"" | "resultado" | "relatorio">("");
+  // Link do e-mail em outro aparelho: confere o par (lead, avaliação) e libera o relatório completo.
+  const conferirLink = modo.tipo === "publico" && leadDoLink !== null && r.id !== undefined;
+  const [conferindo, setConferindo] = useState(conferirLink);
+  useEffect(() => {
+    if (!conferirLink || !r.id) return;
+    let vivo = true;
+    void consultarLiberacao(leadDoLink!, r.id).then((lead) => {
+      if (!vivo) return;
+      if (lead && !lerLiberacao(relatorio.ler(chave))?.completo)
+        relatorio.liberar(chave, {
+          leadId: leadDoLink!,
+          nome: lead.nome,
+          empresa: lead.empresa,
+          data: new Date().toLocaleDateString("pt-BR"),
+          completo: true,
+        });
+      setConferindo(false);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [conferirLink, leadDoLink, r.id, chave]);
   const [copiado, setCopiado] = useState(false);
   const h1 = useRef<HTMLHeadingElement>(null);
 
@@ -138,6 +168,7 @@ function Pronto({
   const nome = modo.tipo === "exemplo" ? modo.nome : liberacao?.nome;
   const empresa = modo.tipo === "exemplo" ? modo.empresa : liberacao?.empresa;
 
+  if (!viuResultado && conferindo) return <SemResultado carregando />;
   if (!viuResultado)
     return <EtapaContato respostas={r} resultado={resultado} codigo={codigo} aoLiberar={() => setFoco("resultado")} />;
 
@@ -156,7 +187,8 @@ function Pronto({
 
   async function copiar() {
     try {
-      await navigator.clipboard.writeText(window.location.href);
+      // Sem o `lead` do link do e-mail: quem recebe o link compartilhado passa pelas etapas.
+      await navigator.clipboard.writeText(window.location.href.replace(/&lead=[^&]*/, ""));
       setCopiado(true);
     } catch {
       setCopiado(false);
@@ -328,6 +360,10 @@ function Pronto({
             quem={quem}
             focar={foco === "relatorio"}
             demo={modo.tipo === "publico" && !supabase.ativo}
+            avaliacaoId={r.id}
+            leadId={liberacao?.leadId}
+            buscarDicas={modo.tipo === "publico" && supabase.ativo}
+            emailEnviadoPara={liberacao?.emailEnviado ? liberacao.email : undefined}
           />
         ) : (
           <FormularioLead

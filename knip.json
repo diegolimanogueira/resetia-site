@@ -1,6 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  "entry": ["scripts/*.mjs", "tests/**/*.{ts,tsx}"],
+  "entry": ["scripts/*.mjs", "tests/**/*.{ts,tsx}", "src/lib/ai-score/servidor.ts"],
   "project": ["src/**/*.{ts,tsx}", "scripts/**/*.mjs", "tests/**/*.{ts,tsx}"],
   "ignoreDependencies": ["@fontsource/inter", "tailwindcss"],
   "ignoreBinaries": ["lychee"]

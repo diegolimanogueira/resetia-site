@@ -98,6 +98,61 @@ describe("etapa 2: completar o lead pela função do banco", () => {
   });
 });
 
+describe("função ai-score e link do e-mail", () => {
+  it("pede o envio do relatório como anônimo e devolve o que a função respondeu", async () => {
+    const { pedirEnvioDoRelatorio } = await carregar();
+    fetchMock.mockResolvedValueOnce(resposta(200, { status: "enviado" }));
+    expect(await pedirEnvioDoRelatorio("a1", "l1")).toBe("enviado");
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://projeto.supabase.co/functions/v1/ai-score");
+    expect(init.headers.Authorization).toBe("Bearer chave-anon");
+    expect(JSON.parse(init.body)).toEqual({ acao: "enviar-relatorio", avaliacao_id: "a1", lead_id: "l1" });
+    expect(localStorage.getItem("resetia.ai-score.pendentes")).toBeNull();
+  });
+
+  it("sem rede, ou com o lead ainda na fila, o pedido entra na fila e sai no próximo reenvio", async () => {
+    const { pedirEnvioDoRelatorio, reenviarPendentes } = await carregar();
+    fetchMock.mockRejectedValueOnce(new TypeError("offline"));
+    expect(await pedirEnvioDoRelatorio("a1", "l1")).toBeNull();
+    expect(await pedirEnvioDoRelatorio("a2", "l2", true)).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const fila = JSON.parse(localStorage.getItem("resetia.ai-score.pendentes")!);
+    expect(fila.map((p: { corpo: { lead_id: string } }) => p.corpo.lead_id)).toEqual(["l1", "l2"]);
+    fetchMock.mockResolvedValue(resposta(200, { status: "nao-configurado" }));
+    await reenviarPendentes();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(localStorage.getItem("resetia.ai-score.pendentes")).toBeNull();
+  });
+
+  it("recusa da função (4xx) não volta para a fila", async () => {
+    const { pedirEnvioDoRelatorio } = await carregar();
+    fetchMock.mockResolvedValueOnce(resposta(403, { erro: "lead" }));
+    expect(await pedirEnvioDoRelatorio("a1", "l1")).toBeNull();
+    expect(localStorage.getItem("resetia.ai-score.pendentes")).toBeNull();
+  });
+
+  it("libera o relatório só com o par lead e avaliação que o banco confirma", async () => {
+    const { consultarLiberacao } = await carregar();
+    fetchMock.mockResolvedValueOnce(resposta(200, { nome: "Maria", empresa: "Empresa" }));
+    expect(await consultarLiberacao("l1", "a1")).toEqual({ nome: "Maria", empresa: "Empresa" });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://projeto.supabase.co/rest/v1/rpc/lead_liberado");
+    expect(JSON.parse(init.body)).toEqual({ p_lead: "l1", p_avaliacao: "a1" });
+    fetchMock.mockResolvedValueOnce(resposta(200, "null"));
+    expect(await consultarLiberacao("l1", "outra")).toBeNull();
+    fetchMock.mockRejectedValueOnce(new TypeError("offline"));
+    expect(await consultarLiberacao("l1", "a1")).toBeNull();
+  });
+
+  it("sem envs, nem dicas nem e-mail vão para a rede", async () => {
+    const { chamarFuncao, pedirEnvioDoRelatorio, consultarLiberacao } = await carregar(false);
+    expect(await chamarFuncao({ acao: "dicas" })).toEqual({ ok: false, status: 0, dados: null });
+    expect(await pedirEnvioDoRelatorio("a1", "l1")).toBeNull();
+    expect(await consultarLiberacao("l1", "a1")).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
 describe("cliente do admin (GoTrue + REST com token)", () => {
   const token = { access_token: "t1", refresh_token: "r1", expires_in: 3600, user: { email: "admin@resetia.com.br" } };
 
@@ -151,5 +206,34 @@ describe("cliente do admin (GoTrue + REST com token)", () => {
     expect(url).toBe("https://projeto.supabase.co/rest/v1/leads?id=eq.l1");
     expect(init.method).toBe("PATCH");
     expect(JSON.parse(init.body)).toEqual({ status: "qualificado", notas: "Ligar" });
+  });
+
+  it("atividades: lista do lead e registro com o token (o autor vem do banco)", async () => {
+    const { listarAtividades, registrarAtividade } = await carregar();
+    const s = { access_token: "t", refresh_token: "r", expires_at: Date.now() / 1000 + 3600, email: "a@b.co" };
+    fetchMock.mockResolvedValueOnce(resposta(200, [{ id: "x", tipo: "nota", texto: "Oi" }]));
+    expect(await listarAtividades(s, "l1")).toEqual([{ id: "x", tipo: "nota", texto: "Oi" }]);
+    expect(fetchMock.mock.calls[0][0]).toContain("/rest/v1/atividades?lead_id=eq.l1&");
+    fetchMock.mockResolvedValueOnce(resposta(201));
+    expect(await registrarAtividade(s, "l1", "ligacao", "Ligou")).toBe("ok");
+    const [url, init] = fetchMock.mock.calls[1];
+    expect(url).toBe("https://projeto.supabase.co/rest/v1/atividades");
+    expect(init.headers.Authorization).toBe("Bearer t");
+    expect(JSON.parse(init.body)).toEqual({ lead_id: "l1", tipo: "ligacao", texto: "Ligou" });
+  });
+
+  it("e-mail sobre a Reset: vai com o token do admin; 401 vira sessão; sem e-mail configurado, avisa", async () => {
+    const { enviarEmailReset } = await carregar();
+    const s = { access_token: "t", refresh_token: "r", expires_at: Date.now() / 1000 + 3600, email: "a@b.co" };
+    fetchMock.mockResolvedValueOnce(resposta(200, { status: "nao-configurado" }));
+    expect(await enviarEmailReset(s, "l1", "Assunto", "Corpo")).toBe("nao-configurado");
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://projeto.supabase.co/functions/v1/ai-score");
+    expect(init.headers.Authorization).toBe("Bearer t");
+    expect(JSON.parse(init.body)).toEqual({ acao: "email-reset", lead_id: "l1", assunto: "Assunto", corpo: "Corpo" });
+    fetchMock.mockResolvedValueOnce(resposta(401, { erro: "admin" }));
+    expect(await enviarEmailReset(s, "l1", "A", "B")).toBe("sessao");
+    fetchMock.mockResolvedValueOnce(resposta(500, "x"));
+    expect(await enviarEmailReset(s, "l1", "A", "B")).toBe("erro");
   });
 });

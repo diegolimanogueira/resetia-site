@@ -11,7 +11,7 @@ import { normalizarWhatsapp } from "@/lib/ai-score/contato";
 import { relatorio, type Liberacao } from "@/lib/ai-score/navegador";
 import type { Resultado } from "@/lib/ai-score/tipos";
 import { track } from "@/lib/analytics";
-import { enviarChamada } from "@/lib/supabase";
+import { enviarChamada, pedirEnvioDoRelatorio } from "@/lib/supabase";
 
 /**
  * Etapa 2 (camada 2): a empresa, o WhatsApp opcional e o pedido de contato completam o lead criado na etapa 1
@@ -47,16 +47,23 @@ export function FormularioLead({
     if (encontrados.whatsapp) return document.getElementById("lead-whatsapp")?.focus();
 
     setEnviando(true);
-    if (liberacao.leadId)
-      await enviarChamada("completar_lead", {
+    const completo = { ...liberacao, empresa: empresa.trim(), completo: true };
+    if (liberacao.leadId) {
+      const situacao = await enviarChamada("completar_lead", {
         p_id: liberacao.leadId,
         p_empresa: empresa.trim(),
         p_whatsapp: whatsapp.trim() ? normalizarWhatsapp(whatsapp) : null,
         p_pediu_contato: contato,
         p_marketing: marketing,
       });
+      // O relatório também vai por e-mail (o mesmo endereço da etapa 1). Sem esperar: as dicas por IA demoram.
+      void pedirEnvioDoRelatorio(avaliacaoId, liberacao.leadId, situacao === "tentar-de-novo").then((status) => {
+        if (status === "enviado" || status === "ja-enviado")
+          relatorio.liberar(avaliacaoId, { ...completo, emailEnviado: true });
+      });
+    }
     track("ai_score_lead", { nivel: resultado.nivel ?? "parcial", contato, marketing });
-    relatorio.liberar(avaliacaoId, { ...liberacao, empresa: empresa.trim(), completo: true });
+    relatorio.liberar(avaliacaoId, completo);
     aoLiberar();
   }
 

@@ -37,6 +37,35 @@ async function semViolacoes(page: Page) {
   ).toEqual([]);
 }
 
+/** Dicas "da IA" simuladas para o exemplo (governança e processos são dimensões de nota baixa). */
+const DICAS_IA = {
+  fonte: "ia",
+  modelo: "claude-opus-5-5",
+  dimensoes: [
+    {
+      id: "governanca",
+      fonte: "ia",
+      dicas: ["Defina quem aprova novos usos de IA e registre as decisões num documento simples e acessível."],
+    },
+    {
+      id: "processos",
+      fonte: "ia",
+      dicas: ["Escolha um processo repetitivo da equipe e descreva as etapas antes de testar a IA nele."],
+    },
+  ],
+};
+
+/** Intercepta a função ai-score (dicas e e-mail do relatório) e guarda os pedidos. Nunca chega à função real. */
+async function interceptarFuncao(page: Page) {
+  const pedidos: Array<Record<string, unknown>> = [];
+  await page.route("**/functions/v1/**", async (rota) => {
+    const corpo = (rota.request().postDataJSON() ?? {}) as Record<string, unknown>;
+    pedidos.push(corpo);
+    await rota.fulfill({ json: corpo.acao === "dicas" ? DICAS_IA : { status: "enviado" } });
+  });
+  return pedidos;
+}
+
 /** Intercepta a REST do Supabase (o CI builda com uma URL fictícia) e guarda o que o site gravou. */
 async function interceptarSupabase(page: Page) {
   const gravados: Array<{ tabela: string; corpo: Record<string, unknown> }> = [];
@@ -100,6 +129,7 @@ test.describe("RESET AI Score", () => {
   // Nenhum teste grava no banco de verdade (o smoke roda este arquivo contra produção): a REST é sempre interceptada.
   test.beforeEach(async ({ page }) => {
     await page.route("**/rest/v1/**", responder);
+    await page.route("**/functions/v1/**", (rota) => rota.fulfill({ status: 503, json: {} }));
   });
 
   test("landing page: hero, seis dimensões, exemplo ilustrativo (28) e CTAs", async ({ page }) => {
@@ -120,6 +150,7 @@ test.describe("RESET AI Score", () => {
 
   test("visão empresa: fluxo completo até o relatório liberado e impresso em fundo claro", async ({ page }) => {
     const gravados = await interceptarSupabase(page);
+    const funcao = await interceptarFuncao(page);
     await page.goto("/ai-score/");
     const modo = await page.locator("main").getAttribute("data-ai-score-modo");
     await page.locator("a[data-cta='ai-score-hero']").click();
@@ -194,6 +225,20 @@ test.describe("RESET AI Score", () => {
     await expect(rel.locator("a[href='/solucoes/ai-champions/']")).toBeVisible();
     await expect(rel.locator("a[href^='/solucoes/']")).toHaveCount(2);
     await expect(rel.getByText(modulosArea[1].perguntas[0].texto)).toBeVisible();
+
+    // Dicas para evoluir nas dimensões de nota baixa e a assinatura do squad multiagente no fim.
+    await expect(rel.getByRole("heading", { name: relatorio.dicas.titulo })).toBeVisible();
+    const assinatura = rel.locator("[data-assinatura]");
+    await expect(assinatura).toContainText(relatorio.assinatura.titulo);
+    for (const paragrafo of relatorio.assinatura.paragrafos) await expect(assinatura).toContainText(paragrafo);
+    if (modo === "producao") {
+      await expect(rel.locator("[data-fonte-dicas='ia']")).toHaveText(relatorio.dicas.fonte.ia);
+      await expect(rel.getByText(DICAS_IA.dimensoes[0].dicas[0])).toBeVisible();
+      await expect(page.getByText(relatorio.enviado("maria@empresa.com.br"))).toBeVisible();
+    } else {
+      await expect(rel.locator("[data-fonte-dicas='biblioteca']")).toHaveText(relatorio.dicas.fonte.biblioteca);
+      expect(funcao).toEqual([]);
+    }
     await semViolacoes(page);
 
     if (modo === "producao") {
@@ -224,6 +269,11 @@ test.describe("RESET AI Score", () => {
         p_pediu_contato: true,
         p_marketing: false,
       });
+      // Depois da etapa 2: o relatório vai por e-mail e as dicas são pedidas à função, sempre com o par certo.
+      const par = { avaliacao_id: avaliacao.id, lead_id: lead.id };
+      expect(funcao).toContainEqual({ acao: "enviar-relatorio", ...par });
+      expect(funcao).toContainEqual({ acao: "dicas", ...par });
+      for (const pedido of funcao) expect(JSON.stringify(pedido)).not.toMatch(/maria|Empresa Teste/i);
     } else {
       expect(gravados).toEqual([]);
       await expect(page.getByText(formulario.demo)).toBeVisible();
@@ -310,6 +360,49 @@ test.describe("RESET AI Score", () => {
     await expect(page.getByRole("button", { name: formulario.enviar })).toHaveCount(0);
     await expect(page.locator("a[data-cta='ai-score-exemplo-topo']")).toHaveAttribute("href", "/ai-score/avaliacao/");
     await semViolacoes(page);
+  });
+
+  test("link do e-mail libera o relatório completo em outro aparelho, só com o par certo", async ({ page }) => {
+    await page.goto("/ai-score/");
+    test.skip((await page.locator("main").getAttribute("data-ai-score-modo")) !== "producao", "só com Supabase");
+    const lead = "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d";
+    const consultas: unknown[] = [];
+    await page.route("**/rest/v1/rpc/lead_liberado", async (rota) => {
+      const corpo = rota.request().postDataJSON() as { p_lead: string };
+      consultas.push(corpo);
+      await rota.fulfill({ json: corpo.p_lead === lead ? { nome: "Maria Teste", empresa: "Empresa Teste" } : null });
+    });
+    await interceptarFuncao(page);
+    // Área de transferência simulada (o WebKit do Playwright não concede essa permissão).
+    await page.addInitScript(() =>
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: {
+          writeText: async (texto: string) => {
+            (window as unknown as { copiado?: string }).copiado = texto;
+          },
+        },
+      }),
+    );
+
+    await page.goto(`/ai-score/resultado/#${aiScore.exemplo.codigo}&lead=${lead}`);
+    await expect(page.getByRole("heading", { name: relatorio.titulo })).toBeVisible();
+    await expect(page.getByRole("button", { name: contato.enviar })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: formulario.enviar })).toHaveCount(0);
+    await expect(page.getByText(resultadoTextos.ola("Maria Teste"))).toBeVisible();
+    expect(consultas).toHaveLength(1);
+    // Compartilhar não leva o lead junto.
+    await page.getByRole("button", { name: resultadoTextos.compartilhar }).click();
+    await expect(page.getByText(resultadoTextos.copiado)).toBeVisible();
+    const copiado = await page.evaluate(() => (window as unknown as { copiado?: string }).copiado);
+    expect(copiado).toContain("/ai-score/resultado/#v=1");
+    expect(copiado).not.toContain("lead=");
+
+    // Outro lead no link (ou link adulterado): volta para a etapa 1.
+    await page.evaluate(() => localStorage.clear());
+    await page.goto("/ai-score/");
+    await page.goto(`/ai-score/resultado/#${aiScore.exemplo.codigo}&lead=00000000-0000-4000-8000-000000000000`);
+    await expect(page.getByRole("button", { name: contato.enviar })).toBeVisible();
   });
 
   test("admin abre o resultado de um lead sem passar pelas etapas", async ({ page }) => {

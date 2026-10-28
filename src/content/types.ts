@@ -107,6 +107,7 @@ export type DesafioId =
   "comecar" | "pouco-uso" | "capacitar" | "repetitivas" | "agentes" | "custo-ferramentas" | "governanca" | "medir";
 export type HorizonteId = "imediato" | "3-meses" | "6-meses" | "explorando";
 export type StatusLead = "novo" | "contatado" | "qualificado" | "oportunidade" | "cliente" | "descartado";
+export type TipoAtividade = "nota" | "ligacao" | "whatsapp" | "email" | "reuniao" | "status" | "sistema";
 
 export interface Opcao<T extends string> {
   id: T;

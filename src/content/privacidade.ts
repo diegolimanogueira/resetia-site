@@ -2,7 +2,8 @@ import { site } from "./site";
 
 /**
  * Política de privacidade do site: institucional, sem cookies próprios, com uma coleta de dados no RESET AI Score
- * (respostas anônimas e, para liberar o relatório, nome, e-mail, empresa e WhatsApp opcional).
+ * (respostas anônimas e, para liberar o relatório, nome, e-mail, empresa e WhatsApp opcional), o relatório por
+ * e-mail, as dicas por IA (sem dados de identificação) e o histórico do atendimento no admin.
  * Bases legais e textos do AI Score escritos em 28/10: revisar com o Diego (e o jurídico, se houver).
  */
 export const privacidade = {
@@ -32,7 +33,10 @@ export const privacidade = {
         "Enquanto você responde, as respostas ficam só no armazenamento local do seu navegador (não é cookie), para você poder continuar de onde parou. Elas saem dali quando você conclui ou começa de novo.",
         "Para ver o resultado, pedimos nome e e-mail; para o relatório completo, o nome da empresa e, se você quiser, WhatsApp. Usamos esses dados para registrar o seu resultado, entender o momento da sua empresa e, se você pedir, para que um especialista da Reset fale com você. A base legal é o nosso legítimo interesse em conhecer quem se interessa pelas soluções da Reset e, quando você pede contato, a execução de medidas pré-contratuais a seu pedido.",
         "Conteúdos da Reset IA sobre IA nos negócios só são enviados se você marcar essa opção, que vem desmarcada. Nesse caso a base legal é o consentimento, que você pode revogar a qualquer momento.",
-        "O relatório aparece no seu navegador; não enviamos e-mail com ele. Os dados ficam no Supabase, provedor de banco de dados contratado pela Reset, em servidores em São Paulo, com acesso restrito à equipe da Reset.",
+        "Quando você pede o relatório completo, enviamos uma cópia para o e-mail informado, com um link que abre o relatório em qualquer aparelho. Registramos a data, o assunto e a situação de cada e-mail enviado. Depois disso, a equipe da Reset pode enviar a esse endereço um e-mail sobre os serviços da Reset ligado ao seu resultado; se não quiser receber, basta responder pedindo.",
+        "As dicas de evolução do relatório são escritas por agentes de inteligência artificial (modelos Claude, da Anthropic) e conferidas por um agente revisor. A eles vão apenas as respostas de múltipla escolha, as notas, o porte, o segmento, o prazo e os desafios marcados: nome, e-mail, empresa e WhatsApp nunca são enviados ao provedor de IA. A nota do AI Score não é gerada por IA; é calculada por regras fixas.",
+        "A equipe da Reset registra também o histórico do atendimento de cada contato (etapa, responsável, anotações e conversas realizadas), para dar continuidade ao que foi combinado.",
+        "Os dados ficam no Supabase, provedor de banco de dados contratado pela Reset, em servidores em São Paulo, com acesso restrito à equipe da Reset.",
       ],
     },
     {
@@ -45,7 +49,8 @@ export const privacidade = {
     {
       titulo: "Com quem compartilhamos",
       paragrafos: [
-        "Não vendemos nem cedemos dados pessoais. Compartilhamos apenas com os provedores necessários para operar o site e os canais de contato (hospedagem, banco de dados, e-mail, mensageria e métricas de audiência), que tratam os dados conforme nossas instruções e as leis aplicáveis.",
+        "Não vendemos nem cedemos dados pessoais. Compartilhamos apenas com os provedores necessários para operar o site e os canais de contato (hospedagem, banco de dados, envio de e-mail, mensageria e métricas de audiência), que tratam os dados conforme nossas instruções e as leis aplicáveis.",
+        "O provedor de inteligência artificial que escreve as dicas do RESET AI Score recebe só respostas sem identificação, como descrito acima. Alguns desses provedores processam dados fora do Brasil; nesses casos, a transferência segue as salvaguardas previstas na LGPD.",
       ],
     },
     {

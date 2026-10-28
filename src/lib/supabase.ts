@@ -20,7 +20,8 @@ export const ambiente = STAGING ? "staging" : process.env.NODE_ENV === "producti
 export type Tabela = "avaliacoes" | "leads";
 type Pendente =
   | { tipo?: "inserir"; tabela: Tabela; linha: Record<string, unknown> }
-  | { tipo: "rpc"; funcao: string; args: Record<string, unknown> };
+  | { tipo: "rpc"; funcao: string; args: Record<string, unknown> }
+  | { tipo: "funcao"; corpo: Record<string, unknown> };
 type Situacao = "ok" | "tentar-de-novo" | "erro" | "desligado";
 
 export const cabecalhos = (token?: string): Record<string, string> => ({
@@ -73,7 +74,44 @@ export async function chamar(funcao: string, args: Record<string, unknown>): Pro
   }
 }
 
-const executar = (p: Pendente) => (p.tipo === "rpc" ? chamar(p.funcao, p.args) : inserir(p.tabela, p.linha));
+/**
+ * Função ai-score (Edge Function): dicas por IA, envio do relatório por e-mail e o e-mail do admin.
+ * `token`: o do admin, quando a ação exige. Devolve o JSON da função ou `null` se não deu.
+ */
+export async function chamarFuncao<T = unknown>(
+  corpo: Record<string, unknown>,
+  opcoes: { token?: string; keepalive?: boolean; timeout?: number } = {},
+): Promise<{ ok: boolean; status: number; dados: T | null }> {
+  if (!supabase.ativo) return { ok: false, status: 0, dados: null };
+  const controle = new AbortController();
+  const limite = setTimeout(() => controle.abort(), opcoes.timeout ?? 60_000);
+  try {
+    const r = await fetch(`${supabase.url}/functions/v1/ai-score`, {
+      method: "POST",
+      headers: cabecalhos(opcoes.token),
+      body: JSON.stringify(corpo),
+      keepalive: opcoes.keepalive,
+      signal: controle.signal,
+    });
+    return { ok: r.ok, status: r.status, dados: (await r.json().catch(() => null)) as T | null };
+  } catch {
+    return { ok: false, status: 0, dados: null };
+  } finally {
+    clearTimeout(limite);
+  }
+}
+
+async function executarFuncao(corpo: Record<string, unknown>): Promise<Situacao> {
+  const r = await chamarFuncao(corpo);
+  return r.ok ? "ok" : r.status === 0 || r.status >= 500 ? "tentar-de-novo" : "erro";
+}
+
+const executar = (p: Pendente) =>
+  p.tipo === "rpc"
+    ? chamar(p.funcao, p.args)
+    : p.tipo === "funcao"
+      ? executarFuncao(p.corpo)
+      : inserir(p.tabela, p.linha);
 
 function guardarSe(r: Situacao, p: Pendente) {
   if (r === "tentar-de-novo") pendentes.gravar([...pendentes.ler<Pendente>(), p]);
@@ -85,9 +123,45 @@ export async function enviar(tabela: Tabela, linha: Record<string, unknown>) {
   return guardarSe(await inserir(tabela, linha), { tabela, linha });
 }
 
-/** Chama a função e, se não deu, guarda para tentar de novo depois (na ordem, depois do lead). */
+/**
+ * Pede à função para enviar o relatório por e-mail e devolve o que ela respondeu ("enviado", "nao-configurado",
+ * "ja-enviado", "falhou"). Sem rede, ou se o lead ainda está na fila (`soNaFila`), o pedido entra na fila,
+ * depois do lead.
+ */
+export async function pedirEnvioDoRelatorio(avaliacaoId: string, leadId: string, soNaFila = false) {
+  const corpo = { acao: "enviar-relatorio", avaliacao_id: avaliacaoId, lead_id: leadId };
+  if (!supabase.ativo) return null;
+  if (soNaFila) {
+    pendentes.gravar([...pendentes.ler<Pendente>(), { tipo: "funcao", corpo }]);
+    return null;
+  }
+  const r = await chamarFuncao<{ status?: string }>(corpo, { timeout: 120_000 });
+  if (!r.ok && (r.status === 0 || r.status >= 500))
+    pendentes.gravar([...pendentes.ler<Pendente>(), { tipo: "funcao", corpo }]);
+  return r.dados?.status ?? null;
+}
+
+/** Chama a função do banco e, se não deu, guarda para tentar de novo depois (na ordem, depois do lead). */
 export async function enviarChamada(funcao: string, args: Record<string, unknown>) {
   return guardarSe(await chamar(funcao, args), { tipo: "rpc", funcao, args });
+}
+
+/** Link do e-mail do relatório: confere o par (lead, avaliação) e devolve nome e empresa para liberar o relatório. */
+export async function consultarLiberacao(leadId: string, avaliacaoId: string) {
+  if (!supabase.ativo) return null;
+  try {
+    const r = await fetch(`${supabase.url}/rest/v1/rpc/lead_liberado`, {
+      method: "POST",
+      headers: cabecalhos(),
+      body: JSON.stringify({ p_lead: leadId, p_avaliacao: avaliacaoId }),
+    });
+    const d = r.ok ? ((await r.json()) as { nome?: unknown; empresa?: unknown } | null) : null;
+    return d && typeof d.nome === "string" && typeof d.empresa === "string"
+      ? { nome: d.nome, empresa: d.empresa }
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 let reenviando = false;

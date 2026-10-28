@@ -17,7 +17,7 @@ Site de [www.resetia.com.br](https://www.resetia.com.br): RESET 360, IA aplicada
 - **Efeitos só em CSS**, como no protótipo: hover em botões e cards, header sticky com blur, scroll suave nativo. Com `prefers-reduced-motion`, sem deslocamento, transição nem scroll suave.
 - **DigitalOcean App Platform** (Static Site, tier gratuito), deploy pelo GitHub Actions só com CI verde.
 - Conteúdo tipado em `src/content/*.ts`. Sem CMS.
-- **Banco só para o RESET AI Score:** Supabase (Postgres + Auth, São Paulo) acessado pelo navegador por `fetch`, protegido por RLS. O site continua estático. Migração em `supabase/migrations/`; sem as envs, o AI Score roda em modo demonstração.
+- **Banco só para o RESET AI Score:** Supabase (Postgres + Auth, São Paulo) acessado pelo navegador por `fetch`, protegido por RLS. O site continua estático. Migração em `supabase/migrations/`; sem as envs, o AI Score roda em modo demonstração. Dicas por IA e relatório por e-mail numa Edge Function do Supabase (`supabase/functions/ai-score/`), com reserva sem chaves.
 
 ## Rodar
 
@@ -75,6 +75,7 @@ npm run build && npm run e2e                         # Playwright: E2E, axe, vis
 npm run lhci                                         # Lighthouse CI (mobile) sobre out/
 npm run check:html && npm run check:size && npm run check:rotas && npm run check:falta
 npm run test:banco                                   # migração do Supabase num Postgres local (RLS e permissões)
+npm run test:funcao                                  # função ai-score (Deno) com Supabase e Anthropic simulados
 ```
 
 A pirâmide completa, o que cada camada pega e como atualizar os baselines visuais estão em [`docs/testing.md`](docs/testing.md). O CI (`.github/workflows/ci.yml`) roda tudo isso em cada push e PR; o deploy só acontece com o CI verde.
@@ -91,7 +92,7 @@ src/components/     brand · layout (Header, MobileMenu, Footer, BarraMobile) ·
 src/content/        todo o copy, tipado
 src/lib/            waUrl()/waDiagnostico(), testeSpotliteUrl(), analytics, supabase (REST/GoTrue por fetch)
 src/lib/ai-score/   cálculo, recomendações, regras, link do resultado, lead score, CSV
-supabase/           migrations (tabelas, RLS) e o teste de segurança do banco
+supabase/           migrations (tabelas, RLS), a função ai-score (dicas por IA e e-mails) e os testes do banco e da função
 scripts/            optimize-images, og-image, check-falta, check-js-rotas, testar-banco, screenshots
 tests/unit          Vitest · tests/e2e  Playwright
 design/reset360/    protótipo HTML (fonte de verdade do layout); design/handoff/ é o handoff antigo, histórico

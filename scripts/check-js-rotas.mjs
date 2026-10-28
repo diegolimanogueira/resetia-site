@@ -8,6 +8,9 @@ import { gzipSync } from "node:zlib";
 
 const OUT = "out";
 const LIMITE = Number(process.argv[2] ?? 225) * 1000;
+// O /admin/ fica atrás do login, fora do índice e do Lighthouse, e carrega o mini CRM inteiro (funil, gaveta do
+// lead, atividades, compositor de e-mail): teto próprio, para não afrouxar o das páginas públicas.
+const LIMITES = { "/admin/": 240_000 };
 
 const paginas = (dir) =>
   readdirSync(dir).flatMap((n) => {
@@ -32,11 +35,11 @@ const linhas = paginas(OUT)
   .sort((a, b) => b.total - a.total);
 
 for (const { rota, total } of linhas) {
-  const passou = total <= LIMITE;
+  const passou = total <= (LIMITES[rota] ?? LIMITE);
   falhou ||= !passou;
   console.log(`${passou ? "  " : "✗ "}${(total / 1000).toFixed(1).padStart(6)} kB  ${rota}`);
 }
-console.log(`\nLimite por página: ${LIMITE / 1000} kB (gzip).`);
+console.log(`\nLimite por página: ${LIMITE / 1000} kB (gzip); /admin/: ${LIMITES["/admin/"] / 1000} kB.`);
 if (falhou) {
   console.error("Alguma página passou do limite de JS.");
   process.exit(1);

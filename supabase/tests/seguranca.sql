@@ -18,6 +18,7 @@ grant execute on function auth.uid() to anon, authenticated;
 \i supabase/migrations/0001_ai_score.sql
 \i supabase/migrations/0002_cadastro_fechado.sql
 \i supabase/migrations/0003_captura_em_duas_etapas.sql
+\i supabase/migrations/0004_crm_email_dicas.sql
 
 \set ON_ERROR_STOP 0
 \set VERBOSITY terse
@@ -90,3 +91,26 @@ select status, notas, atualizado_em > criado_em as atualizado from public.leads 
 \echo '--- admin: insert pela API (esperado: permission denied)'
 insert into public.leads (id, avaliacao_id, nome, email, empresa) values (gen_random_uuid(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Fulano', 'f@x.com', 'X');
 reset role;
+
+\echo '--- crm: anon nao le nem escreve atividades, emails e dicas (esperado: permission denied x4)'
+set role anon;
+select count(*) from public.atividades;
+insert into public.atividades (lead_id, tipo, texto) values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'nota', 'x');
+select count(*) from public.dicas;
+select count(*) from public.emails;
+\echo '--- crm: link do e-mail so com o par certo e relatorio completo (esperado: json, nulo, nulo)'
+select public.lead_liberado('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa') as liberado;
+select public.lead_liberado('cccccccc-cccc-4ccc-8ccc-cccccccccccc', gen_random_uuid()) is null as par_errado;
+reset role;
+\echo '--- crm: admin registra atividade com autor do servidor e atualiza responsavel e proximo contato'
+set role authenticated;
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+insert into public.atividades (lead_id, tipo, texto, autor) values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'ligacao', 'Ligou e pediu proposta', 'forjado@x.com');
+select autor, tipo from public.atividades;
+update public.leads set responsavel = 'admin@resetia.com.br', proximo_contato = date '2026-11-05' where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+select responsavel, proximo_contato from public.leads where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+\echo '--- crm: logado sem ser admin nao registra atividade (esperado: violates row-level security)'
+set request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
+insert into public.atividades (lead_id, tipo, texto) values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'nota', 'x');
+reset role;
+

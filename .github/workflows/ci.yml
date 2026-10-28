@@ -43,6 +43,21 @@ jobs:
           export PATH="$(ls -d /usr/lib/postgresql/*/bin | sort -V | tail -1):$PATH"
           bash scripts/testar-banco.sh
 
+  funcao:
+    name: Função ai-score (núcleo em dia, tipos e integração em Deno)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci
+      # nucleo.js é gerado a partir de src/lib/ai-score: se alguém mudou o site e esqueceu de regenerar, falha.
+      - name: nucleo.js em dia
+        run: npm run funcao:nucleo && git diff --exit-code supabase/functions/ai-score/nucleo.js
+      - run: npm run test:funcao
+
   build:
     name: Build estático e checagens do out/
     runs-on: ubuntu-latest

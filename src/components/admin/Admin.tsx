@@ -1,24 +1,39 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { DetalheLead } from "@/components/admin/DetalheLead";
+import { Kanban } from "@/components/admin/Kanban";
 import { BotaoAcao } from "@/components/ui/botao";
 import { Campo, classesEntrada } from "@/components/ui/campo";
 import { admin } from "@/content/admin";
 import { niveis, segmentacao } from "@/content/ai-score-questionario";
 import type { StatusLead } from "@/content/types";
 import {
+  atrasado,
   csvLeads,
   dataBr,
   filtrarLeads,
   filtrosIniciais,
+  hojeSp,
+  indicadores,
   montarLeads,
   resumir,
   rotulos,
   type Filtros,
 } from "@/lib/ai-score/leads";
 import { supabase } from "@/lib/supabase";
-import { atualizarLead, eAdmin, entrar, lerSessao, listar, sessao, type AvaliacaoLinha } from "@/lib/supabase-admin";
+import {
+  atualizarLead,
+  eAdmin,
+  entrar,
+  lerSessao,
+  listar,
+  registrarAtividade,
+  sessao,
+  type AvaliacaoLinha,
+  type CamposCrm,
+  type Sessao,
+} from "@/lib/supabase-admin";
 import { cn } from "@/lib/utils";
 
 const caixa = "gutter text-fg pt-[40px] pb-[90px] md:pt-[60px]";
@@ -127,12 +142,20 @@ function Selecao({
   );
 }
 
+const nadaAssinar = () => () => {};
+const ETAPAS = Object.keys(admin.status) as StatusLead[];
+
 function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record<string, string> }) {
   const [dados, setDados] = useState<AvaliacaoLinha[] | null>(null);
   const [falha, setFalha] = useState<string | null>(null);
+  const [erroMover, setErroMover] = useState<string | null>(null);
   const [versao, setVersao] = useState(0);
   const [f, setF] = useState<Filtros>(filtrosIniciais);
+  const [vista, setVista] = useState<"funil" | "lista">("funil");
   const [aberto, setAberto] = useState<string | null>(null);
+  const gaveta = useRef<HTMLDialogElement>(null);
+  // Data de hoje (fuso de São Paulo) lida fora do render, para marcar retornos atrasados.
+  const hoje = useSyncExternalStore(nadaAssinar, hojeSp, () => "");
 
   // Carrega a cada login e a cada "Atualizar". A sessão é lida na hora (o token pode ter sido renovado).
   useEffect(() => {
@@ -154,20 +177,67 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
   const leads = useMemo(() => montarLeads(dados ?? []), [dados]);
   const lista = useMemo(() => filtrarLeads(leads, f), [leads, f]);
   const resumo = useMemo(() => resumir(dados ?? [], f.ambiente), [dados, f.ambiente]);
+  const numeros = useMemo(
+    () =>
+      indicadores(
+        leads.filter((l) => !f.ambiente || l.lead.ambiente === f.ambiente),
+        hoje,
+      ),
+    [leads, f.ambiente, hoje],
+  );
   const selecionado = leads.find((l) => l.lead.id === aberto) ?? null;
+  const temSelecionado = selecionado !== null;
+
+  // A gaveta do lead é um <dialog> modal nativo: foco preso, Esc fecha e o fundo fica inerte.
+  useEffect(() => {
+    const d = gaveta.current;
+    if (!d) return;
+    if (temSelecionado && !d.open) d.showModal();
+    if (!temSelecionado && d.open) d.close();
+  }, [aberto, temSelecionado]);
 
   const mudarFiltro = (k: keyof Filtros) => (v: string) => setF((atual) => ({ ...atual, [k]: v }));
   const todos = { id: "", label: admin.filtros.todos };
 
-  async function salvar(id: string, campos: { status: StatusLead; notas: string | null }) {
-    const s = lerSessao(sessao.ler());
-    if (!s) return false;
-    const r = await atualizarLead(s, id, campos);
-    if (r !== "ok") return false;
+  function aplicar(id: string, campos: CamposCrm) {
     setDados((atual) =>
       (atual ?? []).map((a) => ({ ...a, leads: a.leads.map((l) => (l.id === id ? { ...l, ...campos } : l)) })),
     );
+  }
+
+  const registrarEtapa = (s: Sessao, id: string, de: StatusLead, para: StatusLead) =>
+    registrarAtividade(s, id, "status", admin.detalhe.atividades.statusAlterado(admin.status[de], admin.status[para]));
+
+  async function salvar(id: string, campos: CamposCrm) {
+    const s = lerSessao(sessao.ler());
+    const antes = leads.find((l) => l.lead.id === id)?.lead.status;
+    if (!s) return false;
+    const r = await atualizarLead(s, id, campos);
+    if (r !== "ok") return false;
+    if (antes && campos.status && campos.status !== antes) await registrarEtapa(s, id, antes, campos.status);
+    aplicar(id, campos);
     return true;
+  }
+
+  // Mudança de etapa pelo funil: otimista, volta atrás se o banco recusar, e entra na linha do tempo do lead.
+  async function mover(id: string, para: StatusLead) {
+    const de = leads.find((l) => l.lead.id === id)?.lead.status;
+    const s = lerSessao(sessao.ler());
+    if (!s || !de || de === para) return;
+    setErroMover(null);
+    aplicar(id, { status: para });
+    const r = await atualizarLead(s, id, { status: para });
+    if (r !== "ok") {
+      aplicar(id, { status: de });
+      setErroMover(admin.funil.erroMover);
+      return;
+    }
+    void registrarEtapa(s, id, de, para);
+  }
+
+  function abriuWhatsapp(id: string) {
+    const s = lerSessao(sessao.ler());
+    if (s) void registrarAtividade(s, id, "whatsapp", admin.detalhe.atividades.whatsappAberto);
   }
 
   function exportar() {
@@ -180,12 +250,16 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
     URL.revokeObjectURL(url);
   }
 
+  const ind = admin.indicadores;
   const cartoes = [
-    [admin.resumo.avaliacoes, resumo.avaliacoes],
-    [admin.resumo.leads, resumo.leads],
-    [admin.resumo.semLead, resumo.semLead],
-    [admin.resumo.pediram, resumo.pediram],
-    [admin.resumo.ultima, resumo.ultima ? dataBr(resumo.ultima) : admin.resumo.nenhuma],
+    [ind.leads, numeros.leads, false],
+    [ind.emNegociacao, numeros.emNegociacao, false],
+    [ind.clientes, numeros.clientes, false],
+    [ind.conversao, `${numeros.conversao}%`, false],
+    [ind.atrasados, numeros.atrasados, numeros.atrasados > 0],
+    [ind.pediram, numeros.pediram, numeros.pediram > 0],
+    [ind.avaliacoes, resumo.avaliacoes, false],
+    [ind.semLead, resumo.semLead, false],
   ] as const;
 
   return (
@@ -210,20 +284,23 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
           </div>
         </div>
 
-        {falha ? (
+        {falha || erroMover ? (
           <p role="alert" className="border-neutro mb-6 border-l-2 pl-3 font-semibold">
-            {falha}
+            {falha ?? erroMover}
           </p>
         ) : null}
 
-        <dl className="mb-8 grid grid-cols-2 gap-3 md:grid-cols-5">
-          {cartoes.map(([rotulo, valor]) => (
-            <div key={rotulo} className="border-line bg-painel border p-4">
+        <dl className="mb-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+          {cartoes.map(([rotulo, valor, alerta]) => (
+            <div key={rotulo} className={cn("bg-painel border p-4", alerta ? "border-verde" : "border-line")}>
               <dt className="text-fg-2 text-[12px]">{rotulo}</dt>
               <dd className="mt-1 text-[24px] font-bold tabular-nums">{dados ? valor : "–"}</dd>
             </div>
           ))}
         </dl>
+        <p className="text-fg-2 mb-8 text-[13px]">
+          {dados ? (resumo.ultima ? ind.ultima(dataBr(resumo.ultima)) : ind.nenhuma) : null}
+        </p>
 
         <fieldset className="mb-6 grid gap-3 md:grid-cols-[2fr_repeat(5,1fr)]">
           <legend className="sr-only">{admin.filtros.rotulo}</legend>
@@ -244,10 +321,7 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
             rotulo={admin.filtros.status}
             valor={f.status}
             aoMudar={mudarFiltro("status")}
-            opcoes={[
-              todos,
-              ...(Object.keys(admin.status) as StatusLead[]).map((s) => ({ id: s, label: admin.status[s] })),
-            ]}
+            opcoes={[todos, ...ETAPAS.map((s) => ({ id: s, label: admin.status[s] }))]}
           />
           <Selecao
             id="filtro-escopo"
@@ -287,76 +361,118 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
           />
         </fieldset>
 
-        <div className={cn("grid gap-6", selecionado && "xl:grid-cols-[1.25fr_1fr]")}>
+        <div role="group" aria-label={admin.vistas.rotulo} className="border-line mb-5 inline-flex border">
+          {(["funil", "lista"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              aria-pressed={vista === v}
+              onClick={() => setVista(v)}
+              className={cn(
+                "cursor-pointer px-4 py-2 text-[13px] font-semibold transition-colors",
+                vista === v ? "bg-verde text-carvao" : "text-fg-2 hover:text-fg",
+              )}
+            >
+              {admin.vistas[v]}
+            </button>
+          ))}
+        </div>
+
+        {!dados && !falha ? (
+          <p className="border-line border p-6 text-[14px]" aria-live="polite">
+            {admin.carregando}
+          </p>
+        ) : vista === "funil" ? (
+          <Kanban leads={lista} hoje={hoje} aoAbrir={setAberto} aoMover={mover} aoWhatsapp={abriuWhatsapp} />
+        ) : lista.length === 0 ? (
+          <p className="border-line border p-6 text-[14px]">{admin.vazio}</p>
+        ) : (
           <div className="border-line overflow-x-auto border">
-            {!dados && !falha ? (
-              <p className="p-6 text-[14px]" aria-live="polite">
-                {admin.carregando}
-              </p>
-            ) : lista.length === 0 ? (
-              <p className="p-6 text-[14px]">{admin.vazio}</p>
-            ) : (
-              <table className="w-full min-w-[760px] border-collapse text-left text-[14px]">
-                <thead className="text-fg-2 text-[12px]">
-                  <tr className="border-line border-b">
-                    {Object.values(admin.colunas).map((c) => (
-                      <th key={c} scope="col" className="px-4 py-3 font-semibold">
-                        {c}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {lista.map((l) => (
-                    <tr
-                      key={l.lead.id}
-                      className={cn("border-line border-b align-top", l.lead.id === aberto && "bg-painel")}
-                    >
-                      <td className="text-fg-2 px-4 py-3 whitespace-nowrap tabular-nums">{dataBr(l.lead.criado_em)}</td>
-                      <td className="px-4 py-3">
-                        <button
-                          type="button"
-                          onClick={() => setAberto(l.lead.id)}
-                          aria-controls="detalhe-lead"
-                          aria-expanded={l.lead.id === aberto}
-                          className="hover:text-verde cursor-pointer text-left font-semibold"
-                        >
-                          {l.lead.nome}
-                        </button>
-                        <span className="text-fg-2 block text-[12px]">
-                          {l.lead.empresa ? `${l.lead.empresa} · ` : ""}
-                          {l.lead.email}
-                        </span>
-                        {l.lead.pediu_contato ? (
-                          <span className="text-verde mt-1 block text-[11px] font-bold">
-                            {admin.detalhe.pediuContato}
-                          </span>
-                        ) : null}
-                      </td>
-                      <td className="px-4 py-3">{rotulos.papel(l.avaliacao.papel)}</td>
-                      <td className="px-4 py-3">{rotulos.escopo(l.avaliacao.escopo)}</td>
-                      <td className="px-4 py-3 whitespace-nowrap">
-                        <b className="tabular-nums">{l.resultado?.indice ?? "–"}</b>{" "}
-                        <span className="text-fg-2 text-[12px]">{rotulos.nivel(l.resultado?.nivel ?? null)}</span>
-                      </td>
-                      <td className="px-4 py-3 font-bold tabular-nums">{l.leadScore}</td>
-                      <td className="px-4 py-3">{admin.status[l.lead.status]}</td>
-                    </tr>
+            <table className="w-full min-w-[860px] border-collapse text-left text-[14px]">
+              <thead className="text-fg-2 text-[12px]">
+                <tr className="border-line border-b">
+                  {Object.values(admin.colunas).map((c) => (
+                    <th key={c} scope="col" className="px-4 py-3 font-semibold">
+                      {c}
+                    </th>
                   ))}
-                </tbody>
-              </table>
-            )}
+                </tr>
+              </thead>
+              <tbody>
+                {lista.map((l) => (
+                  <tr key={l.lead.id} className="border-line border-b align-top">
+                    <td className="text-fg-2 px-4 py-3 whitespace-nowrap tabular-nums">{dataBr(l.lead.criado_em)}</td>
+                    <td className="px-4 py-3">
+                      <button
+                        type="button"
+                        onClick={() => setAberto(l.lead.id)}
+                        aria-haspopup="dialog"
+                        className="hover:text-verde cursor-pointer text-left font-semibold"
+                      >
+                        {l.lead.nome}
+                      </button>
+                      <span className="text-fg-2 block text-[12px]">
+                        {l.lead.empresa ? `${l.lead.empresa} · ` : ""}
+                        {l.lead.email}
+                      </span>
+                      {l.lead.pediu_contato ? (
+                        <span className="text-verde mt-1 block text-[11px] font-bold">
+                          {admin.detalhe.pediuContato}
+                        </span>
+                      ) : null}
+                    </td>
+                    <td className="px-4 py-3">{rotulos.papel(l.avaliacao.papel)}</td>
+                    <td className="px-4 py-3">{rotulos.escopo(l.avaliacao.escopo)}</td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <b className="tabular-nums">{l.resultado?.indice ?? "–"}</b>{" "}
+                      <span className="text-fg-2 text-[12px]">{rotulos.nivel(l.resultado?.nivel ?? null)}</span>
+                    </td>
+                    <td className="px-4 py-3 font-bold tabular-nums">{l.leadScore}</td>
+                    <td className="px-4 py-3 whitespace-nowrap tabular-nums">
+                      {l.lead.proximo_contato ? (
+                        <span className={cn(atrasado(l.lead, hoje) && "font-bold")}>
+                          {dataBr(`${l.lead.proximo_contato}T12:00:00`)}
+                          {atrasado(l.lead, hoje) ? (
+                            <span className="block text-[11px]">{admin.detalhe.atrasado}</span>
+                          ) : null}
+                        </span>
+                      ) : (
+                        "–"
+                      )}
+                    </td>
+                    <td className="px-4 py-3">{admin.status[l.lead.status]}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+        )}
+
+        <dialog
+          ref={gaveta}
+          id="detalhe-lead"
+          aria-labelledby="detalhe-lead-titulo"
+          onClose={(e) => {
+            // O compositor de e-mail é outro <dialog> dentro da gaveta; o close dele também chega aqui.
+            if (e.target === e.currentTarget) setAberto(null);
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) e.currentTarget.close();
+          }}
+          className="border-line bg-carvao text-fg backdrop:bg-carvao/70 fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-[min(780px,100vw)] max-w-none overflow-y-auto border-l p-0"
+        >
           {selecionado ? (
             <DetalheLead
               key={selecionado.lead.id}
               visao={selecionado}
               nomesSolucoes={nomesSolucoes}
+              emailAdmin={email}
+              hoje={hoje}
               aoSalvar={(campos) => salvar(selecionado.lead.id, campos)}
-              aoFechar={() => setAberto(null)}
+              aoFechar={() => gaveta.current?.close()}
             />
           ) : null}
-        </div>
+        </dialog>
       </div>
     </section>
   );
