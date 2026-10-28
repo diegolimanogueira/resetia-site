@@ -1,58 +1,60 @@
 import type { Passo, Pergunta } from "./types";
 
 /**
- * RESET Scan: diagnóstico inicial gratuito, conduzido pela Reset (entrada comercial, não é um dos cinco produtos).
- * O teste de IA da Spotlite fica como opção secundária, para quem prefere começar sozinho.
+ * Análise Estratégica RESET (/diagnostico-gratuito, URL mantida): a conversa com especialistas, camada 3 do
+ * RESET AI Score. O AI Score mostra onde a empresa está; a análise aprofunda processos, agentes, ferramentas e
+ * prioridades. O teste de IA da Spotlite fica como opção secundária, para quem prefere começar sozinho.
+ * Texto escrito a partir do documento do Diego (28/10): revisar.
  */
 export const diagnostico = {
   hero: {
-    kicker: "RESET Scan · Diagnóstico gratuito",
-    titulo: ["Por onde sua empresa", "*deveria começar com IA?*"],
-    lead: "Descubra oportunidades de aplicação da inteligência artificial, identifique desafios de adoção e entenda quais iniciativas podem gerar mais valor para o seu negócio.",
-    nota: "Pelo WhatsApp, sem formulário.",
+    kicker: "Análise Estratégica RESET",
+    titulo: ["Seu AI Score mostrou onde sua empresa está.", "*Vamos construir o caminho.*"],
+    lead: "Uma conversa com especialistas da Reset para validar o seu resultado e identificar oportunidades de produtividade, eficiência e geração de receita com IA.",
+    nota: "Pelo WhatsApp. Ainda não fez o AI Score? Comece por ele: leva cerca de 5 minutos.",
   },
   avaliamos: {
-    kicker: "O que olhamos",
-    titulo: ["Um retrato inicial", "*do seu cenário.*"],
+    kicker: "O que aprofundamos",
+    titulo: ["Das respostas", "*às prioridades.*"],
     itens: [
-      "Área de atuação da empresa.",
-      "Ferramentas de IA utilizadas hoje.",
-      "Principais desafios operacionais.",
-      "Maturidade da adoção de IA.",
-      "Necessidades de Marketing, Vendas e Customer Success.",
-      "Oportunidades preliminares de capacitação, processos e agentes.",
+      "Validação das respostas do AI Score com quem conhece a operação.",
+      "Processos prioritários para transformar primeiro.",
+      "Oportunidades de agentes inteligentes em Marketing, Vendas e Customer Success.",
+      "Ferramentas em uso, sobreposições e oportunidades de consolidação.",
+      "Regras, riscos e governança necessários antes de ampliar o uso.",
+      "Indicadores para acompanhar os resultados das iniciativas.",
     ],
   },
   etapas: {
     kicker: "Como funciona",
-    titulo: ["Simples,", "*sem barreiras.*"],
+    titulo: ["Do AI Score", "*ao plano de prioridades.*"],
     passos: [
       {
         numero: "01",
-        titulo: "Você chama a Reset",
-        texto: "Pelo WhatsApp, com a mensagem pronta. Sem formulário.",
+        titulo: "Faça o AI Score",
+        texto: "Em cerca de 5 minutos, você recebe a nota, o nível de maturidade e o relatório completo.",
       },
       {
         numero: "02",
-        titulo: "Conversa inicial",
-        texto: "Entendemos a empresa, as ferramentas em uso e os desafios de Marketing, Vendas e Customer Success.",
+        titulo: "Fale com a Reset",
+        texto: "Pelo WhatsApp, com o resultado na mensagem. A conversa começa do seu momento.",
       },
       {
         numero: "03",
-        titulo: "Leitura preliminar",
-        texto: "Apontamos oportunidades de capacitação, processos e agentes e os desafios de adoção.",
+        titulo: "Análise com especialistas",
+        texto: "Validamos as respostas e aprofundamos processos, ferramentas, dados e oportunidades de IA.",
       },
       {
         numero: "04",
-        titulo: "Próximos passos",
-        texto: "Você recebe a indicação de por onde começar e de qual solução faz mais sentido para a sua maturidade.",
+        titulo: "Plano de prioridades",
+        texto: "Você recebe a indicação de por onde começar e de quais soluções fazem sentido para a sua maturidade.",
       },
     ] satisfies Passo[],
   },
   escopo: {
-    titulo: ["Diagnóstico inicial,", "*não projeto completo.*"],
+    titulo: ["Ponto de partida,", "*não projeto completo.*"],
     texto:
-      "O RESET Scan é o ponto de partida: um diagnóstico inicial, gratuito, conduzido pela Reset para compreender o seu cenário e indicar próximos passos. Ele não substitui um projeto completo de diagnóstico organizacional. Quando o cenário pede uma avaliação aprofundada, a Spotlite, tecnologia própria da Reset, potencializa o diagnóstico conforme o escopo acordado.",
+      "A Análise Estratégica começa com uma conversa sem custo, conduzida pela Reset, para entender o seu cenário e indicar próximos passos. Ela não substitui um projeto completo de diagnóstico organizacional. Quando o cenário pede uma avaliação aprofundada, propomos um projeto com escopo próprio, que pode ser potencializado pela Spotlite, tecnologia própria da Reset.",
     link: { label: "Conhecer a Spotlite", href: "/tecnologias" },
   },
   /** Texto do próprio teste em spotlite.com.br/descoberta/ia-negocios. */
@@ -73,26 +75,27 @@ export const diagnostico = {
   },
   perguntas: {
     kicker: "Perguntas frequentes",
-    titulo: ["Antes de", "*chamar a Reset.*"],
+    titulo: ["Antes de", "*falar com a Reset.*"],
     itens: [
       {
-        pergunta: "O diagnóstico é gratuito mesmo?",
+        pergunta: "A conversa tem custo?",
         resposta:
-          "Sim. O RESET Scan é uma conversa inicial, sem custo, para entender o seu cenário e indicar os próximos passos.",
+          "Não. A Análise Estratégica começa com uma conversa sem custo para entender o seu cenário. Se fizer sentido aprofundar, propomos um projeto com escopo próprio.",
       },
       {
-        pergunta: "Preciso preencher um formulário?",
-        resposta: "Não. Você chama a Reset no WhatsApp, com a mensagem pronta, e a conversa começa por lá.",
+        pergunta: "Preciso fazer o AI Score antes?",
+        resposta:
+          "Não é obrigatório, mas ajuda: com o resultado em mãos, a conversa começa do seu momento e vai direto ao que importa.",
       },
       {
-        pergunta: "O diagnóstico gratuito é um projeto de diagnóstico completo?",
+        pergunta: "Qual é a diferença entre o AI Score e a Análise Estratégica?",
         resposta:
-          "Não. É um diagnóstico inicial. Quando o cenário pede uma avaliação aprofundada da organização, ela é proposta à parte, com escopo próprio, e pode ser potencializada pela Spotlite.",
+          "O AI Score é uma autoavaliação gratuita que mostra onde a empresa está. A Análise Estratégica é a conversa com especialistas da Reset que valida o resultado e indica como evoluir.",
       },
       {
         pergunta: "O que é bom ter em mãos?",
         resposta:
-          "Nada formal. Ajuda saber quais ferramentas de IA a empresa já usa e quais desafios de Marketing, Vendas ou Customer Success mais pesam hoje.",
+          "O resultado do AI Score, se já tiver feito, e uma ideia das ferramentas de IA em uso e dos desafios de Marketing, Vendas ou Customer Success que mais pesam hoje.",
       },
     ] satisfies Pergunta[],
   },

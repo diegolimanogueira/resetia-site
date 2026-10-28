@@ -10,8 +10,8 @@ export const home = {
     eyebrow: "Reset 360 · IA aplicada ao crescimento do negócio",
     titulo: ["Sua parceira na *transformação digital e comercial* do seu negócio."],
     lead: "Transformamos a forma como empresas trabalham com inteligência artificial. Desenvolvemos líderes, redesenhamos processos e criamos agentes inteligentes para potencializar Marketing, Vendas e Customer Success.",
-    /** Abre o WhatsApp com a mensagem do diagnóstico. */
-    ctaPrimario: site.ctaDiagnostico,
+    /** Leva ao RESET AI Score. */
+    ctaPrimario: site.ctaAiScore,
     ctaSecundario: { label: "Conhecer nossas soluções", href: "#solucoes" } satisfies Link,
     pilulas: ["Marketing", "Vendas", "Customer Success"],
     legenda: "Inteligência em toda a jornada de receita",
@@ -94,11 +94,14 @@ export const home = {
     exemplosRotulo: "Exemplos de agentes",
     link: "Ver agentes da área",
   },
+  /** RESET AI Score em destaque: a porta de entrada. O WhatsApp fica como segundo caminho. */
   scan: {
-    kicker: "RESET Scan · Diagnóstico gratuito",
-    titulo: ["Por onde sua empresa", "*deveria começar com IA?*"],
-    lead: "Descubra oportunidades de aplicação da inteligência artificial, identifique desafios de adoção e entenda quais iniciativas podem gerar mais valor para o seu negócio.",
-    link: { label: "Como funciona o diagnóstico", href: "/diagnostico-gratuito" } satisfies Link,
+    kicker: "RESET AI Score",
+    titulo: ["Qual é o AI Score", "*da sua empresa?*"],
+    lead: "Descubra gratuitamente o nível de maturidade em IA da sua empresa: nota de 0 a 100, seis dimensões avaliadas e os próximos passos para evoluir.",
+    nota: "Gratuito • 5 minutos • Resultado imediato",
+    dimensoes: "O que o AI Score avalia",
+    link: { label: "Como funciona o AI Score", href: "/ai-score" } satisfies Link,
   },
   tecnologias: {
     kicker: "Tecnologias próprias",

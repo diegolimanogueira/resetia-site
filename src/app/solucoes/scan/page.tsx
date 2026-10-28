@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   alternates: { canonical: movidas.scan.link.href },
 };
 
-/** Rota antiga: o RESET Scan deixou de ser produto e virou o diagnóstico gratuito. */
+/** Rota antiga: o RESET Scan virou o RESET AI Score. */
 export default function ScanAntigo() {
   return <PaginaMovida titulo={movidas.scan.titulo} link={movidas.scan.link} />;
 }

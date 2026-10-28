@@ -25,6 +25,8 @@ static_sites:
       - key: NEXT_PUBLIC_ANALYTICS_ID
         scope: BUILD_TIME
         value: "" # [FALTA] ID do Umami ou do GA4
+      # RESET AI Score: NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY vêm do .env.production versionado.
+      # Não declarar aqui: um valor vazio no painel venceria o arquivo e deixaria o AI Score sem gravar leads.
       - key: NEXT_TELEMETRY_DISABLED
         scope: BUILD_TIME
         value: "1"

@@ -1,12 +1,12 @@
 import type { CtaFinal, Pergunta, Solucao } from "./types";
 
-/** Fecho de todas as páginas: o convite do RESET 360, agora levando ao diagnóstico gratuito. */
+/** Fecho de todas as páginas: o convite do RESET 360, levando ao RESET AI Score (WhatsApp como segundo caminho). */
 export const ctaPadrao: CtaFinal = {
   kicker: "O próximo ciclo começa aqui",
   titulo: ["Sua empresa está pronta", "para *resetar o futuro?*"],
   apoio:
-    "Comece pelo diagnóstico gratuito: identificamos onde a IA pode criar eficiência, liberar capacidade e acelerar crescimento.",
-  botao: "Solicitar diagnóstico gratuito",
+    "Comece pelo RESET AI Score: em cerca de 5 minutos, descubra o nível de maturidade em IA da sua empresa e por onde evoluir.",
+  botao: "Descobrir meu AI Score",
 };
 
 const lista: Solucao[] = [
@@ -660,7 +660,7 @@ export const perguntas: Pergunta[] = [
   {
     pergunta: "Por onde devemos começar?",
     resposta:
-      "Pelo diagnóstico gratuito, o RESET Scan: uma conversa inicial para entender o cenário da sua empresa, as ferramentas de IA em uso e os principais desafios, e indicar os próximos passos.",
+      "Pelo RESET AI Score: em cerca de 5 minutos, você descobre o nível de maturidade em IA da empresa, as maiores oportunidades e os próximos passos. Para aprofundar, a Análise Estratégica RESET é uma conversa com especialistas sobre o seu resultado.",
   },
   {
     pergunta: "A Reset é uma escola de IA, uma consultoria ou uma fábrica de software?",
@@ -702,7 +702,7 @@ export const solucoes = {
     kicker: "Sem sequência obrigatória",
     titulo: ["Não existe um único", "*caminho de entrada.*"],
     texto:
-      "Algumas empresas começam preparando lideranças; outras precisam primeiro redesenhar um processo crítico, criar um agente para uma dor específica ou organizar as regras de uso. O diagnóstico gratuito ajuda a escolher o melhor ponto de partida.",
+      "Algumas empresas começam preparando lideranças; outras precisam primeiro redesenhar um processo crítico, criar um agente para uma dor específica ou organizar as regras de uso. O RESET AI Score ajuda a escolher o melhor ponto de partida.",
   },
   perguntas: {
     kicker: "Perguntas frequentes",
@@ -718,7 +718,7 @@ export const solucoes = {
     relacionadas: { kicker: "Soluções relacionadas", titulo: ["Uma solução conecta", "*a próxima.*"] },
     diagnostico: {
       titulo: "Ainda não sabe se é por aqui que sua empresa deve começar?",
-      texto: "O diagnóstico gratuito indica a solução mais adequada à sua maturidade.",
+      texto: "O RESET AI Score indica as soluções mais adequadas à sua maturidade, em cerca de 5 minutos.",
     },
   },
   cta: ctaPadrao,

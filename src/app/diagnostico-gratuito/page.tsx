@@ -20,7 +20,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/diagnostico-gratuito/" },
 };
 
-/** RESET Scan: o que é, o que avaliamos, como funciona, o limite do escopo e o teste da Spotlite como alternativa. */
+/**
+ * Análise Estratégica RESET (URL antiga do diagnóstico gratuito): o que aprofundamos, como funciona a partir do
+ * AI Score, o limite do escopo e o teste da Spotlite como alternativa.
+ */
 export default function DiagnosticoGratuito() {
   const d = diagnostico;
   const t = d.teste;
@@ -33,12 +36,15 @@ export default function DiagnosticoGratuito() {
         tituloMenor
         lead={d.hero.lead}
       >
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Botao href={waDiagnostico()} origem="diagnostico-pagina">
             {site.ctaDiagnostico}
           </Botao>
-          <span className="text-fg-2 text-[14px]">{d.hero.nota}</span>
+          <Botao href="/ai-score/" origem="ai-score-pagina" variante="secundario">
+            {site.ctaAiScore}
+          </Botao>
         </div>
+        <p className="text-fg-2 mt-5 text-[14px]">{d.hero.nota}</p>
       </HeroPagina>
 
       <Section tom="escuro">
@@ -72,8 +78,11 @@ export default function DiagnosticoGratuito() {
               </li>
             ))}
           </ol>
-          <div className="mt-10">
-            <Botao href={waDiagnostico()} origem="diagnostico-pagina-etapas">
+          <div className="mt-10 flex flex-wrap gap-3">
+            <Botao href="/ai-score/" origem="ai-score-pagina-etapas">
+              {site.ctaAiScore}
+            </Botao>
+            <Botao href={waDiagnostico()} origem="diagnostico-pagina-etapas" variante="secundario">
               {site.ctaDiagnostico}
             </Botao>
           </div>

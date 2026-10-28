@@ -16,4 +16,11 @@ describe("eventoDoClique", () => {
     );
     expect(eventoDoClique({ href: testeSpotliteUrl("diagnostico"), cta: "teste-spotlite" })).toBe("cta_teste_spotlite");
   });
+
+  it("conta a ida para o RESET AI Score separada da página do diagnóstico", () => {
+    expect(eventoDoClique({ href: "https://www.resetia.com.br/ai-score/", cta: "ai-score-hero" })).toBe("cta_ai_score");
+    expect(eventoDoClique({ href: "https://www.resetia.com.br/ai-score/avaliacao/", cta: "ai-score-lp" })).toBe(
+      "cta_ai_score",
+    );
+  });
 });

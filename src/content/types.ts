@@ -27,6 +27,7 @@ export type IconeId =
   | "governanca"
   | "performance"
   | "diagnostico"
+  | "ai-score"
   | "marketing"
   | "vendas"
   | "customer-success";
@@ -90,4 +91,73 @@ export interface Agente {
   area: AreaId;
   nome: string;
   texto: string;
+}
+
+/* RESET AI Score ---------------------------------------------------------------------------------------- */
+
+/** As seis dimensões do índice, na ordem em que aparecem (e em que desempatam). */
+export type DimensaoId = "estrategia" | "pessoas" | "processos" | "dados" | "governanca" | "resultados";
+export type NivelId = "inicial" | "explorando" | "desenvolvimento" | "estruturada" | "avancada";
+/** O que a pessoa avalia: a empresa inteira (empresário/diretor) ou a própria área (gestor). */
+export type Escopo = "empresa" | AreaId;
+export type PapelId = "ceo" | "diretor" | "gestor" | "coordenador" | "especialista" | "outro";
+export type PorteId = "ate-10" | "11-49" | "50-199" | "200-499" | "500-mais";
+export type SegmentoId = "tecnologia" | "industria" | "servicos-b2b" | "varejo" | "saude" | "educacao" | "outros";
+export type DesafioId =
+  "comecar" | "pouco-uso" | "capacitar" | "repetitivas" | "agentes" | "custo-ferramentas" | "governanca" | "medir";
+export type HorizonteId = "imediato" | "3-meses" | "6-meses" | "explorando";
+export type StatusLead = "novo" | "contatado" | "qualificado" | "oportunidade" | "cliente" | "descartado";
+
+export interface Opcao<T extends string> {
+  id: T;
+  label: string;
+  /** Linha de apoio abaixo do rótulo (ex.: a visão empresa explica que dá para aprofundar as áreas). */
+  apoio?: string;
+}
+
+export interface Dimensao {
+  id: DimensaoId;
+  num: string;
+  nome: string;
+  resumo: string;
+  /** Ponto forte, quando é a maior nota. */
+  forte: string;
+  /** Principal oportunidade, quando é a menor nota. */
+  lacuna: string;
+  /** Próximo passo: `estruturar` abaixo da faixa alta, `evoluir` na faixa alta. */
+  passos: { estruturar: string; evoluir: string };
+  /** Leitura do relatório completo por faixa de nota. */
+  leitura: { baixa: string; media: string; alta: string };
+}
+
+/** Pergunta central: duas por dimensão, cinco alternativas (0 a 4 pontos, na ordem) e "Não sei responder". */
+export interface PerguntaCentral {
+  id: string;
+  dimensao: DimensaoId;
+  /** O texto muda com o escopo: "Na sua empresa…" ou "Na sua área…". */
+  texto: { empresa: string; area: string };
+  alternativas: readonly [string, string, string, string, string];
+}
+
+export interface ModuloArea {
+  area: AreaId;
+  nome: string;
+  perguntas: Array<{ id: string; texto: string }>;
+}
+
+export interface Nivel {
+  id: NivelId;
+  nome: string;
+  min: number;
+  max: number;
+  descricao: string;
+  /** Título e texto da tela de resultado. */
+  titulo: string;
+  texto: string;
+}
+
+export interface Desafio extends Opcao<DesafioId> {
+  /** Dimensão ligada ao desafio: evita repetir o mesmo tema nos próximos passos. */
+  dimensao: DimensaoId;
+  passo: string;
 }

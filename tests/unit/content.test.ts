@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { agentes, areas, categoriasAgentes, consolidacao } from "@/content/agentes";
+import { aiScore } from "@/content/ai-score";
+import * as questionario from "@/content/ai-score-questionario";
 import { diagnostico } from "@/content/diagnostico";
 import { home } from "@/content/home";
 import { privacidade } from "@/content/privacidade";
@@ -77,29 +79,36 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
     expect(home.areas.itens.map((i) => i.area)).toEqual(areas.map((a) => a.id));
   });
 
-  it("navegação: Início, Soluções, Agentes de IA, Tecnologias, Sobre a Reset e o botão do diagnóstico", () => {
+  it("navegação: Início, Soluções, Agentes de IA, Tecnologias, Sobre a Reset e o botão do AI Score", () => {
     expect(nav.map((l) => l.label)).toEqual(["Início", "Soluções", "Agentes de IA", "Tecnologias", "Sobre a Reset"]);
-    expect(navDiagnostico).toEqual({ label: "Diagnóstico gratuito", href: "/diagnostico-gratuito" });
+    expect(navDiagnostico).toEqual({ label: "Descubra seu AI Score", href: "/ai-score" });
+    expect(footer.explore.links.map((l) => l.href)).toEqual(
+      expect.arrayContaining(["/ai-score", "/diagnostico-gratuito"]),
+    );
     expect(rotaAtiva("/", "/")).toBe(true);
     expect(rotaAtiva("/sobre", "/")).toBe(false);
     expect(rotaAtiva("/solucoes/governance", "/solucoes")).toBe(true);
   });
 
   it("rotas antigas apontam para os novos destinos", () => {
-    expect(movidas.scan.link.href).toBe("/diagnostico-gratuito/");
+    expect(movidas.scan.link.href).toBe("/ai-score/");
     expect(movidas.workshops.link.href).toBe("/solucoes/ai-champions/");
     expect(movidas.agentes.link.href).toBe("/agentes-de-ia/");
     expect(movidas.tecnologias.link.href).toBe("/tecnologias/");
   });
 
-  it("diagnóstico gratuito: mensagem do brief, seis pontos avaliados, quatro etapas e o limite do escopo", () => {
-    expect(site.mensagens.diagnostico).toBe(
-      "Olá! Conheci a Reset pelo site e gostaria de solicitar um diagnóstico gratuito para entender as oportunidades de IA na minha empresa.",
-    );
+  it("AI Score como porta de entrada; Análise Estratégica no WhatsApp como segundo caminho", () => {
+    expect(site.ctaAiScore).toBe("Descobrir meu AI Score");
+    expect(site.ctaDiagnostico).toBe("Falar com um especialista");
+    expect(site.mensagens.diagnostico).toMatch(/Análise Estratégica RESET/);
+    expect(home.hero.ctaPrimario).toBe(site.ctaAiScore);
+    expect(ctaPadrao.botao).toBe(site.ctaAiScore);
+    expect(diagnostico.hero.kicker).toBe("Análise Estratégica RESET");
     expect(diagnostico.avaliamos.itens).toHaveLength(6);
     expect(diagnostico.etapas.passos).toHaveLength(4);
+    expect(diagnostico.etapas.passos[0].titulo).toMatch(/AI Score/);
     expect(diagnostico.escopo.texto).toMatch(/não substitui um projeto completo/i);
-    expect(ctaPadrao.botao).toBe(site.ctaDiagnostico);
+    expect(JSON.stringify({ home, solucoes, diagnostico, footer })).not.toMatch(/diagnóstico gratuito|RESET Scan/i);
   });
 
   it("tecnologias próprias separadas das soluções, com os sites oficiais", () => {
@@ -122,6 +131,17 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
       diagnostico.hero.titulo,
       sobre.fechamento.titulo,
       ...solucoes.lista.map((s) => s.headline),
+      aiScore.hero.titulo,
+      aiScore.visoes.titulo,
+      aiScore.dimensoes.titulo,
+      aiScore.camadas.titulo,
+      aiScore.exemplo.titulo,
+      aiScore.etapas.titulo,
+      aiScore.metodologia.titulo,
+      aiScore.perguntas.titulo,
+      aiScore.ctaFinal.titulo,
+      questionario.resultadoTextos.conversa.titulo,
+      questionario.formulario.titulo,
     ].flat();
     for (const t of titulos) expect((t.match(/\*/g) ?? []).length % 2, t).toBe(0);
   });
@@ -154,16 +174,70 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
   });
 
   it("não há pendências [FALTA] visíveis; FAQ e política de privacidade completas", () => {
-    const tudo = JSON.stringify({ home, solucoes, agentes, ferramentas, sobre, footer, privacidade, diagnostico });
+    const tudo = JSON.stringify({
+      home,
+      solucoes,
+      agentes,
+      ferramentas,
+      sobre,
+      footer,
+      privacidade,
+      diagnostico,
+      aiScore,
+      questionario,
+    });
     expect(tudo).not.toContain(FALTA);
     expect(perguntas.length).toBeGreaterThanOrEqual(5);
     expect(privacidade.secoes.length).toBeGreaterThanOrEqual(6);
   });
 
   it("não há métricas, depoimentos ou promessas de economia inventados", () => {
-    const tudo = JSON.stringify({ home, solucoes, agentes, consolidacao, categoriasAgentes, sobre, diagnostico });
+    const tudo = JSON.stringify({
+      home,
+      solucoes,
+      agentes,
+      consolidacao,
+      categoriasAgentes,
+      sobre,
+      diagnostico,
+      aiScore,
+      questionario,
+    });
     expect(tudo).not.toMatch(/\d+\s?%|R\$\s?\d|depoimento/i);
     expect(tudo).not.toMatch(/garantimos|resultado garantido|retorno garantido|economia garantida/i);
     expect(tudo).toContain("Nosso objetivo não é substituir ferramentas indiscriminadamente.");
+  });
+
+  it("RESET AI Score: 6 dimensões × 2 perguntas × 5 alternativas, 3 áreas × 4, 8 desafios, 4 prazos e 5 níveis", () => {
+    const q = questionario;
+    expect(q.dimensoes.map((d) => d.num)).toEqual(["01", "02", "03", "04", "05", "06"]);
+    for (const p of q.perguntasCentrais) {
+      expect(p.alternativas, p.id).toHaveLength(5);
+      expect(p.texto.empresa, p.id).toMatch(/\?$/);
+      expect(p.texto.area, p.id).toMatch(/\?$/);
+      expect(p.texto.area, p.id).not.toBe(p.texto.empresa);
+    }
+    expect(q.escalaArea).toHaveLength(5);
+    expect(q.modulosArea.map((m) => m.area)).toEqual(areas.map((a) => a.id));
+    for (const m of q.modulosArea) expect(m.perguntas, m.area).toHaveLength(4);
+    expect(q.desafios).toHaveLength(8);
+    expect(q.horizontes.opcoes).toHaveLength(4);
+    expect(q.niveis.map((n) => n.nome)).toEqual([
+      "Inicial",
+      "Explorando",
+      "Em desenvolvimento",
+      "Estruturada",
+      "Avançada",
+    ]);
+    expect(q.segmentacao.escopo.opcoes.map((o) => o.id)).toEqual(["empresa", ...areas.map((a) => a.id)]);
+  });
+
+  it("RESET AI Score: comunicação de autoavaliação, nunca certificação ou benchmark", () => {
+    expect(aiScore.hero.nota).toBe("Gratuito • 5 minutos • Resultado imediato");
+    expect(questionario.resultadoTextos.aviso).toMatch(/Autoavaliação indicativa/);
+    expect(questionario.resultadoTextos.aviso).toMatch(/Não é certificação/);
+    expect(JSON.stringify({ aiScore, questionario })).not.toMatch(
+      /benchmark|certificad[oa] pela|diagnóstico gratuito/i,
+    );
   });
 });

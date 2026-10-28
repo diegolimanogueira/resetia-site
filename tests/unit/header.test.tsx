@@ -23,10 +23,10 @@ describe("Header", () => {
     }
   });
 
-  it("tem as cinco páginas e o diagnóstico gratuito como último item", () => {
+  it("tem as cinco páginas e o RESET AI Score como último item", () => {
     renderHeader("/");
     const links = Array.from(principal().querySelectorAll("a")).map((a) => a.getAttribute("href"));
-    expect(links).toEqual(["/", "/solucoes", "/agentes-de-ia", "/tecnologias", "/sobre", "/diagnostico-gratuito"]);
+    expect(links).toEqual(["/", "/solucoes", "/agentes-de-ia", "/tecnologias", "/sobre", "/ai-score"]);
   });
 
   it("marca a página ativa, inclusive em subpáginas e com barra final", () => {

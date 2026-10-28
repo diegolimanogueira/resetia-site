@@ -3,12 +3,13 @@
 import Script from "next/script";
 import { useReportWebVitals } from "next/web-vitals";
 import { useEffect } from "react";
+import { registrarOrigem } from "@/lib/ai-score/navegador";
 import { SELETOR_CTA, analytics, eventoDoClique, track } from "@/lib/analytics";
 
 /**
  * Carrega o script de analytics escolhido por env e registra os eventos do site: cliques nos CTAs
- * (WhatsApp, diagnóstico gratuito, página do diagnóstico, teste da Spotlite), com `data-cta`, e Web Vitals.
- * Sem env, não renderiza nada.
+ * (WhatsApp, AI Score, Análise Estratégica, teste da Spotlite), com `data-cta`, e Web Vitals.
+ * Sem env, não renderiza nada. Também guarda a origem da visita (UTM, referrer) para o RESET AI Score.
  */
 export function Analytics() {
   useReportWebVitals((m) => {
@@ -18,6 +19,8 @@ export function Analytics() {
       rating: m.rating,
     });
   });
+
+  useEffect(() => registrarOrigem(), []);
 
   useEffect(() => {
     if (!analytics.ativo) return;

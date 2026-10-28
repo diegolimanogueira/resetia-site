@@ -2,7 +2,6 @@ import { Botao } from "@/components/ui/botao";
 import { Linhas } from "@/components/ui/linhas";
 import { home } from "@/content/home";
 import { asset } from "@/lib/asset";
-import { waDiagnostico } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
 /** Posição das pílulas em volta do núcleo (reset360 .pill-a/b/c). */
@@ -55,7 +54,7 @@ function Orbitas() {
   );
 }
 
-/** Hero da home: texto e os dois caminhos (diagnóstico gratuito e soluções) à esquerda, órbitas à direita. */
+/** Hero da home: texto e os dois caminhos (RESET AI Score e soluções) à esquerda, órbitas à direita. */
 export function Hero() {
   const h = home.hero;
   return (
@@ -75,7 +74,7 @@ export function Hero() {
           </h1>
           <p className="text-fg-2 max-w-[550px] text-[18px] leading-[1.75]">{h.lead}</p>
           <div className="mt-[35px] flex flex-wrap gap-3">
-            <Botao href={waDiagnostico()} origem="diagnostico-hero">
+            <Botao href="/ai-score/" origem="ai-score-hero">
               {h.ctaPrimario}
             </Botao>
             <Botao href={h.ctaSecundario.href} variante="secundario" seta="↓">

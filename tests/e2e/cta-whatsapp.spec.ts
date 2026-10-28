@@ -5,7 +5,7 @@ import { testeSpotliteUrl } from "@/lib/teste-spotlite";
 import { waDiagnostico, waGeral, waUrl } from "@/lib/whatsapp";
 import { rotas } from "./rotas";
 
-/** Mensagem esperada pela origem do botão (data-cta). */
+/** Mensagem esperada pela origem do botão (data-cta). O resultado do AI Score leva a nota (ver ai-score.spec). */
 function esperadoPara(origem: string) {
   if (origem.startsWith("diagnostico")) return waDiagnostico();
   if (origem === "agentes-factory") return waUrl(solucaoPorSlug("agent-factory")!.cta.mensagem);
@@ -32,11 +32,17 @@ test.describe("CTAs de WhatsApp", () => {
     });
   }
 
-  test("o diagnóstico gratuito aparece no hero, depois das soluções, no Scan e antes do rodapé da home", async ({
+  test("o AI Score aparece no hero, depois das soluções, no bloco próprio e antes do rodapé da home", async ({
     page,
   }) => {
     await page.goto("/");
-    for (const cta of ["diagnostico-hero", "diagnostico-solucoes", "diagnostico-home", "diagnostico-final"]) {
+    for (const cta of ["ai-score-hero", "ai-score-solucoes", "ai-score-home", "ai-score-final"]) {
+      const a = page.locator(`a[data-cta='${cta}']`);
+      await expect(a, cta).toHaveAttribute("href", "/ai-score/");
+      await expect(a, cta).toHaveText(new RegExp(site.ctaAiScore));
+    }
+    // Falar com um especialista (Análise Estratégica) é o segundo caminho, no bloco do AI Score e no fecho.
+    for (const cta of ["diagnostico-home", "diagnostico-final"]) {
       const a = page.locator(`a[data-cta='${cta}']`);
       await expect(a, cta).toHaveAttribute("href", waDiagnostico());
       await expect(a, cta).toHaveText(new RegExp(site.ctaDiagnostico));
@@ -45,9 +51,12 @@ test.describe("CTAs de WhatsApp", () => {
     await expect(page.locator("a[data-cta='home-fluxa-site']")).toHaveAttribute("href", site.ferramentas.fluxa);
   });
 
-  test("a página do diagnóstico: WhatsApp no topo e o teste da Spotlite como alternativa", async ({ page }) => {
+  test("a página da Análise Estratégica: WhatsApp e AI Score no topo, teste da Spotlite como alternativa", async ({
+    page,
+  }) => {
     await page.goto("/diagnostico-gratuito/");
     await expect(page.locator("a[data-cta='diagnostico-pagina']")).toHaveAttribute("href", waDiagnostico());
+    await expect(page.locator("a[data-cta='ai-score-pagina']")).toHaveAttribute("href", "/ai-score/");
     const teste = page.locator("a[data-cta='teste-spotlite']");
     await expect(teste).toHaveAttribute("href", testeSpotliteUrl("diagnostico"));
     await expect(teste).toHaveAttribute("target", "_blank");

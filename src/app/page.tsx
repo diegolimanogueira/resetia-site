@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 /**
  * Jornada da home: entender a Reset → identificar a necessidade → explorar uma solução →
- * conhecer a experiência → solicitar o diagnóstico gratuito.
+ * conhecer a experiência → descobrir o AI Score (ou falar com um especialista).
  */
 export default function Home() {
   return (

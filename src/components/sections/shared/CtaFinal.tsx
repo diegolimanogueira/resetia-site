@@ -3,29 +3,35 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { Linhas } from "@/components/ui/linhas";
 import { Section } from "@/components/ui/section";
 import type { CtaFinal as Cta } from "@/content/types";
+import { site } from "@/content/site";
 import { waDiagnostico } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
 type Acao = { label: string; href: string; origem: string };
 
 /**
- * Fecho de todas as páginas, antes do rodapé. Por padrão o botão é o diagnóstico gratuito (WhatsApp);
- * nas soluções, o botão comercial da solução vem primeiro e o diagnóstico fica como segundo caminho.
+ * Fecho de todas as páginas, antes do rodapé. Por padrão o botão principal leva ao RESET AI Score e o segundo
+ * abre o WhatsApp com um especialista (Análise Estratégica). Nas soluções, o botão comercial da solução vem
+ * primeiro e o AI Score fica como segundo caminho.
  */
 export function CtaFinal({
   cta,
   origem,
   primario,
+  secundario,
   menor = false,
 }: {
   cta: Cta;
   origem: string;
   primario?: Acao;
+  secundario?: Acao;
   /** Título longo (landing pages das soluções): corpo menor. */
   menor?: boolean;
 }) {
-  const diagnostico = { label: cta.botao, href: waDiagnostico(), origem: `diagnostico-${origem}` };
-  const principal = primario ?? diagnostico;
+  const aiScore = { label: cta.botao, href: "/ai-score/", origem: `ai-score-${origem}` };
+  const especialista = { label: site.ctaDiagnostico, href: waDiagnostico(), origem: `diagnostico-${origem}` };
+  const principal = primario ?? aiScore;
+  const segundo = secundario ?? especialista;
   return (
     <Section tom="contraste" className="border-line border-t text-center">
       <div className="container-site">
@@ -45,11 +51,9 @@ export function CtaFinal({
           <Botao href={principal.href} origem={principal.origem}>
             {principal.label}
           </Botao>
-          {primario ? (
-            <Botao href={diagnostico.href} origem={diagnostico.origem} variante="secundario">
-              {diagnostico.label}
-            </Botao>
-          ) : null}
+          <Botao href={segundo.href} origem={segundo.origem} variante="secundario">
+            {segundo.label}
+          </Botao>
         </div>
       </div>
     </Section>

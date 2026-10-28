@@ -4,7 +4,7 @@ import { MarcaFerramenta } from "@/components/brand/MarcaFerramenta";
 import { GradeSolucoes } from "@/components/sections/shared/CardSolucao";
 import { CategoriasAgentes } from "@/components/sections/shared/CategoriasAgentes";
 import { CtaFinal } from "@/components/sections/shared/CtaFinal";
-import { FaixaDiagnostico } from "@/components/sections/shared/FaixaDiagnostico";
+import { FaixaAiScore } from "@/components/sections/shared/FaixaAiScore";
 import { HeroPagina } from "@/components/sections/shared/HeroPagina";
 import { Botao } from "@/components/ui/botao";
 import { CabecalhoSecao } from "@/components/ui/cabecalho-secao";
@@ -271,11 +271,7 @@ export default async function SolucaoPagina({ params }: PageProps<"/solucoes/[sl
             ))}
           </ol>
           <div className="mt-[50px]">
-            <FaixaDiagnostico
-              texto={d.diagnostico.titulo}
-              apoio={d.diagnostico.texto}
-              origem={`solucao-${s.slug}-faixa`}
-            />
+            <FaixaAiScore texto={d.diagnostico.titulo} apoio={d.diagnostico.texto} origem={`solucao-${s.slug}-faixa`} />
           </div>
         </div>
       </Section>
@@ -291,10 +287,11 @@ export default async function SolucaoPagina({ params }: PageProps<"/solucoes/[sl
       </Section>
 
       <CtaFinal
-        cta={{ titulo: s.ctaFinal.titulo, apoio: s.ctaFinal.texto, botao: site.ctaDiagnostico }}
+        cta={{ titulo: s.ctaFinal.titulo, apoio: s.ctaFinal.texto, botao: site.ctaAiScore }}
         menor
         origem={`solucao-${s.slug}-final`}
         primario={{ label: s.ctaFinal.botao, href, origem: `solucao-${s.slug}-final` }}
+        secundario={{ label: site.ctaAiScore, href: "/ai-score/", origem: `ai-score-solucao-${s.slug}-final` }}
       />
     </main>
   );

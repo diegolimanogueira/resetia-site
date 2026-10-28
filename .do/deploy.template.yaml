@@ -21,3 +21,4 @@ spec:
         - key: NEXT_TELEMETRY_DISABLED
           scope: BUILD_TIME
           value: "1"
+        # RESET AI Score: o Supabase vem do .env.production versionado (não declarar aqui).

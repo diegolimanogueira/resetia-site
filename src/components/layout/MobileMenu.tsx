@@ -66,7 +66,7 @@ export function MobileMenu({ pathname }: { pathname: string }) {
           })}
         </nav>
         <div className="mt-6 flex flex-col gap-3">
-          <Botao href={navDiagnostico.href} origem="menu-mobile-diagnostico" onClick={fechar} className="w-full">
+          <Botao href={navDiagnostico.href} origem="menu-mobile-ai-score" onClick={fechar} className="w-full">
             {navDiagnostico.label}
           </Botao>
           <Botao

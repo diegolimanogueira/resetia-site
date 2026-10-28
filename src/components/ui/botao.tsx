@@ -2,11 +2,14 @@ import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
+type Variante = "primario" | "secundario";
+type Tamanho = "md" | "sm";
+
 type Props = {
   href: string;
   children: ReactNode;
-  variante?: "primario" | "secundario";
-  tamanho?: "md" | "sm";
+  variante?: Variante;
+  tamanho?: Tamanho;
   /** Identifica a origem do clique para analytics (ex.: "hero", "fecho"). */
   origem?: string;
   /** Seta depois do texto. Padrão: ↗ em links externos, nada nos internos. */
@@ -25,6 +28,9 @@ const variantes = {
   secundario: "border-[1.5px] border-neutro/40 text-neutro hover:border-neutro hover:text-neutro",
 };
 
+const classesBotao = (variante: Variante, tamanho: Tamanho, className?: string) =>
+  cn(base, tamanhos[tamanho], variantes[variante], className);
+
 /** Botão pill do manual Reset IA. Primário verde, secundário contorno. Externos abrem em nova aba. */
 export function Botao({
   href,
@@ -36,7 +42,7 @@ export function Botao({
   className,
   ...rest
 }: Props) {
-  const classes = cn(base, tamanhos[tamanho], variantes[variante], className);
+  const classes = classesBotao(variante, tamanho, className);
   const externo = /^https?:\/\//.test(href);
   const ancora = href.startsWith("#");
   const marca = seta === undefined ? (externo ? "↗" : null) : seta;
@@ -62,5 +68,38 @@ export function Botao({
     <Link href={href} className={classes} data-cta={origem} {...rest}>
       {conteudo}
     </Link>
+  );
+}
+
+/**
+ * O mesmo pill como <button>, para ações na própria página (avançar no questionário, enviar o formulário,
+ * baixar o relatório). `type` é obrigatório: nada de submit implícito.
+ */
+export function BotaoAcao({
+  type,
+  children,
+  variante = "primario",
+  tamanho = "md",
+  className,
+  ...rest
+}: {
+  type: "button" | "submit";
+  children: ReactNode;
+  variante?: Variante;
+  tamanho?: Tamanho;
+  className?: string;
+} & Omit<ComponentProps<"button">, "type" | "children" | "className">) {
+  return (
+    <button
+      type={type}
+      className={classesBotao(
+        variante,
+        tamanho,
+        cn("cursor-pointer disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0", className),
+      )}
+      {...rest}
+    >
+      {children}
+    </button>
   );
 }
