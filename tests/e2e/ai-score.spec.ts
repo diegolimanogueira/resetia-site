@@ -3,22 +3,30 @@ import { expect, test, type Page } from "@playwright/test";
 import { semMarcas } from "@/components/ui/linhas";
 import { aiScore } from "@/content/ai-score";
 import {
+  alertas,
   aprofundar,
+  contato,
   desafios,
+  exemplo,
   formulario,
   horizontes,
   modulosArea,
   perguntasCentrais,
   questionario,
+  regua,
   relatorio,
   resultadoTextos,
 } from "@/content/ai-score-questionario";
 import { site } from "@/content/site";
 import { waUrl } from "@/lib/whatsapp";
 
-/** Respostas do exemplo do documento (46, Em desenvolvimento): dimensões 75, 50, 37,5, 50, 25, 37,5. */
+/** Respostas do exemplo do documento. Na escala progressiva: 34, Explorando (dimensões 70, 40, 27,5, 40, 15, 27,5). */
 const EXEMPLO = [3, 3, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1];
 const graves = new Set(["serious", "critical"]);
+
+/** Resposta da REST simulada: funções devolvem true; inserções, 201. */
+const responder = (rota: import("@playwright/test").Route) =>
+  rota.request().url().includes("/rpc/") ? rota.fulfill({ json: true }) : rota.fulfill({ status: 201, body: "" });
 
 async function semViolacoes(page: Page) {
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
@@ -35,7 +43,7 @@ async function interceptarSupabase(page: Page) {
   await page.route("**/rest/v1/**", async (rota) => {
     const tabela = new URL(rota.request().url()).pathname.split("/").pop()!;
     gravados.push({ tabela, corpo: rota.request().postDataJSON() });
-    await rota.fulfill({ status: 201, body: "" });
+    await responder(rota);
   });
   return gravados;
 }
@@ -72,6 +80,15 @@ async function responderArea(page: Page, area: string, valores: number[]) {
   await continuar(page);
 }
 
+/** Etapa 1 da captura: nome e e-mail abrem o resultado. */
+async function abrirResultado(page: Page, nome = "Maria Teste", email = "maria@empresa.com.br") {
+  await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(contato.titulo.map(semMarcas).join(" "));
+  await page.getByLabel(contato.campos.nome, { exact: true }).fill(nome);
+  await page.getByLabel(contato.campos.email, { exact: true }).fill(email);
+  await page.getByRole("button", { name: contato.enviar }).click();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText(resultadoTextos.titulo);
+}
+
 async function fechar(page: Page) {
   await expect(etapa(page)).toHaveText(questionario.etapas.fechamento);
   await page.getByRole("checkbox", { name: desafios[0].label }).check();
@@ -82,10 +99,10 @@ async function fechar(page: Page) {
 test.describe("RESET AI Score", () => {
   // Nenhum teste grava no banco de verdade (o smoke roda este arquivo contra produção): a REST é sempre interceptada.
   test.beforeEach(async ({ page }) => {
-    await page.route("**/rest/v1/**", (rota) => rota.fulfill({ status: 201, body: "" }));
+    await page.route("**/rest/v1/**", responder);
   });
 
-  test("landing page: hero, seis dimensões, exemplo ilustrativo (46) e CTAs", async ({ page }) => {
+  test("landing page: hero, seis dimensões, exemplo ilustrativo (28) e CTAs", async ({ page }) => {
     await page.goto("/ai-score/");
     await expect(page.getByRole("heading", { level: 1 })).toHaveAccessibleName(
       aiScore.hero.titulo.map(semMarcas).join(" "),
@@ -93,8 +110,12 @@ test.describe("RESET AI Score", () => {
     await expect(page.locator("a[data-cta='ai-score-hero']")).toHaveAttribute("href", "/ai-score/avaliacao/");
     await expect(page.getByText(aiScore.hero.nota).first()).toBeVisible();
     await expect(page.locator("#dimensoes h3")).toHaveCount(6);
-    await expect(page.locator("[data-nota]")).toHaveText("46");
+    await expect(page.locator("[data-nota]")).toHaveText("28");
     await expect(page.getByText(aiScore.exemplo.aviso)).toBeVisible();
+    await expect(page.getByRole("link", { name: aiScore.exemplo.link.label })).toHaveAttribute(
+      "href",
+      "/ai-score/exemplo/",
+    );
   });
 
   test("visão empresa: fluxo completo até o relatório liberado e impresso em fundo claro", async ({ page }) => {
@@ -119,50 +140,71 @@ test.describe("RESET AI Score", () => {
     await fechar(page);
 
     await expect(page).toHaveURL(/\/ai-score\/resultado\/#v=1&e=empresa&p=ceo&/);
-    await expect(page.locator("[data-nota]")).toHaveText("46");
-    await expect(page.getByText("Em desenvolvimento", { exact: true })).toBeVisible();
-    await expect(page.getByText(resultadoTextos.nivelDe(3))).toBeVisible();
-    await expect(page.getByText("75", { exact: true }).first()).toBeVisible();
+
+    // Etapa 1: nome e e-mail abrem o resultado; obrigatórios e e-mail válido.
+    await page.getByRole("button", { name: contato.enviar }).click();
+    await expect(page.getByLabel(contato.campos.nome, { exact: true })).toBeFocused();
+    await page.getByLabel(contato.campos.nome, { exact: true }).fill("Maria Teste");
+    await page.getByLabel(contato.campos.email, { exact: true }).fill("maria@empresa");
+    await page.getByRole("button", { name: contato.enviar }).click();
+    await expect(page.getByText(formulario.erros.email)).toBeVisible();
+    await semViolacoes(page);
+    await abrirResultado(page);
+
+    await expect(page.getByText(resultadoTextos.ola("Maria Teste"))).toBeVisible();
+    await expect(page.locator("[data-nota]")).toHaveText("34");
+    await expect(page.getByText(resultadoTextos.nivelDe(2))).toBeVisible();
+    await expect(page.getByText(regua.faltam(6, "Em desenvolvimento"))).toBeVisible();
+    for (const id of ["adocao-sem-governanca", "estrategia-sem-execucao", "ferramentas-sem-resultado"] as const)
+      await expect(page.getByText(alertas.itens[id].titulo, { exact: true })).toBeVisible();
 
     const conversa = page.locator("a[data-cta='diagnostico-resultado']");
     const texto = new URL((await conversa.getAttribute("href"))!).searchParams.get("text")!;
-    expect(texto).toContain("46/100, nível Em desenvolvimento");
+    expect(texto).toContain("34/100, nível Explorando");
     expect(texto).toContain("Governança e Segurança e Processos e Aplicações");
     expect(await conversa.getAttribute("href")).toBe(waUrl(texto));
     await semViolacoes(page);
 
-    // Formulário: obrigatórios e e-mail válido antes de liberar.
+    // Etapa 2: a empresa libera o relatório completo.
     await page.getByRole("button", { name: formulario.enviar }).click();
-    await expect(page.getByLabel(formulario.campos.nome, { exact: true })).toBeFocused();
-    await expect(page.getByText(formulario.erros.obrigatorio).first()).toBeVisible();
-    await page.getByLabel(formulario.campos.nome, { exact: true }).fill("Maria Teste");
+    await expect(page.getByLabel(formulario.campos.empresa, { exact: true })).toBeFocused();
     await page.getByLabel(formulario.campos.empresa, { exact: true }).fill("Empresa Teste");
-    await page.getByLabel(formulario.campos.email, { exact: true }).fill("maria@empresa");
     await page.getByLabel(formulario.campos.whatsapp, { exact: true }).fill("(85) 99999-0000");
     await page.getByLabel(formulario.campos.contato).check();
-    await page.getByRole("button", { name: formulario.enviar }).click();
-    await expect(page.getByText(formulario.erros.email)).toBeVisible();
-    await page.getByLabel(formulario.campos.email, { exact: true }).fill("maria@empresa.com.br");
     await page.getByRole("button", { name: formulario.enviar }).click();
 
     await expect(page.getByRole("heading", { name: relatorio.titulo })).toBeFocused();
     const rel = page.locator("#relatorio");
+    await expect(
+      rel.getByText("Empresa Teste está no nível Explorando, com AI Score 34 de 100.", { exact: false }),
+    ).toBeVisible();
+    await expect(rel.getByText(relatorio.simulacao.texto(40, 34, 44, "Em desenvolvimento"))).toBeVisible();
+    for (const titulo of [
+      relatorio.prioridades.titulo,
+      relatorio.leitura,
+      relatorio.pontosCegos.titulo,
+      relatorio.plano.titulo,
+    ])
+      await expect(rel.getByRole("heading", { name: titulo })).toBeVisible();
+    await expect(rel.getByText(relatorio.pontosCegos.nenhum)).toBeVisible();
+    await expect(rel.getByText(perguntasCentrais[0].alternativas[4]).first()).toBeVisible();
     await expect(rel.locator("a[href='/solucoes/governance/']")).toBeVisible();
     // Governança é a menor dimensão; o desafio "por onde começar" empata AI Champions com Processos com IA,
     // e o desempate segue a ordem do portfólio.
     await expect(rel.locator("a[href='/solucoes/ai-champions/']")).toBeVisible();
     await expect(rel.locator("a[href^='/solucoes/']")).toHaveCount(2);
     await expect(rel.getByText(modulosArea[1].perguntas[0].texto)).toBeVisible();
+    await semViolacoes(page);
 
     if (modo === "producao") {
-      // Avaliação ao concluir, de novo (idempotente) com o lead, e o lead ligado a ela.
-      expect(gravados.map((g) => g.tabela)).toEqual(["avaliacoes", "avaliacoes", "leads"]);
-      const [avaliacao, , lead] = gravados.map((g) => g.corpo);
+      // Avaliação ao concluir, de novo (idempotente) na etapa 1 com o lead sem empresa, e a etapa 2 completando o lead.
+      expect(gravados.map((g) => g.tabela)).toEqual(["avaliacoes", "avaliacoes", "leads", "completar_lead"]);
+      const [avaliacao, , lead, completar] = gravados.map((g) => g.corpo);
       expect(avaliacao).toMatchObject({
         escopo: "empresa",
         papel: "ceo",
-        indice: 46,
-        nivel: "desenvolvimento",
+        indice: 34,
+        nivel: "explorando",
         parcial: false,
       });
       expect(JSON.stringify(avaliacao)).not.toContain("maria");
@@ -170,11 +212,17 @@ test.describe("RESET AI Score", () => {
         avaliacao_id: avaliacao.id,
         nome: "Maria Teste",
         email: "maria@empresa.com.br",
-        empresa: "Empresa Teste",
-        whatsapp: "5585999990000",
+        empresa: null,
+        whatsapp: null,
         email_pessoal: false,
-        pediu_contato: true,
-        consentimento_marketing: false,
+        pediu_contato: false,
+      });
+      expect(completar).toEqual({
+        p_id: lead.id,
+        p_empresa: "Empresa Teste",
+        p_whatsapp: "5585999990000",
+        p_pediu_contato: true,
+        p_marketing: false,
       });
     } else {
       expect(gravados).toEqual([]);
@@ -199,8 +247,9 @@ test.describe("RESET AI Score", () => {
     await responderCentrais(page, true);
     await responderArea(page, "vendas", [1, 1, 1, 1]);
     await fechar(page);
+    await abrirResultado(page);
     await expect(page.getByText(resultadoTextos.escopo("vendas"))).toBeVisible();
-    await expect(page.locator("[data-nota]")).toHaveText("46");
+    await expect(page.locator("[data-nota]")).toHaveText("34");
     await expect(page.getByRole("heading", { name: resultadoTextos.areas.titulo })).toBeVisible();
   });
 
@@ -227,6 +276,7 @@ test.describe("RESET AI Score", () => {
     }
     await continuar(page);
     await fechar(page);
+    await abrirResultado(page);
     await expect(page.getByText(resultadoTextos.parcial.nome, { exact: true })).toBeVisible();
     await expect(page.locator("[data-nota]")).toHaveCount(0);
   });
@@ -243,8 +293,34 @@ test.describe("RESET AI Score", () => {
     }
   });
 
-  test("questionário e resultado ficam fora do índice", async ({ page }) => {
-    for (const caminho of ["/ai-score/avaliacao/", "/ai-score/resultado/"]) {
+  test("relatório de exemplo: tudo aberto, já no HTML do servidor, sem formulários", async ({ page, request }) => {
+    const html = await (await request.get("/ai-score/exemplo/")).text();
+    expect(html).toContain(relatorio.plano.titulo);
+    await page.goto("/ai-score/exemplo/");
+    await expect(page.getByText(exemplo.aviso)).toBeVisible();
+    await expect(page.locator("[data-nota]")).toHaveText("28");
+    const rel = page.locator("#relatorio");
+    await expect(
+      rel.getByText("Empresa Exemplo está no nível Explorando, com AI Score 28 de 100.", { exact: false }),
+    ).toBeVisible();
+    await expect(rel.getByText(relatorio.simulacao.texto(40, 28, 42, "Em desenvolvimento"))).toBeVisible();
+    for (const id of ["adocao-sem-governanca", "estrategia-sem-execucao", "pontos-cegos"] as const)
+      await expect(page.getByText(alertas.itens[id].titulo, { exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: contato.enviar })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: formulario.enviar })).toHaveCount(0);
+    await expect(page.locator("a[data-cta='ai-score-exemplo-topo']")).toHaveAttribute("href", "/ai-score/avaliacao/");
+    await semViolacoes(page);
+  });
+
+  test("admin abre o resultado de um lead sem passar pelas etapas", async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("resetia.ai-score.ver-como-admin", String(Date.now())));
+    await page.goto(`/ai-score/resultado/#${aiScore.exemplo.codigo}`);
+    await expect(page.getByRole("heading", { name: relatorio.titulo })).toBeVisible();
+    await expect(page.getByRole("button", { name: contato.enviar })).toHaveCount(0);
+  });
+
+  test("questionário, resultado e exemplo ficam fora do índice", async ({ page }) => {
+    for (const caminho of ["/ai-score/avaliacao/", "/ai-score/resultado/", "/ai-score/exemplo/"]) {
       await page.goto(caminho);
       await expect(page.locator("meta[name='robots']")).toHaveAttribute("content", /noindex/);
       await expect(page).toHaveTitle(/Reset IA$/);

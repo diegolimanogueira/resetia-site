@@ -142,6 +142,7 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
       aiScore.ctaFinal.titulo,
       questionario.resultadoTextos.conversa.titulo,
       questionario.formulario.titulo,
+      questionario.contato.titulo,
     ].flat();
     for (const t of titulos) expect((t.match(/\*/g) ?? []).length % 2, t).toBe(0);
   });

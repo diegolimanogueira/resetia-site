@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { aiScore } from "@/content/ai-score";
-import { dimensoes, niveis, perguntasCentrais } from "@/content/ai-score-questionario";
+import { desafios, dimensoes, niveis, perguntasCentrais } from "@/content/ai-score-questionario";
 import { solucaoPorSlug } from "@/content/solucoes";
-import { calcular, faixaDe, formatarNota, nivelDe, notaDe, numeroDoNivel } from "@/lib/ai-score/calcular";
+import { analisar } from "@/lib/ai-score/analisar";
+import { calcular, faixaDe, formatarNota, indiceDe, nivelDe, notaDe, numeroDoNivel } from "@/lib/ai-score/calcular";
 import { codificar, completas, decodificar, respostasVazias } from "@/lib/ai-score/codificar";
 import { emailPessoal, emailValido, normalizarWhatsapp } from "@/lib/ai-score/contato";
 import { leadScore } from "@/lib/ai-score/lead-score";
@@ -26,29 +27,34 @@ const base = (t: string, extra: Partial<Respostas> = {}): Respostas => ({
   ...extra,
 });
 
-/** Exemplo do documento: dimensões 75, 50, 37,5, 50, 25, 37,5. */
+/** Respostas do exemplo do documento. Na escala progressiva: dimensões 70, 40, 27,5, 40, 15, 27,5. */
 const EXEMPLO = "33 22 21 22 11 21";
 
 describe("cálculo do AI Score", () => {
-  it("reproduz o exemplo do documento: 46, Em desenvolvimento", () => {
+  it("escala progressiva e a dimensão mais fraca em dobro: o exemplo do documento dá 34, Explorando", () => {
+    expect(regras.pontos).toEqual([0, 15, 40, 70, 100]);
     const r = calcular(base(EXEMPLO));
     expect(r.dimensoes).toEqual({
-      estrategia: 75,
-      pessoas: 50,
-      processos: 37.5,
-      dados: 50,
-      governanca: 25,
-      resultados: 37.5,
+      estrategia: 70,
+      pessoas: 40,
+      processos: 27.5,
+      dados: 40,
+      governanca: 15,
+      resultados: 27.5,
     });
     expect(r.parcial).toBe(false);
-    expect(r.indice).toBe(46);
-    expect(r.nivel).toBe("desenvolvimento");
-    expect(numeroDoNivel("desenvolvimento")).toBe(3);
+    // (70 + 40 + 27,5 + 40 + 15 + 27,5 + 15) / 7 = 33,6
+    expect(r.indice).toBe(34);
+    expect(r.nivel).toBe("explorando");
+    expect(numeroDoNivel("explorando")).toBe(2);
+    expect(indiceDe([70, 40, 27.5, 40, 15, 27.5])).toBe(34);
   });
 
-  it("a landing page usa as respostas do exemplo do documento", () => {
-    const r = calcular({ centrais: aiScore.exemplo.respostas as Slot[], areas: [], porArea: {} });
-    expect(r.indice).toBe(46);
+  it("a landing page e /ai-score/exemplo usam o mesmo caso: 28, Explorando", () => {
+    const r = calcular(decodificar(aiScore.exemplo.codigo)!);
+    expect(r.indice).toBe(28);
+    expect(r.nivel).toBe("explorando");
+    expect(completas(decodificar(aiScore.exemplo.codigo))).toBe(true);
   });
 
   it("extremos: tudo 0 dá 0 (Inicial), tudo 4 dá 100 (Avançada)", () => {
@@ -80,10 +86,10 @@ describe("cálculo do AI Score", () => {
     expect(r.indice).toBeNull();
   });
 
-  it("índice da área: média das quatro × 25; área não avaliada não vira zero nem entra no AI Score", () => {
+  it("índice da área: média dos pontos das quatro; área não avaliada não vira zero nem entra no AI Score", () => {
     const comArea = calcular(base(EXEMPLO, { areas: ["vendas"], porArea: { vendas: [4, 3, 2, 3] } }));
-    expect(comArea.areas).toEqual({ vendas: 75 });
-    expect(comArea.indice).toBe(46);
+    expect(comArea.areas).toEqual({ vendas: 70 });
+    expect(comArea.indice).toBe(34);
     expect(comArea.areas.marketing).toBeUndefined();
     expect(
       calcular(base(EXEMPLO, { areas: ["marketing"], porArea: { marketing: [null, null, null, null] } })).areas,
@@ -112,7 +118,7 @@ describe("cálculo do AI Score", () => {
   });
 
   it("faixas da leitura e formatação brasileira", () => {
-    expect([0, 39.9, 40, 74, 75, 100].map(faixaDe)).toEqual(["baixa", "baixa", "media", "media", "alta", "alta"]);
+    expect([0, 39.9, 40, 69, 70, 100].map(faixaDe)).toEqual(["baixa", "baixa", "media", "media", "alta", "alta"]);
     expect(formatarNota(37.5)).toBe("37,5");
     expect(formatarNota(50)).toBe("50");
     expect(notaDe([])).toBeNull();
@@ -156,9 +162,9 @@ describe("recomendações", () => {
   });
 
   it("Performance e Agent Factory ficam travadas abaixo de 40, salvo quando a pessoa quer agentes", () => {
-    // Média 25 (Explorando), Resultados é a menor dimensão.
-    const explorando = calcular(base("11 11 11 11 11 10"));
-    expect(explorando.media).toBeLessThan(40);
+    // AI Score 36 (Explorando), Resultados é a menor dimensão.
+    const explorando = calcular(base("22 22 22 22 22 21"));
+    expect(explorando.media).toBe(36);
     expect(recomendar(explorando, ["medir", "custo-ferramentas"]).solucoes).not.toContain("performance");
     expect(recomendar(explorando, ["custo-ferramentas"]).solucoes).not.toContain("agent-factory");
     expect(recomendar(explorando, ["agentes"]).solucoes).toContain("agent-factory");
@@ -273,6 +279,7 @@ describe("contato e lead score", () => {
       desafios: 2,
       emailPessoal: false,
       whatsapp: true,
+      relatorioCompleto: true,
       pediuContato: true,
     });
     const minimo = leadScore({
@@ -283,6 +290,7 @@ describe("contato e lead score", () => {
       desafios: 0,
       emailPessoal: true,
       whatsapp: false,
+      relatorioCompleto: false,
       pediuContato: false,
     });
     expect(maximo).toBe(100);
@@ -295,5 +303,63 @@ describe("estrutura do questionário", () => {
     expect(perguntasCentrais).toHaveLength(12);
     expect(perguntasCentrais.map((p) => p.dimensao)).toEqual(dimensoes.flatMap((d) => [d.id, d.id]));
     expect(new Set(perguntasCentrais.map((p) => p.id)).size).toBe(12);
+  });
+});
+
+describe("análise do relatório completo", () => {
+  const r = decodificar(aiScore.exemplo.codigo)!;
+  const resultado = calcular(r);
+  const rec = recomendar(resultado, r.desafios);
+  const a = analisar(r, resultado, rec);
+
+  it("próximo nível, prioridades e o desafio marcado na dimensão", () => {
+    expect(a.proximoNivel).toEqual({ nivel: "desenvolvimento", faltam: 12 });
+    expect(a.prioridades.map((p) => [p.dimensao, p.prioridade, p.desafio])).toEqual([
+      ["governanca", "critica", true],
+      ["resultados", "critica", false],
+      ["processos", "alta", true],
+      ["dados", "alta", false],
+      ["pessoas", "media", false],
+      ["estrategia", "media", false],
+    ]);
+  });
+
+  it("cada resposta com o próximo estágio; Não sei vira ponto cego", () => {
+    expect(a.respostas[0]).toMatchObject({ atual: 3, proximo: perguntasCentrais[0].alternativas[4] });
+    expect(a.respostas[9]).toMatchObject({ atual: null, proximo: null });
+    expect(a.pontosCegos).toEqual([9, 11]);
+  });
+
+  it("alertas pelos padrões entre dimensões, no máximo três", () => {
+    expect(a.alertas).toEqual(["adocao-sem-governanca", "estrategia-sem-execucao", "pontos-cegos"]);
+    const inicial = calcular(base("00 00 00 00 00 00"));
+    expect(analisar(base("00 00 00 00 00 00"), inicial, recomendar(inicial, ["comecar"])).alertas[0]).toBe("inicio");
+  });
+
+  it("simulação: as dimensões abaixo de 40 chegando a 40 levam de 28 a 42 (Em desenvolvimento)", () => {
+    expect(a.simulacao).toEqual({
+      alvo: 40,
+      de: 28,
+      para: 42,
+      nivel: "desenvolvimento",
+      dimensoes: ["processos", "dados", "governanca", "resultados"],
+    });
+    const topo = calcular(base("44 44 44 44 44 44"));
+    expect(analisar(base("44 44 44 44 44 44"), topo, recomendar(topo, [])).simulacao).toBeNull();
+  });
+
+  it("plano de 90 dias: dimensão mais fraca, o desafio principal e as demais, sem repetir tema", () => {
+    expect(a.plano.map((f) => f.length)).toEqual([2, 2, 1]);
+    expect(a.plano[0]).toEqual([dimensoes[4].passos.estruturar, desafios.find((d) => d.id === "repetitivas")!.passo]);
+    expect(a.plano.flat()).not.toContain(dimensoes[2].passos.estruturar);
+  });
+
+  it("o porquê de cada solução: dimensão fraca e desafio que levaram a ela", () => {
+    expect(rec.solucoes).toEqual(["governance", "processos-com-ia"]);
+    expect(a.porque.governance).toEqual({ dimensoes: [{ id: "governanca", nota: 15 }], desafios: ["governanca"] });
+    expect(a.porque["processos-com-ia"]).toEqual({
+      dimensoes: [{ id: "processos", nota: 27.5 }],
+      desafios: ["repetitivas"],
+    });
   });
 });

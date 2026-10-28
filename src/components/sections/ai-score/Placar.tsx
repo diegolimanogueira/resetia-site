@@ -1,4 +1,4 @@
-import { dimensoes, niveis, resultadoTextos as t } from "@/content/ai-score-questionario";
+import { dimensoes, niveis, regua, resultadoTextos as t } from "@/content/ai-score-questionario";
 import type { DimensaoId, NivelId } from "@/content/types";
 import { formatarNota, numeroDoNivel } from "@/lib/ai-score/calcular";
 import { cn } from "@/lib/utils";
@@ -75,5 +75,40 @@ export function BarrasDimensoes({
         );
       })}
     </ul>
+  );
+}
+
+/** Régua dos cinco níveis com a posição atual e quantos pontos faltam para o próximo. */
+export function Regua({ indice, nivel }: { indice: number; nivel: NivelId }) {
+  const atual = numeroDoNivel(nivel) - 1;
+  const proximo = niveis[atual + 1];
+  return (
+    <div>
+      <p className="eyebrow text-fg-2 mb-4 text-[11px]">{regua.titulo}</p>
+      <ol className="grid grid-cols-5 gap-1.5">
+        {niveis.map((n, i) => (
+          <li key={n.id} aria-current={i === atual ? "step" : undefined}>
+            <span
+              data-imprimir-cor
+              className={cn("block h-[6px]", i < atual ? "bg-verde/45" : i === atual ? "bg-verde" : "bg-line")}
+            />
+            <span
+              className={cn(
+                "mt-2 block text-[11px] leading-[1.25] sm:text-[12px]",
+                i === atual ? "text-fg font-bold" : "text-fg-2",
+              )}
+            >
+              {n.nome}
+            </span>
+            <span className="text-fg-2 block text-[10px] tabular-nums sm:text-[11px]">
+              {n.min}–{n.max}
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-4 text-[14px] font-semibold">
+        {proximo ? regua.faltam(proximo.min - indice, proximo.nome) : regua.topo}
+      </p>
+    </div>
   );
 }

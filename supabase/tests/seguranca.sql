@@ -17,6 +17,7 @@ grant execute on function auth.uid() to anon, authenticated;
 
 \i supabase/migrations/0001_ai_score.sql
 \i supabase/migrations/0002_cadastro_fechado.sql
+\i supabase/migrations/0003_captura_em_duas_etapas.sql
 
 \set ON_ERROR_STOP 0
 \set VERBOSITY terse
@@ -36,6 +37,12 @@ insert into public.avaliacoes (id, criada_em, escopo, papel, porte, segmento, re
 values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '2000-01-01', 'empresa', 'ceo', '50-199', 'tecnologia', '{"centrais":[3,3,2,2,2,1,2,2,1,1,2,1],"areas":{}}', array['comecar'], '3-meses', 46, 'desenvolvimento', false, '{"estrategia":75}', '{}', 'v=1&e=empresa', '1', '{"utm_source":"linkedin"}', 'producao');
 insert into public.leads (id, avaliacao_id, nome, email, email_pessoal, empresa, whatsapp, pediu_contato, consentimento_marketing, status, notas, ambiente)
 values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Maria Teste', 'maria@empresa.com.br', false, 'Empresa', '5585999990000', true, false, 'cliente', 'hack', 'producao');
+\echo '--- anon: etapa 1 (lead sem empresa) e etapa 2 pela funcao completar_lead'
+insert into public.leads (id, avaliacao_id, nome, email) values ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Etapa Um', 'etapa@empresa.com.br');
+select public.completar_lead('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Empresa Etapa', '5511999990000', true, false) as completou;
+select public.completar_lead(gen_random_uuid(), 'Ninguem') as id_inexistente;
+\echo '--- anon: completar_lead nao muda nome nem status e nao apaga (esperado: whatsapp mantido)'
+select public.completar_lead('cccccccc-cccc-4ccc-8ccc-cccccccccccc', '', '', false, false) as segunda_vez;
 \echo '--- anon: reenviar a mesma avaliacao (esperado: 23505 duplicate key)'
 insert into public.avaliacoes (id, escopo, papel, porte, segmento, respostas, desafios, horizonte, indice, nivel, parcial, dimensoes, codigo, versao)
 values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'empresa', 'ceo', '50-199', 'tecnologia', '{}', array['comecar'], '3-meses', 46, 'desenvolvimento', false, '{}', 'x', '1');
@@ -61,7 +68,8 @@ reset role;
 
 \echo '--- trigger: datas e status do servidor (esperado: criada_em hoje, status novo, notas vazio)'
 select criada_em::date = current_date as criada_hoje from public.avaliacoes;
-select status, notas is null as sem_notas from public.leads;
+select status, notas is null as sem_notas from public.leads where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+select nome, empresa, whatsapp, pediu_contato, status from public.leads where id = 'cccccccc-cccc-4ccc-8ccc-cccccccccccc';
 
 \echo '--- authenticated sem ser admin: nada visivel, update sem efeito'
 set role authenticated;
@@ -74,11 +82,11 @@ select count(*) as admins_visiveis from public.admins;
 \echo '--- admin: le tudo, atualiza status/notas, nao altera nome'
 set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 select count(*) as avaliacoes_visiveis from public.avaliacoes;
-select l.nome, a.indice from public.leads l join public.avaliacoes a on a.id = l.avaliacao_id;
+select l.nome, a.indice from public.leads l join public.avaliacoes a on a.id = l.avaliacao_id order by l.nome;
 update public.leads set status = 'contatado', notas = 'Ligar quinta' where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 update public.leads set nome = 'Outro';
 update public.leads set status = 'inventado';
-select status, notas, atualizado_em > criado_em as atualizado from public.leads;
+select status, notas, atualizado_em > criado_em as atualizado from public.leads where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
 \echo '--- admin: insert pela API (esperado: permission denied)'
 insert into public.leads (id, avaliacao_id, nome, email, empresa) values (gen_random_uuid(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Fulano', 'f@x.com', 'X');
 reset role;

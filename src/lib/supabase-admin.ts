@@ -23,7 +23,8 @@ export interface LeadLinha {
   nome: string;
   email: string;
   email_pessoal: boolean;
-  empresa: string;
+  /** Vazia até a pessoa pedir o relatório completo (etapa 2). */
+  empresa: string | null;
   whatsapp: string | null;
   pediu_contato: boolean;
   consentimento_marketing: boolean;

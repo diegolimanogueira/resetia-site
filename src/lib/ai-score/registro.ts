@@ -32,7 +32,8 @@ export function linhaAvaliacao(r: RespostasCompletas & { id: string }, resultado
 export interface DadosContato {
   nome: string;
   email: string;
-  empresa: string;
+  /** Vazia na etapa 1 (só nome e e-mail); vem na etapa 2, pela função completar_lead. */
+  empresa: string | null;
   whatsapp: string | null;
   emailPessoal: boolean;
   pediuContato: boolean;

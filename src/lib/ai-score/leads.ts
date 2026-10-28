@@ -42,6 +42,7 @@ export function montarLeads(avaliacoes: AvaliacaoLinha[]): LeadVisao[] {
         desafios: respostas?.desafios.length ?? 0,
         emailPessoal: lead.email_pessoal,
         whatsapp: Boolean(lead.whatsapp),
+        relatorioCompleto: Boolean(lead.empresa),
         pediuContato: lead.pediu_contato,
       }),
     }));
@@ -76,14 +77,14 @@ export function filtrarLeads(leads: LeadVisao[], f: Filtros): LeadVisao[] {
         (!f.ambiente || l.lead.ambiente === f.ambiente) &&
         (!f.status || l.lead.status === f.status) &&
         (!f.escopo || l.avaliacao.escopo === f.escopo) &&
-        (!f.nivel || (f.nivel === "parcial" ? l.avaliacao.parcial : l.avaliacao.nivel === f.nivel)) &&
-        (!busca || normal(`${l.lead.nome} ${l.lead.email} ${l.lead.empresa}`).includes(busca)),
+        (!f.nivel || (f.nivel === "parcial" ? !l.resultado?.nivel : l.resultado?.nivel === f.nivel)) &&
+        (!busca || normal(`${l.lead.nome} ${l.lead.email} ${l.lead.empresa ?? ""}`).includes(busca)),
     )
     .sort((a, b) =>
       f.ordem === "leadScore"
         ? b.leadScore - a.leadScore
         : f.ordem === "aiScore"
-          ? (b.avaliacao.indice ?? -1) - (a.avaliacao.indice ?? -1)
+          ? (b.resultado?.indice ?? -1) - (a.resultado?.indice ?? -1)
           : b.lead.criado_em.localeCompare(a.lead.criado_em),
     );
 }
@@ -163,8 +164,8 @@ export function csvLeads(leads: LeadVisao[], solucaoNome: (slug: string) => stri
     rotulos.porte(a.porte),
     rotulos.segmento(a.segmento),
     rotulos.escopo(a.escopo),
-    a.indice,
-    rotulos.nivel(a.nivel),
+    resultado?.indice ?? null,
+    rotulos.nivel(resultado?.nivel ?? null),
     ...dimensoes.map((d) => {
       const n = resultado?.dimensoes[d.id];
       return n === null || n === undefined ? "" : formatarNota(n);

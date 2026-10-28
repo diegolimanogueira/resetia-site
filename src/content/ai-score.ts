@@ -40,16 +40,16 @@ export const aiScore = {
     titulo: ["Valor antes", "*de qualquer conversa.*"],
     itens: [
       {
-        etiqueta: "Na hora, sem cadastro",
+        etiqueta: "Na hora, com nome e e-mail",
         nome: "Seu AI Score",
         texto:
-          "Nota de 0 a 100, nível de maturidade, resultado por dimensão, ponto forte, principal oportunidade e próximos passos.",
+          "Nota de 0 a 100, nível de maturidade, resultado por dimensão, ponto forte, principal oportunidade, próximos passos e alertas.",
       },
       {
-        etiqueta: "Gratuito, com seus dados",
+        etiqueta: "Gratuito, com a empresa",
         nome: "Relatório completo",
         texto:
-          "Leitura de cada dimensão, soluções indicadas para o seu momento e o relatório para salvar em PDF e compartilhar com a liderança.",
+          "Cada resposta com o próximo estágio, prioridades, pontos cegos, simulação de evolução, plano de 90 dias e soluções indicadas, em PDF.",
       },
       {
         etiqueta: "Mediante contato",
@@ -63,9 +63,16 @@ export const aiScore = {
     kicker: "Exemplo de resultado",
     titulo: ["Uma leitura clara", "*do seu momento.*"],
     lead: "O resultado mostra a nota, o nível e onde estão as maiores oportunidades de evolução, dimensão por dimensão.",
-    /** Respostas hipotéticas das 12 perguntas (0 a 4), na ordem: geram o exemplo do documento. */
-    respostas: [3, 3, 2, 2, 2, 1, 2, 2, 1, 1, 2, 1],
+    /**
+     * Respostas hipotéticas (o mesmo formato do link do resultado): a landing page e /ai-score/exemplo usam este
+     * caso. Empresa de serviços B2B com direção definida, uso crescendo, governança fraca e dois pontos cegos.
+     */
+    codigo:
+      "v=1&e=empresa&p=ceo&t=50-199&s=servicos-b2b&r=322221211x1x&a=marketing,vendas&am=2112&av=1201&d=repetitivas,governanca&h=3-meses&id=00000000-0000-4000-8000-000000000000",
+    nome: "Maria",
+    empresa: "Empresa Exemplo",
     aviso: "Simulação ilustrativa com respostas hipotéticas; não representa uma empresa real.",
+    link: { label: "Ver um relatório completo de exemplo", href: "/ai-score/exemplo" },
   },
   etapas: {
     kicker: "Como funciona",
@@ -89,7 +96,8 @@ export const aiScore = {
       {
         numero: "04",
         titulo: "Veja seu AI Score",
-        texto: "Nota, nível e próximos passos na hora. O relatório completo é liberado com seus dados.",
+        texto:
+          "Com nome e e-mail, você vê nota, nível e próximos passos na hora. O relatório completo sai com o nome da empresa.",
       },
     ] satisfies Passo[],
   },
@@ -97,7 +105,7 @@ export const aiScore = {
     kicker: "Metodologia própria",
     titulo: ["Cálculo fixo,", "*sem caixa-preta.*"],
     paragrafos: [
-      "Cada dimensão tem duas perguntas com alternativas de 0 a 4 pontos. A média de cada dimensão vira uma nota de 0 a 100, e o AI Score é a média das seis. A nota não é gerada por IA: as mesmas respostas dão sempre o mesmo resultado.",
+      "Cada dimensão tem duas perguntas. As alternativas valem pontos progressivos (0, 15, 40, 70 e 100): o que é pontual vale bem menos do que o que é estruturado e integrado. A nota da dimensão é a média das suas respostas, e o AI Score é a média das seis, com a dimensão mais fraca contando em dobro, porque a maturidade se sustenta pelo elo mais fraco. A nota não é gerada por IA: as mesmas respostas dão sempre o mesmo resultado.",
       "O RESET AI Score é uma autoavaliação indicativa, baseada em metodologia própria da Reset IA. Não é certificação nem comparação com o mercado: cada resultado é comparado apenas com a escala da metodologia.",
     ],
     niveis: "Os cinco níveis",
@@ -109,7 +117,7 @@ export const aiScore = {
       {
         pergunta: "É gratuito mesmo?",
         resposta:
-          "Sim. O AI Score e o relatório completo são gratuitos. O resultado aparece na hora, sem cadastro; para liberar o relatório completo, pedimos nome, e-mail corporativo e empresa.",
+          "Sim. O AI Score e o relatório completo são gratuitos. Para ver o resultado, pedimos só nome e e-mail; para o relatório completo, o nome da empresa.",
       },
       {
         pergunta: "Quanto tempo leva?",
@@ -124,7 +132,7 @@ export const aiScore = {
       {
         pergunta: "E se eu não souber responder alguma pergunta?",
         resposta:
-          "Marque Não sei responder. A pergunta fica fora do cálculo, sem contar como zero. Para uma nota consolidada, são necessárias ao menos 10 das 12 respostas, com pelo menos uma em cada dimensão.",
+          "Marque Não sei responder. A pergunta fica fora do cálculo, sem contar como zero, e aparece no relatório como ponto cego. Para uma nota consolidada, são necessárias ao menos 10 das 12 respostas, com pelo menos uma em cada dimensão.",
       },
       {
         pergunta: "Qual é a diferença entre a Visão Empresa e a Visão por Área?",
@@ -134,7 +142,7 @@ export const aiScore = {
       {
         pergunta: "O que acontece com os meus dados?",
         resposta:
-          "As respostas servem para calcular o resultado e entender o seu momento. Os dados de contato só são pedidos para liberar o relatório, e o uso está descrito na política de privacidade.",
+          "As respostas servem para calcular o resultado e entender o seu momento. Nome, e-mail e empresa registram o seu resultado; o uso está descrito na política de privacidade.",
       },
     ] satisfies Pergunta[],
   },

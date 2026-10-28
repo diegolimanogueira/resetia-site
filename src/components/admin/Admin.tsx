@@ -324,7 +324,8 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
                           {l.lead.nome}
                         </button>
                         <span className="text-fg-2 block text-[12px]">
-                          {l.lead.empresa} · {l.lead.email}
+                          {l.lead.empresa ? `${l.lead.empresa} · ` : ""}
+                          {l.lead.email}
                         </span>
                         {l.lead.pediu_contato ? (
                           <span className="text-verde mt-1 block text-[11px] font-bold">
@@ -335,8 +336,8 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
                       <td className="px-4 py-3">{rotulos.papel(l.avaliacao.papel)}</td>
                       <td className="px-4 py-3">{rotulos.escopo(l.avaliacao.escopo)}</td>
                       <td className="px-4 py-3 whitespace-nowrap">
-                        <b className="tabular-nums">{l.avaliacao.indice ?? "–"}</b>{" "}
-                        <span className="text-fg-2 text-[12px]">{rotulos.nivel(l.avaliacao.nivel)}</span>
+                        <b className="tabular-nums">{l.resultado?.indice ?? "–"}</b>{" "}
+                        <span className="text-fg-2 text-[12px]">{rotulos.nivel(l.resultado?.nivel ?? null)}</span>
                       </td>
                       <td className="px-4 py-3 font-bold tabular-nums">{l.leadScore}</td>
                       <td className="px-4 py-3">{admin.status[l.lead.status]}</td>
