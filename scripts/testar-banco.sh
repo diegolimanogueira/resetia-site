@@ -22,5 +22,8 @@ esperar "violates check constraint \"leads_status_check\""
 [ "$(grep -c 'permission denied for table' <<<"$SAIDA")" -eq 7 ] || { echo "FALHOU: esperadas 7 permissões negadas"; exit 1; }
 esperar "permission denied for function eh_admin"
 esperar " contatado | Ligar quinta | t"
+esperar " Etapa Um | Empresa Etapa | 5511999990000 | t             | novo"
+[ "$(grep -c '^ t$' <<<"$SAIDA")" -ge 3 ] || { echo "FALHOU: completar_lead não devolveu true"; exit 1; }
+[ "$(grep -c '^ f$' <<<"$SAIDA")" -ge 1 ] || { echo "FALHOU: completar_lead aceitou id inexistente"; exit 1; }
 [ "$(grep -c '^ novo   | t' <<<"$SAIDA")" -eq 1 ] || { echo "FALHOU: status/notas forjados pelo anônimo"; exit 1; }
 echo "Banco OK: RLS, permissões, CHECKs e gatilhos como esperado."

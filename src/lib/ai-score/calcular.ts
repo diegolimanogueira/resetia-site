@@ -5,18 +5,25 @@ import type { Faixa, Respostas, Resultado, Slot } from "./tipos";
 
 /**
  * Cálculo determinístico do RESET AI Score. Nada aqui usa IA: as mesmas respostas dão sempre a mesma nota.
- * - Nota da dimensão = média das respostas válidas (0 a 4) / 4 × 100. "Não sei responder" fica fora da média.
- * - AI Score = média das seis dimensões, arredondada para inteiro.
- * - Índice da área = média das quatro respostas da área × 25. Não entra no AI Score.
+ * - Cada alternativa vale pontos progressivos (regras.pontos: 0, 15, 40, 70, 100).
+ * - Nota da dimensão = média dos pontos das respostas válidas. "Não sei responder" fica fora da média.
+ * - AI Score = média das seis dimensões, com a mais fraca contando em dobro (regras.pesoMenorDimensao), inteiro.
+ * - Índice da área = média dos pontos das quatro respostas da área. Não entra no AI Score.
  */
 
 const valida = (r: Slot): r is 0 | 1 | 2 | 3 | 4 => typeof r === "number";
 const mediaDe = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 
-/** Média das respostas válidas convertida para 0 a 100; `null` sem nenhuma resposta válida. */
+/** Média dos pontos das respostas válidas (0 a 100); `null` sem nenhuma resposta válida. */
 export function notaDe(respostas: readonly Slot[]): number | null {
   const v = respostas.filter(valida);
-  return v.length ? (mediaDe(v) / 4) * 100 : null;
+  return v.length ? mediaDe(v.map((r) => regras.pontos[r])) : null;
+}
+
+/** AI Score a partir das notas das dimensões: média com a menor nota pesando `regras.pesoMenorDimensao` vezes. */
+export function indiceDe(notas: readonly number[]): number {
+  const extra = regras.pesoMenorDimensao - 1;
+  return Math.round((notas.reduce((a, b) => a + b, 0) + extra * Math.min(...notas)) / (notas.length + extra));
 }
 
 export function nivelDe(indice: number): NivelId {
@@ -42,7 +49,7 @@ export function calcular(r: Pick<Respostas, "centrais" | "areas" | "porArea">): 
   const notas = Object.values(porDimensao).filter((n): n is number => n !== null);
   const respondidas = r.centrais.filter(valida).length;
   const parcial = respondidas < regras.minimoRespondidas || notas.length < dimensoes.length;
-  const media = notas.length ? Math.round(mediaDe(notas)) : null;
+  const media = notas.length ? indiceDe(notas) : null;
   const indice = parcial ? null : media;
 
   return {

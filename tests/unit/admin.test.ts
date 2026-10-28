@@ -46,6 +46,8 @@ const dados: AvaliacaoLinha[] = [
     id: "a2",
     criada_em: "2026-10-27T10:00:00Z",
     papel: "especialista",
+    codigo:
+      "v=1&e=empresa&p=especialista&t=50-199&s=tecnologia&r=000000000000&d=comecar&h=explorando&id=3f1c2b9e-8a7d-4c6b-9e5f-1a2b3c4d5e70",
     indice: 20,
     nivel: "explorando",
     horizonte: "explorando",
@@ -68,13 +70,21 @@ const dados: AvaliacaoLinha[] = [
 ];
 
 describe("admin: visão dos leads", () => {
-  it("recalcula o resultado a partir do código e soma o lead score", () => {
+  it("recalcula o resultado a partir do código (regras atuais, não a nota gravada) e soma o lead score", () => {
     const [maria] = montarLeads(dados);
-    expect(maria.resultado?.indice).toBe(46);
-    expect(maria.resultado?.areas).toEqual({ vendas: 75 });
+    expect(maria.avaliacao.indice).toBe(46);
+    expect(maria.resultado?.indice).toBe(34);
+    expect(maria.resultado?.areas).toEqual({ vendas: 70 });
     expect(maria.solucoes).toEqual(["governance", "ai-champions"]);
-    // CEO 25 + imediato 25 + 50-199 20 + empresa 5 + desafio 5 + e-mail corporativo 5 + WhatsApp 5 + pediu contato 10
+    // CEO 25 + imediato 25 + 50-199 15 + empresa 5 + desafio 5 + e-mail corporativo 5 + WhatsApp 5
+    // + relatório completo 5 + pediu contato 10
     expect(maria.leadScore).toBe(100);
+  });
+
+  it("lead só da etapa 1 (sem empresa) entra na lista e perde os pontos do relatório completo", () => {
+    const so = montarLeads([avaliacao({ leads: [lead({ empresa: null })] })])[0];
+    expect(so.leadScore).toBe(95);
+    expect(filtrarLeads([so], { ...filtrosIniciais, busca: "maria" })).toHaveLength(1);
   });
 
   it("filtra por ambiente (produção por padrão), status, nível e busca sem acento", () => {
@@ -82,7 +92,8 @@ describe("admin: visão dos leads", () => {
     expect(filtrarLeads(leads, filtrosIniciais).map((l) => l.lead.id)).toEqual(["l1", "l2"]);
     expect(filtrarLeads(leads, { ...filtrosIniciais, ambiente: "" })).toHaveLength(3);
     expect(filtrarLeads(leads, { ...filtrosIniciais, status: "contatado" }).map((l) => l.lead.id)).toEqual(["l2"]);
-    expect(filtrarLeads(leads, { ...filtrosIniciais, nivel: "explorando" }).map((l) => l.lead.id)).toEqual(["l2"]);
+    expect(filtrarLeads(leads, { ...filtrosIniciais, nivel: "inicial" }).map((l) => l.lead.id)).toEqual(["l2"]);
+    expect(filtrarLeads(leads, { ...filtrosIniciais, ordem: "aiScore" })[0].lead.id).toBe("l1");
     expect(filtrarLeads(leads, { ...filtrosIniciais, busca: "agil" }).map((l) => l.lead.id)).toEqual(["l1"]);
     expect(filtrarLeads(leads, { ...filtrosIniciais, ordem: "leadScore" })[0].lead.id).toBe("l1");
   });
@@ -108,7 +119,7 @@ describe("admin: visão dos leads", () => {
     const [cabecalho, primeira] = csv.replace("﻿", "").split("\r\n");
     expect(cabecalho.split(";")).toContain("Estratégia e Liderança");
     expect(primeira).toContain("Maria Teste;maria@empresa.com.br;não;Empresa Ágil;5585999990000;Empresário ou CEO");
-    expect(primeira).toContain(";46;Em desenvolvimento;75;50;37,5;50;25;37,5;Vendas 75;");
+    expect(primeira).toContain(";34;Explorando;70;40;27,5;40;15;27,5;Vendas 70;");
     expect(primeira).toContain("GOVERNANCE | AI-CHAMPIONS;100;Novo;sim;não;producao;linkedin");
   });
 });

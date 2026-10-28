@@ -9,6 +9,7 @@ export interface DadosLead {
   desafios: number;
   emailPessoal: boolean;
   whatsapp: boolean;
+  relatorioCompleto: boolean;
   pediuContato: boolean;
 }
 
@@ -26,6 +27,7 @@ export function leadScore(l: DadosLead): number {
     (l.desafios > 0 ? p.temDesafio : 0) +
     (l.emailPessoal ? 0 : p.emailCorporativo) +
     (l.whatsapp ? p.whatsapp : 0) +
+    (l.relatorioCompleto ? p.relatorioCompleto : 0) +
     (l.pediuContato ? p.pediuContato : 0);
   return Math.min(100, total);
 }

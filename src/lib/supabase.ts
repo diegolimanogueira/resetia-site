@@ -18,7 +18,10 @@ export const supabase = {
 export const ambiente = STAGING ? "staging" : process.env.NODE_ENV === "production" ? "producao" : "dev";
 
 export type Tabela = "avaliacoes" | "leads";
-type Pendente = { tabela: Tabela; linha: Record<string, unknown> };
+type Pendente =
+  | { tipo?: "inserir"; tabela: Tabela; linha: Record<string, unknown> }
+  | { tipo: "rpc"; funcao: string; args: Record<string, unknown> };
+type Situacao = "ok" | "tentar-de-novo" | "erro" | "desligado";
 
 export const cabecalhos = (token?: string): Record<string, string> => ({
   apikey: supabase.chave,
@@ -31,7 +34,7 @@ export const cabecalhos = (token?: string): Record<string, string> => ({
  * reenviar é idempotente). "tentar-de-novo" para falha de rede, projeto fora do ar ou avaliação ainda
  * não gravada (chave estrangeira); "erro" para dado recusado pelo banco.
  */
-export async function inserir(tabela: Tabela, linha: Record<string, unknown>) {
+export async function inserir(tabela: Tabela, linha: Record<string, unknown>): Promise<Situacao> {
   if (!supabase.ativo) return "desligado" as const;
   try {
     const r = await fetch(`${supabase.url}/rest/v1/${tabela}`, {
@@ -50,11 +53,41 @@ export async function inserir(tabela: Tabela, linha: Record<string, unknown>) {
   }
 }
 
+/**
+ * Chama uma função do banco como anônimo (hoje, `completar_lead`). A função devolve `true` quando fez o que devia;
+ * `false` (o lead ainda não chegou, por exemplo) vira "tentar-de-novo".
+ */
+export async function chamar(funcao: string, args: Record<string, unknown>): Promise<Situacao> {
+  if (!supabase.ativo) return "desligado";
+  try {
+    const r = await fetch(`${supabase.url}/rest/v1/rpc/${funcao}`, {
+      method: "POST",
+      headers: cabecalhos(),
+      body: JSON.stringify(args),
+      keepalive: true,
+    });
+    if (r.ok) return (await r.json().catch(() => false)) === true ? "ok" : "tentar-de-novo";
+    return r.status >= 500 || r.status === 404 ? "tentar-de-novo" : "erro";
+  } catch {
+    return "tentar-de-novo";
+  }
+}
+
+const executar = (p: Pendente) => (p.tipo === "rpc" ? chamar(p.funcao, p.args) : inserir(p.tabela, p.linha));
+
+function guardarSe(r: Situacao, p: Pendente) {
+  if (r === "tentar-de-novo") pendentes.gravar([...pendentes.ler<Pendente>(), p]);
+  return r;
+}
+
 /** Insere e, se não deu por instabilidade, guarda para reenviar na próxima visita. */
 export async function enviar(tabela: Tabela, linha: Record<string, unknown>) {
-  const r = await inserir(tabela, linha);
-  if (r === "tentar-de-novo") pendentes.gravar([...pendentes.ler<Pendente>(), { tabela, linha }]);
-  return r;
+  return guardarSe(await inserir(tabela, linha), { tabela, linha });
+}
+
+/** Chama a função e, se não deu, guarda para tentar de novo depois (na ordem, depois do lead). */
+export async function enviarChamada(funcao: string, args: Record<string, unknown>) {
+  return guardarSe(await chamar(funcao, args), { tipo: "rpc", funcao, args });
 }
 
 let reenviando = false;
@@ -66,7 +99,7 @@ export async function reenviarPendentes() {
   if (!fila.length) return;
   reenviando = true;
   const restantes: Pendente[] = [];
-  for (const item of fila) if ((await inserir(item.tabela, item.linha)) === "tentar-de-novo") restantes.push(item);
+  for (const item of fila) if ((await executar(item)) === "tentar-de-novo") restantes.push(item);
   pendentes.gravar(restantes);
   reenviando = false;
 }

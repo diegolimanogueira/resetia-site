@@ -13,7 +13,7 @@ import { aiScore } from "@/content/ai-score";
 import { dimensoes, niveis } from "@/content/ai-score-questionario";
 import { seo, site } from "@/content/site";
 import { calcular } from "@/lib/ai-score/calcular";
-import type { Slot } from "@/lib/ai-score/tipos";
+import { decodificar } from "@/lib/ai-score/codificar";
 import { supabase } from "@/lib/supabase";
 import { waDiagnostico } from "@/lib/whatsapp";
 
@@ -31,7 +31,7 @@ const AVALIACAO = "/ai-score/avaliacao/";
  */
 export default function AiScore() {
   const a = aiScore;
-  const exemplo = calcular({ centrais: a.exemplo.respostas as Slot[], areas: [], porArea: {} });
+  const exemplo = calcular(decodificar(a.exemplo.codigo)!);
   return (
     <main data-tom="carvao" data-ai-score-modo={supabase.ativo ? "producao" : "demo"} className="text-fg bg-(--bg)">
       <HeroPagina
@@ -96,9 +96,14 @@ export default function AiScore() {
               <Linhas itens={a.exemplo.titulo} />
             </h2>
             <p className="text-fg-2 mb-8 max-w-[520px] text-[18px] leading-[1.7]">{a.exemplo.lead}</p>
-            <Botao href={AVALIACAO} origem="ai-score-exemplo">
-              {site.ctaAiScore}
-            </Botao>
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-4">
+              <Botao href={AVALIACAO} origem="ai-score-exemplo">
+                {site.ctaAiScore}
+              </Botao>
+              <LinkSeta href={a.exemplo.link.href} seta="→">
+                {a.exemplo.link.label}
+              </LinkSeta>
+            </div>
           </div>
           <figure className="border-line bg-painel border p-[26px] md:p-[40px]">
             <Nota indice={exemplo.indice!} nivel={exemplo.nivel!} tamanho="medio" />

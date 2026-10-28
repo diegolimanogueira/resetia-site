@@ -76,6 +76,28 @@ describe("cliente anônimo (inserções)", () => {
   });
 });
 
+describe("etapa 2: completar o lead pela função do banco", () => {
+  it("chama a função como anônimo; true é ok, false (lead ainda não chegou) volta para a fila", async () => {
+    const { enviarChamada, reenviarPendentes } = await carregar();
+    fetchMock.mockResolvedValueOnce(resposta(200, true));
+    expect(await enviarChamada("completar_lead", { p_id: "l1", p_empresa: "X" })).toBe("ok");
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://projeto.supabase.co/rest/v1/rpc/completar_lead");
+    expect(init.headers).toMatchObject({ apikey: "chave-anon", Authorization: "Bearer chave-anon" });
+    expect(JSON.parse(init.body)).toEqual({ p_id: "l1", p_empresa: "X" });
+
+    fetchMock.mockResolvedValueOnce(resposta(200, false));
+    expect(await enviarChamada("completar_lead", { p_id: "l2", p_empresa: "Y" })).toBe("tentar-de-novo");
+    expect(JSON.parse(localStorage.getItem("resetia.ai-score.pendentes")!)).toEqual([
+      { tipo: "rpc", funcao: "completar_lead", args: { p_id: "l2", p_empresa: "Y" } },
+    ]);
+    fetchMock.mockResolvedValueOnce(resposta(200, true));
+    await reenviarPendentes();
+    expect(fetchMock.mock.calls[2][0]).toBe("https://projeto.supabase.co/rest/v1/rpc/completar_lead");
+    expect(localStorage.getItem("resetia.ai-score.pendentes")).toBeNull();
+  });
+});
+
 describe("cliente do admin (GoTrue + REST com token)", () => {
   const token = { access_token: "t1", refresh_token: "r1", expires_in: 3600, user: { email: "admin@resetia.com.br" } };
 

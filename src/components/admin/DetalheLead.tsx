@@ -15,6 +15,7 @@ import {
 import type { StatusLead } from "@/content/types";
 import { formatarNota } from "@/lib/ai-score/calcular";
 import { dataBr, rotulos, type LeadVisao } from "@/lib/ai-score/leads";
+import { verComoAdmin } from "@/lib/ai-score/navegador";
 import { asset } from "@/lib/asset";
 import { waUrl } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
@@ -71,7 +72,7 @@ export function DetalheLead({
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h2 className="text-[26px] leading-[1.15] font-bold tracking-[-0.02em]">{l.nome}</h2>
-          <p className="text-fg-2 mt-1 text-[15px]">{l.empresa}</p>
+          <p className="text-fg-2 mt-1 text-[15px]">{l.empresa ?? d.semEmpresa}</p>
           <p className="text-fg-2 mt-1 text-[13px]">
             {d.criadoEm} {dataBr(l.criado_em)}
           </p>
@@ -135,7 +136,7 @@ export function DetalheLead({
             {l.whatsapp ? (
               <Linha rotulo={d.whatsapp}>
                 <a
-                  href={waUrl(admin.mensagem(l.nome, a.indice), l.whatsapp)}
+                  href={waUrl(admin.mensagem(l.nome, resultado?.indice ?? null), l.whatsapp)}
                   target="_blank"
                   rel="noopener"
                   className="text-verde font-semibold"
@@ -151,6 +152,7 @@ export function DetalheLead({
           </dl>
           <p className="mt-3 flex flex-wrap gap-2">
             {l.pediu_contato ? <span className={cn(etiqueta, "border-verde text-verde")}>{d.pediuContato}</span> : null}
+            {l.empresa ? <span className={etiqueta}>{d.relatorioCompleto}</span> : null}
             {l.consentimento_marketing ? <span className={etiqueta}>{d.marketing}</span> : null}
           </p>
         </Bloco>
@@ -168,8 +170,8 @@ export function DetalheLead({
 
         <Bloco titulo={d.resultado}>
           <p className="mb-5 flex items-baseline gap-3">
-            <span className="text-[40px] leading-none font-bold">{a.indice ?? "–"}</span>
-            <span className="text-verde font-bold">{rotulos.nivel(a.nivel)}</span>
+            <span className="text-[40px] leading-none font-bold">{resultado?.indice ?? "–"}</span>
+            <span className="text-verde font-bold">{rotulos.nivel(resultado?.nivel ?? null)}</span>
           </p>
           {resultado ? <BarrasDimensoes notas={resultado.dimensoes} /> : null}
           {resultado && Object.keys(resultado.areas).length ? (
@@ -188,6 +190,7 @@ export function DetalheLead({
           ) : null}
           <a
             href={asset(`/ai-score/resultado/#${a.codigo}`)}
+            onClick={() => verComoAdmin.marcar()}
             target="_blank"
             rel="noopener"
             className="text-verde mt-4 inline-block text-[14px] font-bold"

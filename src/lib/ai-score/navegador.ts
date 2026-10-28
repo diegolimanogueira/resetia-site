@@ -8,6 +8,7 @@ const CHAVES = {
   rascunho: "resetia.ai-score.rascunho",
   relatorio: (id: string) => `resetia.ai-score.relatorio.${id}`,
   pendentes: "resetia.ai-score.pendentes",
+  verComoAdmin: "resetia.ai-score.ver-como-admin",
   origem: "resetia.origem",
 };
 
@@ -67,11 +68,17 @@ export function lerRascunho(texto: string | null): { codigo: string; passo: numb
   }
 }
 
-/** Relatório liberado neste navegador (depois do formulário), com nome e empresa para o cabeçalho impresso. */
+/**
+ * O que este navegador já liberou para uma avaliação: o resultado (etapa 1, nome e e-mail) e, com a empresa,
+ * o relatório completo (etapa 2). `leadId` liga a etapa 2 ao lead criado na etapa 1.
+ */
 export interface Liberacao {
+  leadId?: string;
   nome: string;
-  empresa: string;
+  email?: string;
+  empresa?: string;
   data: string;
+  completo: boolean;
 }
 
 export const relatorio = {
@@ -83,13 +90,33 @@ export function lerLiberacao(texto: string | null): Liberacao | null {
   if (!texto) return null;
   try {
     const l = JSON.parse(texto) as Partial<Liberacao>;
-    return typeof l.nome === "string" && typeof l.empresa === "string" && typeof l.data === "string"
-      ? { nome: l.nome, empresa: l.empresa, data: l.data }
-      : null;
+    if (typeof l.nome !== "string" || typeof l.data !== "string") return null;
+    const empresa = typeof l.empresa === "string" ? l.empresa : undefined;
+    return {
+      leadId: typeof l.leadId === "string" ? l.leadId : undefined,
+      nome: l.nome,
+      email: typeof l.email === "string" ? l.email : undefined,
+      empresa,
+      data: l.data,
+      // Liberações gravadas antes das duas etapas (28/10) já eram o relatório completo.
+      completo: typeof l.completo === "boolean" ? l.completo : Boolean(empresa),
+    };
   } catch {
     return null;
   }
 }
+
+/**
+ * "Ver como o lead viu", no admin: marca por alguns minutos que este navegador pode abrir resultados sem as etapas
+ * de captura (só leitura, nada é gravado). Quem forjar a marca só pula o formulário do próprio resultado.
+ */
+const VALIDADE_ADMIN = 5 * 60 * 1000;
+export const verComoAdmin = {
+  marcar: () => gravar(CHAVES.verComoAdmin, String(Date.now())),
+  ler: () => ler(CHAVES.verComoAdmin),
+};
+export const marcaAdminValida = (texto: string | null, agora: number) =>
+  texto !== null && agora - Number(texto) >= 0 && agora - Number(texto) < VALIDADE_ADMIN;
 
 /** Gravações que falharam (rede, projeto pausado): reenviadas na próxima visita, na mesma ordem. */
 export const pendentes = {

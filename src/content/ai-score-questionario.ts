@@ -627,6 +627,7 @@ export const questionario = {
 export const resultadoTextos = {
   kicker: "RESET AI Score · Resultado",
   titulo: "Seu RESET AI Score",
+  ola: (nome: string) => `${nome.trim().split(/\s+/)[0]}, este é o seu resultado.`,
   de100: "/100",
   nivelDe: (n: number) => `Nível ${n} de 5`,
   escopo: (escopo: Escopo) =>
@@ -674,11 +675,46 @@ export const resultadoTextos = {
       : `Olá! Fiz o RESET AI Score: ${r.indice}/100, nível ${r.nivel}. Principais oportunidades: ${r.lacunas.join(" e ")}. Quero conversar com um especialista sobre a Análise Estratégica RESET.`,
 };
 
-/** Formulário que libera o relatório completo (camada 2). Sem envio de e-mail: o relatório abre na própria página. */
+/**
+ * Etapa 1 da captura (pedido do Diego, 28/10): nome e e-mail abrem o resultado. Fica no fim, depois que a pessoa
+ * já respondeu, para não criar atrito no começo. Sem envio de e-mail: o resultado abre na própria página.
+ */
+export const contato = {
+  kicker: "Seu resultado está pronto",
+  titulo: ["Seu AI Score", "*está pronto.*"],
+  texto: "Informe seu nome e e-mail para ver a nota, o nível de maturidade e os próximos passos.",
+  incluido: "O que você vai ver",
+  itens: [
+    "Nota de 0 a 100 e o nível de maturidade em IA.",
+    "Resultado em cada uma das seis dimensões.",
+    "Ponto forte, principal oportunidade e próximos passos.",
+    "Alertas sobre riscos e lacunas que merecem atenção.",
+  ],
+  campos: {
+    nome: "Nome",
+    email: "E-mail",
+    emailApoio: "De preferência o da empresa.",
+    marketing: "Quero receber conteúdos da Reset IA sobre IA nos negócios.",
+  },
+  enviar: "Ver meu resultado",
+  enviando: "Abrindo…",
+  finalidade: "Usamos seu nome e e-mail só para registrar o seu resultado. Sem spam.",
+};
+
+/** Etapa 2 (camada 2): empresa e WhatsApp opcional liberam o relatório completo e o PDF. */
 export const formulario = {
   kicker: "Relatório completo",
-  titulo: ["Libere sua análise", "*com recomendações personalizadas.*"],
-  texto: "Leitura de cada dimensão, soluções indicadas para o seu momento e o relatório para salvar em PDF. Gratuito.",
+  titulo: ["Quer o diagnóstico completo", "*da sua empresa?*"],
+  texto:
+    "A análise de cada resposta, o plano de 90 dias, a simulação de evolução, os pontos cegos e as soluções indicadas, em PDF. Gratuito.",
+  incluido: "O relatório completo traz",
+  itens: [
+    "Resumo executivo para compartilhar com a liderança.",
+    "Cada resposta com o estágio de hoje e o próximo estágio.",
+    "Prioridades por dimensão e os pontos cegos.",
+    "Simulação: quanto o AI Score sobe ao fechar as lacunas.",
+    "Plano de 90 dias e as soluções indicadas, com o porquê.",
+  ],
   campos: {
     nome: "Nome",
     email: "E-mail corporativo",
@@ -689,10 +725,9 @@ export const formulario = {
     marketing: "Quero receber conteúdos da Reset IA sobre IA nos negócios.",
     armadilha: "Deixe este campo em branco",
   },
-  finalidade:
-    "Usamos nome, e-mail e empresa para liberar o relatório e registrar o seu resultado. O contato comercial só acontece se você pedir.",
+  finalidade: "Usamos a empresa para completar o seu relatório. O contato comercial só acontece se você pedir.",
   privacidade: { label: "Política de privacidade", href: "/privacidade" },
-  enviar: "Liberar meu relatório",
+  enviar: "Liberar relatório completo",
   enviando: "Liberando…",
   erros: {
     obrigatorio: "Preencha este campo.",
@@ -702,19 +737,145 @@ export const formulario = {
   demo: "Modo demonstração: os dados não foram enviados.",
 };
 
-/** Relatório completo (liberado depois do formulário) e a versão impressa. */
+/** Régua de níveis e alertas da tela de resultado. */
+export const regua = {
+  titulo: "Sua posição na escala",
+  faltam: (pontos: number, nivel: string) => `Faltam ${pontos} pontos para o nível ${nivel}.`,
+  topo: "Você está no nível mais alto da escala.",
+  voceAqui: "Você está aqui",
+};
+
+/** Padrões que o cruzamento das dimensões revela (regras em src/lib/ai-score/analisar.ts). */
+export const alertas = {
+  titulo: "O que o resultado revela",
+  itens: {
+    "adocao-sem-governanca": {
+      titulo: "A adoção está à frente das regras",
+      texto:
+        "As equipes já usam IA, mas sem diretrizes claras de uso, dados e revisão. É o cenário em que informações sensíveis e decisões sem verificação viram risco.",
+    },
+    "estrategia-sem-execucao": {
+      titulo: "Direção definida, pouca execução",
+      texto:
+        "A liderança já tem objetivos para IA, mas os processos ainda não mudaram. Sem levar a IA para o fluxo de trabalho, a estratégia não vira resultado.",
+    },
+    "uso-sem-direcao": {
+      titulo: "O uso cresce sem direção",
+      texto:
+        "Há uso de IA no dia a dia, mas sem objetivos nem responsáveis. As iniciativas tendem a se espalhar sem prioridade e sem conexão com as metas.",
+    },
+    "ferramentas-sem-resultado": {
+      titulo: "Ferramentas sem medição de retorno",
+      texto:
+        "Já existem dados e ferramentas, mas os resultados não são medidos. Fica difícil saber o que funciona e onde vale investir.",
+    },
+    "lideranca-a-frente": {
+      titulo: "A liderança está à frente das equipes",
+      texto:
+        "A direção existe, mas as pessoas ainda não foram preparadas para usar IA na rotina. A capacitação é o que transforma a intenção em prática.",
+    },
+    "processos-sem-dados": {
+      titulo: "Processos sem base de dados",
+      texto:
+        "A IA começa a entrar nos processos, mas os dados estão dispersos. Sem dados organizados, as aplicações ficam limitadas e pouco confiáveis.",
+    },
+    "pontos-cegos": {
+      titulo: "Pouca visibilidade sobre o próprio cenário",
+      texto:
+        "Várias respostas ficaram como Não sei. Quando a liderança não enxerga como a IA está sendo usada, controlar riscos e medir ganhos fica difícil.",
+    },
+    desequilibrio: {
+      titulo: "Maturidade desigual entre as dimensões",
+      texto: "Algumas dimensões avançaram muito mais que outras. Na prática, a evolução fica presa ao elo mais fraco.",
+    },
+    inicio: {
+      titulo: "A jornada está por começar",
+      texto:
+        "Ainda não há uma base estruturada para IA. A vantagem: dá para começar do jeito certo, com objetivos, pessoas preparadas e regras claras desde o início.",
+    },
+  },
+};
+
+/** Relatório completo (liberado depois da etapa 2) e a versão impressa. */
 export const relatorio = {
   titulo: "Seu relatório completo",
-  leitura: "Leitura por dimensão",
+  resumo: {
+    titulo: "Resumo executivo",
+    texto: (r: {
+      quem: string;
+      indice: number | null;
+      nivel: string | null;
+      forte: string | null;
+      lacuna: string | null;
+      alerta: string | null;
+    }) =>
+      [
+        r.indice === null
+          ? `${r.quem} tem um resultado parcial: faltaram respostas para uma nota consolidada.`
+          : `${r.quem} está no nível ${r.nivel}, com AI Score ${r.indice} de 100.`,
+        r.forte ? `A maior força está em ${r.forte}.` : "Nenhuma dimensão se destaca ainda.",
+        r.lacuna ? `A principal lacuna está em ${r.lacuna}.` : "",
+        r.alerta ? `Ponto de atenção: ${r.alerta.charAt(0).toLowerCase()}${r.alerta.slice(1)}.` : "",
+      ]
+        .filter(Boolean)
+        .join(" "),
+    suaEmpresa: "Sua empresa",
+    suaArea: "Sua área",
+  },
+  simulacao: {
+    titulo: "Simulação de evolução",
+    texto: (alvo: number, de: number, para: number, nivel: string) =>
+      `Se todas as dimensões abaixo de ${alvo} chegarem a ${alvo}, o AI Score vai de ${de} para ${para} (${nivel}).`,
+    hoje: "Hoje",
+    depois: "Com as lacunas fechadas",
+    sobem: (alvo: number) => `Dimensões que sobem até ${alvo}:`,
+  },
+  prioridades: {
+    titulo: "Prioridades por dimensão",
+    nota: "Da menor para a maior nota. Os desafios que você apontou aparecem marcados.",
+    rotulos: { critica: "Crítica", alta: "Alta", media: "Média", baixa: "Baixa" },
+    desafio: "Você apontou como desafio",
+  },
+  leitura: "Análise por dimensão",
+  hoje: "Hoje",
+  proximo: "Próximo estágio",
+  topo: "Estágio mais alto da escala.",
   faixas: { baixa: "A estruturar", media: "Em evolução", alta: "Consolidada" },
-  solucoes: "Soluções indicadas para o seu momento",
+  pontosCegos: {
+    titulo: "Pontos cegos",
+    nota: "Perguntas respondidas com Não sei. Elas ficam fora da nota, mas mostram onde falta visibilidade.",
+    nenhum: "Nenhum: todas as perguntas foram respondidas.",
+  },
+  plano: {
+    titulo: "Plano de 90 dias",
+    nota: "Sequência sugerida a partir das prioridades e dos desafios informados.",
+    fases: [
+      { periodo: "Dias 1 a 30", nome: "Organizar a base" },
+      { periodo: "Dias 31 a 60", nome: "Executar" },
+      { periodo: "Dias 61 a 90", nome: "Medir e escalar" },
+    ],
+    reavaliar: "Refazer o AI Score para medir a evolução.",
+  },
+  solucoes: "Onde a Reset entra",
   solucoesNota: "Indicação baseada nas dimensões com menor nota e nos desafios informados.",
+  porque: {
+    dimensao: (nome: string, nota: string) => `${nome} está em ${nota}.`,
+    desafio: (label: string) => `Você apontou: ${label.charAt(0).toLowerCase()}${label.slice(1)}`,
+    inicio: "Indicada para quem está começando a jornada de IA.",
+  },
   areas: "Aplicação de IA por atividade",
   baixar: "Baixar relatório (salvar como PDF)",
   baixarApoio: "Abre a impressão do navegador: escolha Salvar como PDF. No celular, use Compartilhar.",
   impresso: {
     titulo: "Relatório RESET AI Score",
-    para: (nome: string, empresa: string, data: string) => `Preparado para ${nome}, ${empresa}, em ${data}.`,
+    para: (nome: string, empresa: string, data?: string) =>
+      data ? `Preparado para ${nome}, ${empresa}, em ${data}.` : `Preparado para ${nome}, ${empresa}.`,
     rodape: "resetia.com.br · Autoavaliação indicativa, baseada na metodologia própria da Reset IA.",
   },
+};
+
+/** Página de exemplo (/ai-score/exemplo): o relatório completo com respostas hipotéticas. */
+export const exemplo = {
+  aviso: "Exemplo ilustrativo com respostas hipotéticas; não representa uma empresa real.",
+  cta: "Fazer o meu AI Score",
 };

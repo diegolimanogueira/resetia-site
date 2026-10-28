@@ -111,7 +111,7 @@ test("admin: login, lista, detalhe, status e notas, CSV e sair", async ({ page }
   await expect(detalhe.getByText("Estratégia e Liderança")).toBeVisible();
   await expect(detalhe.getByText("linkedin")).toBeVisible();
   const wa = detalhe.getByRole("link", { name: /\+5585999990000/ });
-  expect(new URL((await wa.getAttribute("href"))!).searchParams.get("text")).toContain("(46/100)");
+  expect(new URL((await wa.getAttribute("href"))!).searchParams.get("text")).toContain("(34/100)");
   await expect(detalhe.getByRole("link", { name: admin.detalhe.verResultado })).toHaveAttribute(
     "href",
     `/ai-score/resultado/#${AVALIACOES[0].codigo}`,

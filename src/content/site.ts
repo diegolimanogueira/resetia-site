@@ -133,6 +133,11 @@ export const seo = {
     title: "Avaliação RESET AI Score | Reset IA",
     description: "Responda às perguntas do RESET AI Score e descubra o nível de maturidade em IA da sua empresa.",
   },
+  aiScoreExemplo: {
+    title: "Exemplo de relatório RESET AI Score | Reset IA",
+    description:
+      "Veja um relatório completo do RESET AI Score com respostas hipotéticas: nota, prioridades, pontos cegos, simulação e plano de 90 dias.",
+  },
   aiScoreResultado: {
     title: "Seu resultado RESET AI Score | Reset IA",
     description: "Seu AI Score: nota de 0 a 100, nível de maturidade em IA, resultado por dimensão e próximos passos.",
