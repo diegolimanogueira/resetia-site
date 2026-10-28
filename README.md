@@ -8,7 +8,7 @@
 
 **Staging (GitHub Pages, noindex):** https://diegolimanogueira.github.io/resetia-site/ · **Produção:** https://www.resetia.com.br
 
-Site de [www.resetia.com.br](https://www.resetia.com.br): RESET 360, IA aplicada a Marketing, Vendas e Customer Success. Layout do protótipo `design/reset360/` com a identidade Reset IA; arquitetura e conteúdo do brief de reestruturação (26/10). Páginas `/`, `/solucoes` e as cinco landing pages em `/solucoes/[slug]` (AI Champions, Processos com IA, Agent Factory, Governance, Performance), `/agentes-de-ia` (catálogo com filtro por área), `/tecnologias` (Spotlite e Fluxa BPM), `/sobre`, `/diagnostico-gratuito` (RESET Scan) e `/privacidade`. Rotas antigas (`/solucoes/scan`, `/solucoes/workshops`, `/agentes`, `/produtos`, `/spotlite`) redirecionam. Objetivo: levar ao diagnóstico gratuito pelo WhatsApp.
+Site de [www.resetia.com.br](https://www.resetia.com.br): RESET 360, IA aplicada a Marketing, Vendas e Customer Success. Layout do protótipo `design/reset360/` com a identidade Reset IA; arquitetura e conteúdo do brief de reestruturação (26/10). Páginas `/`, `/solucoes` e as cinco landing pages em `/solucoes/[slug]` (AI Champions, Processos com IA, Agent Factory, Governance, Performance), `/agentes-de-ia` (catálogo com filtro por área), `/tecnologias` (Spotlite e Fluxa BPM), `/sobre`, `/ai-score` (RESET AI Score: landing page, `/ai-score/avaliacao` e `/ai-score/resultado`), `/diagnostico-gratuito` (Análise Estratégica RESET), `/privacidade` e `/admin` (mini CRM dos leads, fora do índice). Rotas antigas (`/solucoes/scan`, `/solucoes/workshops`, `/agentes`, `/produtos`, `/spotlite`) redirecionam. Objetivo: levar ao RESET AI Score; falar com um especialista pelo WhatsApp é o segundo caminho.
 
 ## Stack
 
@@ -16,7 +16,8 @@ Site de [www.resetia.com.br](https://www.resetia.com.br): RESET 360, IA aplicada
 - **Tailwind v4** com tokens do manual de marca. Sem biblioteca de componentes: o menu mobile é um botão com `aria-expanded`.
 - **Efeitos só em CSS**, como no protótipo: hover em botões e cards, header sticky com blur, scroll suave nativo. Com `prefers-reduced-motion`, sem deslocamento, transição nem scroll suave.
 - **DigitalOcean App Platform** (Static Site, tier gratuito), deploy pelo GitHub Actions só com CI verde.
-- Conteúdo tipado em `src/content/*.ts`. Sem CMS, sem banco, sem API.
+- Conteúdo tipado em `src/content/*.ts`. Sem CMS.
+- **Banco só para o RESET AI Score:** Supabase (Postgres + Auth, São Paulo) acessado pelo navegador por `fetch`, protegido por RLS. O site continua estático. Migração em `supabase/migrations/`; sem as envs, o AI Score roda em modo demonstração.
 
 ## Rodar
 
@@ -39,23 +40,28 @@ Copie `.env.example` para `.env.local`.
 | `NEXT_PUBLIC_ANALYTICS_ID`       | ID do site no Umami ou da propriedade GA4. Sem ela, nada é carregado |
 | `NEXT_PUBLIC_ANALYTICS_HOST`     | Umami self-hosted (padrão `https://cloud.umami.is`)                  |
 | `NEXT_PUBLIC_SITE_URL`           | URL pública; usada pelo deploy e pelo smoke                          |
+| `NEXT_PUBLIC_SUPABASE_URL`       | Projeto Supabase do RESET AI Score (produção em `.env.production`)   |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`  | Chave anônima do Supabase (pública; o RLS protege os dados)          |
 
-Eventos de analytics (todos com a origem do botão, `data-cta`): `cta_diagnostico_gratuito` (WhatsApp do RESET Scan, origens `diagnostico-*`), `cta_whatsapp` (demais conversas, inclusive os CTAs de cada solução `solucao-<slug>`), `cta_pagina_diagnostico` (links para `/diagnostico-gratuito`) e `cta_teste_spotlite` (teste da Spotlite, com `utm_source=resetia.<origem>`, que a Spotlite grava no lead).
+Eventos de analytics (todos com a origem do botão, `data-cta`): `cta_ai_score` (links para o RESET AI Score, origens `ai-score-*`), `cta_diagnostico_gratuito` (WhatsApp da Análise Estratégica, "Falar com um especialista", origens `diagnostico-*`), `cta_whatsapp` (demais conversas, inclusive os CTAs de cada solução `solucao-<slug>`), `cta_pagina_diagnostico` (links para `/diagnostico-gratuito`) e `cta_teste_spotlite` (teste da Spotlite, com `utm_source=resetia.<origem>`). O questionário registra o funil: `ai_score_inicio`, `ai_score_etapa`, `ai_score_concluido`, `ai_score_lead` e `ai_score_download`.
 
 ## Trocar conteúdo
 
 Todo texto do site está em `src/content/`:
 
-| Arquivo          | O quê                                                                                               |
-| ---------------- | --------------------------------------------------------------------------------------------------- |
-| `site.ts`        | nome, WhatsApp e mensagens (geral e diagnóstico), fundadores, navegação, rodapé, SEO, rotas movidas |
-| `home.ts`        | as seções da home (hero, RESET 360 e diagrama, áreas, Scan, tecnologias, fundadores)                |
-| `diagnostico.ts` | página do diagnóstico gratuito (RESET Scan) e o teste da Spotlite como alternativa                  |
-| `agentes.ts`     | catálogo dos 30 agentes, as três frentes da Agent Factory e a seção de consolidação                 |
-| `solucoes.ts`    | as cinco soluções (landing page cada), FAQ do site, rótulos e o CTA final padrão                    |
-| `tecnologias.ts` | Spotlite e Fluxa BPM (cards da home e página Tecnologias)                                           |
-| `privacidade.ts` | política de privacidade                                                                             |
-| `sobre.ts`       | história, Diego e Élida (especialidade, bio, LinkedIn), fechamento, proposta de valor               |
+| Arquivo                    | O quê                                                                                                       |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `site.ts`                  | nome, WhatsApp e mensagens (geral e Análise Estratégica), fundadores, navegação, rodapé, SEO, rotas movidas |
+| `home.ts`                  | as seções da home (hero, RESET 360 e diagrama, áreas, AI Score, tecnologias, fundadores)                    |
+| `ai-score.ts`              | landing page do RESET AI Score                                                                              |
+| `ai-score-questionario.ts` | perguntas, dimensões, níveis, desafios, textos do questionário, do resultado, do formulário e do relatório  |
+| `admin.ts`                 | textos do `/admin` e do CSV                                                                                 |
+| `diagnostico.ts`           | página da Análise Estratégica RESET e o teste da Spotlite como alternativa                                  |
+| `agentes.ts`               | catálogo dos 30 agentes, as três frentes da Agent Factory e a seção de consolidação                         |
+| `solucoes.ts`              | as cinco soluções (landing page cada), FAQ do site, rótulos e o CTA final padrão                            |
+| `tecnologias.ts`           | Spotlite e Fluxa BPM (cards da home e página Tecnologias)                                                   |
+| `privacidade.ts`           | política de privacidade                                                                                     |
+| `sobre.ts`                 | história, Diego e Élida (especialidade, bio, LinkedIn), fechamento, proposta de valor                       |
 
 Pendências usam a constante `FALTA` (`"[FALTA]"`): `npm run check:falta` lista onde elas aparecem no HTML gerado. Não invente copy: o que falta é fornecido pelo Diego (ver `docs/decisions.md`).
 
@@ -67,7 +73,8 @@ Imagens de marca em `public/brand/`. `npm run images` reotimiza (WebP/AVIF), reg
 npm run lint && npm run typecheck && npm run test   # estático + unidade
 npm run build && npm run e2e                         # Playwright: E2E, axe, visual, SEO
 npm run lhci                                         # Lighthouse CI (mobile) sobre out/
-npm run check:html && npm run check:size && npm run check:falta
+npm run check:html && npm run check:size && npm run check:rotas && npm run check:falta
+npm run test:banco                                   # migração do Supabase num Postgres local (RLS e permissões)
 ```
 
 A pirâmide completa, o que cada camada pega e como atualizar os baselines visuais estão em [`docs/testing.md`](docs/testing.md). O CI (`.github/workflows/ci.yml`) roda tudo isso em cada push e PR; o deploy só acontece com o CI verde.
@@ -82,8 +89,10 @@ Static Site no DigitalOcean App Platform, spec em `.do/app.yaml`. `npm run deplo
 src/app/            rotas, layout, metadados, sitemap, robots, manifest, 404
 src/components/     brand · layout (Header, MobileMenu, Footer, BarraMobile) · sections · ui
 src/content/        todo o copy, tipado
-src/lib/            waUrl()/waDiagnostico(), testeSpotliteUrl(), analytics
-scripts/            optimize-images, og-image, check-falta, screenshots
+src/lib/            waUrl()/waDiagnostico(), testeSpotliteUrl(), analytics, supabase (REST/GoTrue por fetch)
+src/lib/ai-score/   cálculo, recomendações, regras, link do resultado, lead score, CSV
+supabase/           migrations (tabelas, RLS) e o teste de segurança do banco
+scripts/            optimize-images, og-image, check-falta, check-js-rotas, testar-banco, screenshots
 tests/unit          Vitest · tests/e2e  Playwright
 design/reset360/    protótipo HTML (fonte de verdade do layout); design/handoff/ é o handoff antigo, histórico
 docs/               decisions.md · brand.md · testing.md · deploy.md

@@ -46,7 +46,40 @@ Checar, nesta ordem, em Apps → resetia-site → Settings → componente:
 
 5. **Uptime Check.** Painel → Monitoring → Uptime → Create Check: HTTPS `https://www.resetia.com.br`, regiões US-East e EU, alerta por e-mail (1 check é gratuito).
 6. **Google Search Console.** Adicionar a propriedade `www.resetia.com.br`, verificar por DNS ou arquivo, enviar `https://www.resetia.com.br/sitemap.xml`.
-7. **Analytics.** Criar o site no Umami (cloud.umami.is) ou a propriedade GA4, preencher `NEXT_PUBLIC_ANALYTICS_ID` em `.do/app.yaml` (e `NEXT_PUBLIC_ANALYTICS_PROVIDER=ga4` se for GA4). Os eventos `cta_whatsapp` e `cta_diagnostico` aparecem com a origem do botão (`hero`, `fecho`, `home-diagnostico`…).
+7. **Analytics.** Criar o site no Umami (cloud.umami.is) ou a propriedade GA4, preencher `NEXT_PUBLIC_ANALYTICS_ID` em `.do/app.yaml` (e `NEXT_PUBLIC_ANALYTICS_PROVIDER=ga4` se for GA4). Os eventos (`cta_ai_score`, `cta_diagnostico_gratuito`, `cta_whatsapp`, `ai_score_concluido`, `ai_score_lead`…) aparecem com a origem do botão (`ai-score-hero`, `diagnostico-final`…).
+
+## RESET AI Score: Supabase
+
+Configurado em 28/10/2026 no projeto **`site_resetia`** (`pjjzjbjamalwkjtlifgm`, South America / São Paulo, plano gratuito; o `projetosunimed` foi pausado para liberar a vaga).
+
+- **Migrações aplicadas:** `supabase/migrations/0001_ai_score.sql` (tabelas, RLS, permissões, `ping()`) e `0002_cadastro_fechado.sql` (um gatilho em `auth.users` recusa qualquer cadastro novo; também tira da API a função `rls_auto_enable` do RLS automático do Supabase). Conferido pela API pública: o anônimo só insere, cadastro por e-mail e anônimo recusados, o admin lê e só muda status e notas.
+- **Admin:** `contato@resetia.com.br`, criado direto no banco e já em `public.admins`. A senha foi entregue ao Diego; a recuperação por e-mail passa a funcionar quando a caixa existir.
+- **Chaves no site:** `.env.production` (versionado) traz a URL e a chave `sb_publishable_…`. O `next build` lê esse arquivo na DigitalOcean, sem configurar o painel. O CI sobrescreve com um Supabase fictício e o staging com valores vazios (modo demonstração). Não declarar essas variáveis no painel da DO: um valor vazio lá venceria o arquivo.
+- **Keep-alive:** as variáveis `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` estão em GitHub → Settings → Variables; o `keepalive.yml` chama `public.ping()` a cada dois dias.
+
+**Cadastrar outro admin.** Com o cadastro fechado, o usuário nasce pelo SQL Editor (troque e-mail e senha):
+
+```sql
+select set_config('resetia.permitir_cadastro', 'sim', true);
+with u as (
+  insert into auth.users (instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+    raw_app_meta_data, raw_user_meta_data, created_at, updated_at,
+    confirmation_token, recovery_token, email_change_token_new, email_change)
+  values ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated',
+    'NOVO-EMAIL', extensions.crypt('SENHA-FORTE', extensions.gen_salt('bf')), now(),
+    '{"provider":"email","providers":["email"]}', '{}', now(), now(), '', '', '', '')
+  returning id, email
+), i as (
+  insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+  select gen_random_uuid(), id, id::text, jsonb_build_object('sub', id::text, 'email', email, 'email_verified', true),
+         'email', now(), now(), now() from u
+)
+insert into public.admins (user_id) select id from u;
+```
+
+**Trocar a senha de um admin** (SQL Editor): `update auth.users set encrypted_password = extensions.crypt('NOVA-SENHA', extensions.gen_salt('bf')) where email = 'contato@resetia.com.br';`
+
+**Se o projeto pausar** (o GitHub avisa quando o keep-alive falha): painel do Supabase → Restore. O site guarda no navegador o que não conseguiu gravar e reenvia quando a pessoa volta. Para eliminar o risco, plano Pro (US$ 25/mês, organização separada).
 
 ## Operação
 

@@ -53,3 +53,7 @@ Spotlite (`#FF7A45`, ponto) e Fluxa BPM (`#0B7A4F`) aparecem só como um ponto c
 ## Imagens
 
 `diego` (Sobre, foto redonda no card do fundador; fonte em `design/fotos/`). O hero não usa foto: as órbitas são CSS. `porta.png` e `bussola.png`, do layout anterior, estão guardadas em `design/imagens/`.
+
+## Impressão (relatório do RESET AI Score)
+
+O relatório completo do AI Score sai pela impressão do navegador ("Salvar como PDF"). Em `@media print` (`globals.css`): fundo branco, texto carvão, apoio carvão a 72%, linhas carvão a 18%, painéis brancos; o verde vira `color-mix(in srgb, #00e676 55%, #0b0f0e)`, porque o verde puro no branco fica em ~1,6:1. As barras imprimem a cor (`print-color-adjust: exact` só nelas). Header, rodapé, barra do celular, formulários e CTAs (`[data-nao-imprimir]`) ficam fora; entram um cabeçalho com nome, empresa e data e um rodapé com o aviso de autoavaliação.
