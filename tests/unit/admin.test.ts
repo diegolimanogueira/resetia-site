@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { celula, paraCsv } from "@/lib/ai-score/csv";
-import { csvLeads, filtrarLeads, filtrosIniciais, montarLeads, resumir } from "@/lib/ai-score/leads";
+import {
+  atrasado,
+  csvLeads,
+  filtrarLeads,
+  filtrosIniciais,
+  hojeSp,
+  indicadores,
+  montarLeads,
+  resumir,
+} from "@/lib/ai-score/leads";
 import type { AvaliacaoLinha, LeadLinha } from "@/lib/supabase-admin";
 
 const lead = (extra: Partial<LeadLinha>): LeadLinha => ({
@@ -17,6 +26,9 @@ const lead = (extra: Partial<LeadLinha>): LeadLinha => ({
   consentimento_marketing: false,
   status: "novo",
   notas: null,
+  responsavel: null,
+  proximo_contato: null,
+  relatorio_enviado_em: null,
   ambiente: "producao",
   ...extra,
 });
@@ -120,6 +132,61 @@ describe("admin: visão dos leads", () => {
     expect(cabecalho.split(";")).toContain("Estratégia e Liderança");
     expect(primeira).toContain("Maria Teste;maria@empresa.com.br;não;Empresa Ágil;5585999990000;Empresário ou CEO");
     expect(primeira).toContain(";34;Explorando;70;40;27,5;40;15;27,5;Vendas 70;");
-    expect(primeira).toContain("GOVERNANCE | AI-CHAMPIONS;100;Novo;sim;não;producao;linkedin");
+    expect(primeira).toContain("GOVERNANCE | AI-CHAMPIONS;100;Novo;sim;não;;;;producao;linkedin");
+  });
+
+  it("CSV leva responsável, próximo contato e envio do relatório", () => {
+    const comCrm = [
+      avaliacao({
+        leads: [
+          lead({
+            responsavel: "elida@resetia.com.br",
+            proximo_contato: "2026-11-03",
+            relatorio_enviado_em: "2026-10-28T13:05:00Z",
+          }),
+        ],
+      }),
+    ];
+    const csv = csvLeads(montarLeads(comCrm), (s) => s);
+    expect(csv).toContain(";elida@resetia.com.br;03/11/2026;28/10/2026;producao;");
+  });
+
+  it("hoje no fuso de São Paulo, no formato do campo de data", () => {
+    // 01:30 UTC do dia 29 ainda é dia 28 em São Paulo (UTC-3).
+    expect(hojeSp(new Date("2026-10-29T01:30:00Z"))).toBe("2026-10-28");
+    expect(hojeSp(new Date("2026-10-29T03:30:00Z"))).toBe("2026-10-29");
+  });
+
+  it("retorno atrasado só para etapas em aberto e data passada", () => {
+    const hoje = "2026-10-28";
+    expect(atrasado(lead({ proximo_contato: "2026-10-27" }), hoje)).toBe(true);
+    expect(atrasado(lead({ proximo_contato: "2026-10-28" }), hoje)).toBe(false);
+    expect(atrasado(lead({ proximo_contato: null }), hoje)).toBe(false);
+    expect(atrasado(lead({ proximo_contato: "2026-10-01", status: "cliente" }), hoje)).toBe(false);
+    expect(atrasado(lead({ proximo_contato: "2026-10-01", status: "descartado" }), hoje)).toBe(false);
+    expect(atrasado(lead({ proximo_contato: "2026-10-01", status: "oportunidade" }), hoje)).toBe(true);
+  });
+
+  it("indicadores do funil: negociação, clientes, conversão sem descartados, atrasados e pedidos", () => {
+    const comStatus = [
+      avaliacao({
+        leads: [
+          lead({ id: "a", status: "qualificado", proximo_contato: "2026-10-01" }),
+          lead({ id: "b", status: "oportunidade", pediu_contato: false }),
+          lead({ id: "c", status: "cliente", pediu_contato: false }),
+          lead({ id: "d", status: "descartado", pediu_contato: false }),
+          lead({ id: "e", status: "novo", pediu_contato: false }),
+        ],
+      }),
+    ];
+    expect(indicadores(montarLeads(comStatus), "2026-10-28")).toEqual({
+      leads: 5,
+      emNegociacao: 2,
+      clientes: 1,
+      conversao: 25,
+      atrasados: 1,
+      pediram: 1,
+    });
+    expect(indicadores([], "2026-10-28")).toMatchObject({ leads: 0, conversao: 0 });
   });
 });

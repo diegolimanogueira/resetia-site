@@ -19,6 +19,9 @@ const eslintConfig = defineConfig([
     "design/**",
     "playwright-report/**",
     "test-results/**",
+    // Função Deno do Supabase (imports npm:, núcleo gerado pelo rolldown): fora do lint do Next.
+    "supabase/functions/**",
+    "supabase/tests/**",
   ]),
 ]);
 

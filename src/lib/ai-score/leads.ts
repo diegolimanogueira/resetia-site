@@ -101,6 +101,30 @@ export function resumir(avaliacoes: AvaliacaoLinha[], ambiente: string) {
   };
 }
 
+/** Etapas em aberto: retorno atrasado só conta nelas. */
+const EM_ABERTO: StatusLead[] = ["novo", "contatado", "qualificado", "oportunidade"];
+
+/** Data de hoje no fuso de São Paulo, AAAA-MM-DD (o mesmo formato do campo próximo contato). */
+export const hojeSp = (agora = new Date()) => agora.toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+
+export const atrasado = (l: LeadLinha, hoje: string) =>
+  Boolean(l.proximo_contato && l.proximo_contato < hoje && EM_ABERTO.includes(l.status));
+
+/** Números do topo do funil: leads, em negociação, clientes, conversão, atrasados e pedidos de contato. */
+export function indicadores(leads: LeadVisao[], hoje: string) {
+  const total = leads.length;
+  const clientes = leads.filter((l) => l.lead.status === "cliente").length;
+  const descartados = leads.filter((l) => l.lead.status === "descartado").length;
+  return {
+    leads: total,
+    emNegociacao: leads.filter((l) => l.lead.status === "qualificado" || l.lead.status === "oportunidade").length,
+    clientes,
+    conversao: total - descartados > 0 ? Math.round((clientes / (total - descartados)) * 100) : 0,
+    atrasados: leads.filter((l) => atrasado(l.lead, hoje)).length,
+    pediram: leads.filter((l) => l.lead.pediu_contato).length,
+  };
+}
+
 const rotulo = <T extends string>(lista: ReadonlyArray<{ id: T; label: string }>, id: T | undefined) =>
   lista.find((o) => o.id === id)?.label ?? id ?? "";
 
@@ -147,6 +171,9 @@ export function csvLeads(leads: LeadVisao[], solucaoNome: (slug: string) => stri
     c.status,
     c.pediuContato,
     c.marketing,
+    c.responsavel,
+    c.proximoContato,
+    c.relatorioEnviado,
     c.ambiente,
     "utm_source",
     "utm_medium",
@@ -180,6 +207,9 @@ export function csvLeads(leads: LeadVisao[], solucaoNome: (slug: string) => stri
     admin.status[l.status],
     l.pediu_contato,
     l.consentimento_marketing,
+    l.responsavel,
+    l.proximo_contato ? dataBr(`${l.proximo_contato}T12:00:00`) : null,
+    l.relatorio_enviado_em ? dataBr(l.relatorio_enviado_em) : null,
     l.ambiente,
     a.origem?.utm_source,
     a.origem?.utm_medium,

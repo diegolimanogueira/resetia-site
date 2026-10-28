@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Barra } from "@/components/sections/ai-score/Placar";
 import { BotaoAcao } from "@/components/ui/botao";
 import { Eyebrow } from "@/components/ui/eyebrow";
@@ -20,8 +20,11 @@ import {
 import type { DimensaoId } from "@/content/types";
 import type { Analise } from "@/lib/ai-score/analisar";
 import { faixaDe, formatarNota } from "@/lib/ai-score/calcular";
+import type { Biblioteca } from "@/content/ai-score-dicas";
+import { alvosDasDicas, lerDicas, montarDicas, type Dicas } from "@/lib/ai-score/dicas";
 import type { Recomendacao, RespostasCompletas, Resultado } from "@/lib/ai-score/tipos";
 import { track } from "@/lib/analytics";
+import { chamarFuncao } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 const dimensao = (id: DimensaoId) => dimensoes.find((d) => d.id === id)!;
@@ -72,6 +75,10 @@ export function Relatorio({
   quem,
   focar,
   demo,
+  avaliacaoId,
+  leadId,
+  buscarDicas = false,
+  emailEnviadoPara,
 }: {
   respostas: RespostasCompletas;
   resultado: Resultado;
@@ -83,11 +90,47 @@ export function Relatorio({
   focar: boolean;
   /** Supabase desligado (staging, testes): avisa que nada foi enviado. */
   demo: boolean;
+  avaliacaoId?: string;
+  leadId?: string;
+  /** Pede as dicas à função (IA); sem isso, ou se ela falhar, usa a biblioteca. */
+  buscarDicas?: boolean;
+  /** E-mail para onde a função confirmou o envio do relatório. */
+  emailEnviadoPara?: string;
 }) {
   const titulo = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     if (focar) titulo.current?.focus();
   }, [focar]);
+
+  // Dicas: com a função disponível, as dicas da IA (escritor + revisor); sem ela, ou se falhar, a biblioteca,
+  // carregada só quando o relatório aparece (fica fora do JavaScript inicial da página).
+  const alvos = useMemo(() => alvosDasDicas(resultado), [resultado]);
+  const [biblioteca, setBiblioteca] = useState<Biblioteca | null>(null);
+  useEffect(() => {
+    let vivo = true;
+    void import("@/content/ai-score-dicas").then((m) => {
+      if (vivo) setBiblioteca(m.biblioteca);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, []);
+  const reserva = useMemo(() => (biblioteca ? montarDicas(biblioteca, r, alvos) : null), [biblioteca, r, alvos]);
+  const pedir = buscarDicas && Boolean(avaliacaoId && leadId) && alvos.length > 0;
+  const [daFuncao, setDaFuncao] = useState<Dicas | "falhou" | null>(null);
+  useEffect(() => {
+    if (!pedir) return;
+    let vivo = true;
+    void chamarFuncao({ acao: "dicas", avaliacao_id: avaliacaoId, lead_id: leadId }, { timeout: 90_000 }).then(
+      (res) => {
+        if (vivo) setDaFuncao((res.ok && lerDicas(res.dados, alvos)) || "falhou");
+      },
+    );
+    return () => {
+      vivo = false;
+    };
+  }, [pedir, avaliacaoId, leadId, alvos]);
+  const dicas: Dicas | null = !pedir ? reserva : daFuncao === null ? null : daFuncao === "falhou" ? reserva : daFuncao;
 
   const baixar = () => {
     track("ai_score_download", { nivel: resultado.nivel ?? "parcial" });
@@ -112,6 +155,11 @@ export function Relatorio({
           {demo ? (
             <p data-nao-imprimir className="text-fg-2 border-neutro mt-4 border-l-2 pl-3 text-[13px]">
               {formulario.demo}
+            </p>
+          ) : null}
+          {emailEnviadoPara ? (
+            <p data-nao-imprimir className="text-verde mt-4 text-[14px] font-semibold">
+              {t.enviado(emailEnviadoPara)}
             </p>
           ) : null}
         </div>
@@ -200,6 +248,45 @@ export function Relatorio({
             </li>
           ))}
         </ol>
+      </Bloco>
+
+      <Bloco titulo={t.dicas.titulo} nota={t.dicas.nota}>
+        {!alvos.length ? (
+          <p className="text-[15px]">{t.dicas.nenhuma}</p>
+        ) : !dicas ? (
+          <p aria-live="polite" className="border-line bg-painel border p-[22px] text-[15px]">
+            {t.dicas.carregando}
+          </p>
+        ) : (
+          <>
+            <div className="grid gap-3 md:grid-cols-2">
+              {dicas.dimensoes.map((x) => (
+                <article
+                  key={x.id}
+                  className="border-line border-l-verde bg-painel break-inside-avoid border border-l-2 p-[22px]"
+                >
+                  <p className="mb-4 flex items-baseline justify-between gap-4">
+                    <span className="text-[18px] font-bold">{dimensao(x.id).nome}</span>
+                    <span className="text-[17px] font-bold tabular-nums">
+                      {formatarNota(resultado.dimensoes[x.id] ?? 0)}
+                    </span>
+                  </p>
+                  <ol className="grid gap-3">
+                    {x.dicas.map((d, i) => (
+                      <li key={d} className="grid grid-cols-[24px_1fr] gap-2 text-[15px] leading-[1.55]">
+                        <span className="text-verde font-bold tabular-nums">{i + 1}.</span>
+                        {d}
+                      </li>
+                    ))}
+                  </ol>
+                </article>
+              ))}
+            </div>
+            <p className="text-fg-2 mt-4 text-[13px]" data-fonte-dicas={dicas.fonte}>
+              {t.dicas.fonte[dicas.fonte]}
+            </p>
+          </>
+        )}
       </Bloco>
 
       <Bloco titulo={t.leitura}>
@@ -377,6 +464,15 @@ export function Relatorio({
           </div>
         </Bloco>
       ) : null}
+
+      <div className="border-line mt-16 break-inside-avoid border p-[22px] md:p-[30px]" data-assinatura>
+        <p className="eyebrow text-verde mb-3 text-[11px]">{t.assinatura.titulo}</p>
+        {t.assinatura.paragrafos.map((paragrafo) => (
+          <p key={paragrafo} className="text-fg-2 mb-3 text-[14px] leading-[1.65] last:mb-0">
+            {paragrafo}
+          </p>
+        ))}
+      </div>
     </div>
   );
 }

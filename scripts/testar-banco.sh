@@ -19,11 +19,15 @@ esperar "violates check constraint \"leads_email_check\""
 esperar "violates check constraint \"leads_whatsapp_check\""
 esperar "violates check constraint \"avaliacoes_desafios_check\""
 esperar "violates check constraint \"leads_status_check\""
-[ "$(grep -c 'permission denied for table' <<<"$SAIDA")" -eq 7 ] || { echo "FALHOU: esperadas 7 permissões negadas"; exit 1; }
+[ "$(grep -c 'permission denied for table' <<<"$SAIDA")" -eq 11 ] || { echo "FALHOU: esperadas 11 permissões negadas"; exit 1; }
 esperar "permission denied for function eh_admin"
 esperar " contatado | Ligar quinta | t"
 esperar " Etapa Um | Empresa Etapa | 5511999990000 | t             | novo"
 [ "$(grep -c '^ t$' <<<"$SAIDA")" -ge 3 ] || { echo "FALHOU: completar_lead não devolveu true"; exit 1; }
 [ "$(grep -c '^ f$' <<<"$SAIDA")" -ge 1 ] || { echo "FALHOU: completar_lead aceitou id inexistente"; exit 1; }
 [ "$(grep -c '^ novo   | t' <<<"$SAIDA")" -eq 1 ] || { echo "FALHOU: status/notas forjados pelo anônimo"; exit 1; }
+esperar ' {"nome" : "Etapa Um", "empresa" : "Empresa Etapa"}'
+esperar " admin@resetia.com.br | ligacao"
+esperar " admin@resetia.com.br | 2026-11-05"
+esperar "new row violates row-level security policy for table \"atividades\""
 echo "Banco OK: RLS, permissões, CHECKs e gatilhos como esperado."

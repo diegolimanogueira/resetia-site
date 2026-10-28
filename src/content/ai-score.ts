@@ -49,7 +49,7 @@ export const aiScore = {
         etiqueta: "Gratuito, com a empresa",
         nome: "Relatório completo",
         texto:
-          "Cada resposta com o próximo estágio, prioridades, pontos cegos, simulação de evolução, plano de 90 dias e soluções indicadas, em PDF.",
+          "Cada resposta com o próximo estágio, prioridades, pontos cegos, dicas para evoluir, simulação de evolução, plano de 90 dias e soluções indicadas, em PDF e no seu e-mail.",
       },
       {
         etiqueta: "Mediante contato",
@@ -97,7 +97,7 @@ export const aiScore = {
         numero: "04",
         titulo: "Veja seu AI Score",
         texto:
-          "Com nome e e-mail, você vê nota, nível e próximos passos na hora. O relatório completo sai com o nome da empresa.",
+          "Com nome e e-mail, você vê nota, nível e próximos passos na hora. O relatório completo sai com o nome da empresa e chega também no seu e-mail.",
       },
     ] satisfies Passo[],
   },
@@ -138,6 +138,11 @@ export const aiScore = {
         pergunta: "Qual é a diferença entre a Visão Empresa e a Visão por Área?",
         resposta:
           "A Visão Empresa avalia a organização inteira e pode aprofundar Marketing, Vendas e Customer Success. A Visão por Área avalia só a sua área. O índice de cada área é separado e não altera o AI Score.",
+      },
+      {
+        pergunta: "A nota é gerada por IA?",
+        resposta:
+          "Não. A nota vem de regras fixas: as mesmas respostas dão sempre o mesmo resultado. A IA entra só nas dicas para evoluir do relatório completo, escritas por um agente e conferidas por um agente revisor a partir das suas respostas, sem receber seu nome, e-mail ou empresa. Como em toda autoavaliação, confira as conclusões com a sua equipe.",
       },
       {
         pergunta: "O que acontece com os meus dados?",

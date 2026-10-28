@@ -677,7 +677,8 @@ export const resultadoTextos = {
 
 /**
  * Etapa 1 da captura (pedido do Diego, 28/10): nome e e-mail abrem o resultado. Fica no fim, depois que a pessoa
- * já respondeu, para não criar atrito no começo. Sem envio de e-mail: o resultado abre na própria página.
+ * já respondeu, para não criar atrito no começo. O resultado abre na própria página; o relatório completo (etapa 2)
+ * também vai para o e-mail informado.
  */
 export const contato = {
   kicker: "Seu resultado está pronto",
@@ -698,7 +699,7 @@ export const contato = {
   },
   enviar: "Ver meu resultado",
   enviando: "Abrindo…",
-  finalidade: "Usamos seu nome e e-mail só para registrar o seu resultado. Sem spam.",
+  finalidade: "Usamos seu nome e e-mail para registrar o seu resultado e falar sobre ele. Sem spam.",
 };
 
 /** Etapa 2 (camada 2): empresa e WhatsApp opcional liberam o relatório completo e o PDF. */
@@ -706,12 +707,12 @@ export const formulario = {
   kicker: "Relatório completo",
   titulo: ["Quer o diagnóstico completo", "*da sua empresa?*"],
   texto:
-    "A análise de cada resposta, o plano de 90 dias, a simulação de evolução, os pontos cegos e as soluções indicadas, em PDF. Gratuito.",
+    "A análise de cada resposta, dicas para evoluir, o plano de 90 dias, a simulação de evolução, os pontos cegos e as soluções indicadas, em PDF e no seu e-mail. Gratuito.",
   incluido: "O relatório completo traz",
   itens: [
     "Resumo executivo para compartilhar com a liderança.",
     "Cada resposta com o estágio de hoje e o próximo estágio.",
-    "Prioridades por dimensão e os pontos cegos.",
+    "Prioridades por dimensão, pontos cegos e dicas para evoluir.",
     "Simulação: quanto o AI Score sobe ao fechar as lacunas.",
     "Plano de 90 dias e as soluções indicadas, com o porquê.",
   ],
@@ -725,7 +726,8 @@ export const formulario = {
     marketing: "Quero receber conteúdos da Reset IA sobre IA nos negócios.",
     armadilha: "Deixe este campo em branco",
   },
-  finalidade: "Usamos a empresa para completar o seu relatório. O contato comercial só acontece se você pedir.",
+  finalidade:
+    "Usamos a empresa para completar o seu relatório, que também enviamos para o seu e-mail. Ligação ou WhatsApp de um especialista, só se você pedir.",
   privacidade: { label: "Política de privacidade", href: "/privacidade" },
   enviar: "Liberar relatório completo",
   enviando: "Liberando…",
@@ -855,6 +857,28 @@ export const relatorio = {
       { periodo: "Dias 61 a 90", nome: "Medir e escalar" },
     ],
     reavaliar: "Refazer o AI Score para medir a evolução.",
+  },
+  dicas: {
+    titulo: "Dicas para evoluir",
+    nota: "Para cada dimensão de nota baixa, ações concretas para chegar ao próximo estágio, a partir das suas respostas.",
+    carregando: "Os agentes de IA estão escrevendo e revisando as suas dicas…",
+    nenhuma: "Nenhuma dimensão ficou com nota baixa. O plano de 90 dias mostra como seguir evoluindo.",
+    fonte: {
+      ia: "Escritas por um agente de IA a partir das suas respostas e conferidas por um agente revisor.",
+      biblioteca:
+        "Da biblioteca de dicas da Reset, escrita com IA e revisada por um agente revisor, escolhidas pelas suas respostas.",
+      misto:
+        "Escritas por um agente de IA e conferidas por um agente revisor; onde a revisão descartou dicas, entram as da biblioteca da Reset.",
+    },
+  },
+  enviado: (email: string) => `Uma cópia deste relatório foi enviada para ${email}.`,
+  assinatura: {
+    titulo: "Relatório gerado por um squad multiagente de IA",
+    paragrafos: [
+      "Este relatório foi produzido por um squad de agentes de inteligência artificial da Reset IA, cada um com uma função: um motor de regras calcula a nota, o nível, as prioridades e o plano a partir das suas respostas; um agente escreve as dicas de evolução; e um agente revisor confere cada dica contra as suas respostas e descarta o que não se apoia nelas.",
+      "A nota não é gerada por IA: as mesmas respostas dão sempre o mesmo resultado, pela metodologia própria da Reset.",
+      "Por ser uma autoavaliação, e por envolver IA, o resultado deve ser conferido: valide as conclusões com a sua equipe antes de decidir. Ele não substitui a análise de um especialista nem é certificação.",
+    ],
   },
   solucoes: "Onde a Reset entra",
   solucoesNota: "Indicação baseada nas dimensões com menor nota e nos desafios informados.",

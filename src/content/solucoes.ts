@@ -1,3 +1,4 @@
+import { nomesSolucoes } from "./solucoes-nomes";
 import type { CtaFinal, Pergunta, Solucao } from "./types";
 
 /** Fecho de todas as páginas: o convite do RESET 360, levando ao RESET AI Score (WhatsApp como segundo caminho). */
@@ -13,7 +14,7 @@ const lista: Solucao[] = [
   {
     slug: "ai-champions",
     num: "01",
-    nome: "RESET AI Champions",
+    nome: nomesSolucoes["ai-champions"],
     icone: "champions",
     frase: "Forme os líderes e as equipes que vão multiplicar a IA na empresa.",
     headline: [
@@ -136,7 +137,7 @@ const lista: Solucao[] = [
   {
     slug: "processos-com-ia",
     num: "02",
-    nome: "RESET Processos com IA",
+    nome: nomesSolucoes["processos-com-ia"],
     icone: "processos",
     frase: "Antes de automatizar, redesenhe o trabalho.",
     headline: ["Automatizar processos ruins não é transformação.", "*É acelerar a ineficiência.*"],
@@ -261,7 +262,7 @@ const lista: Solucao[] = [
   {
     slug: "agent-factory",
     num: "03",
-    nome: "RESET Agent Factory",
+    nome: nomesSolucoes["agent-factory"],
     icone: "agentes",
     frase: "Agentes inteligentes feitos para desafios reais.",
     headline: ["E se sua empresa pudesse fazer mais,", "*sem precisar multiplicar ferramentas e tarefas?*"],
@@ -383,7 +384,7 @@ const lista: Solucao[] = [
   {
     slug: "governance",
     num: "04",
-    nome: "RESET Governance",
+    nome: nomesSolucoes.governance,
     icone: "governanca",
     frase: "Inovação com clareza, responsabilidade e controle.",
     headline: ["Quanto mais a IA avança, mais importante é saber", "*quem decide, como utiliza e o que pode fazer.*"],
@@ -503,7 +504,7 @@ const lista: Solucao[] = [
   {
     slug: "performance",
     num: "05",
-    nome: "RESET Performance",
+    nome: nomesSolucoes.performance,
     icone: "performance",
     frase: "Implantar é o começo. Evoluir é o diferencial.",
     headline: ["Sua empresa já implementou IA.", "*Agora é hora de provar o valor que ela gera.*"],

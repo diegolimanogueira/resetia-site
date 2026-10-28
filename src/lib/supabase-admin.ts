@@ -1,5 +1,14 @@
-import type { Escopo, HorizonteId, NivelId, PapelId, PorteId, SegmentoId, StatusLead } from "@/content/types";
-import { cabecalhos, supabase } from "@/lib/supabase";
+import type {
+  Escopo,
+  HorizonteId,
+  NivelId,
+  PapelId,
+  PorteId,
+  SegmentoId,
+  StatusLead,
+  TipoAtividade,
+} from "@/content/types";
+import { cabecalhos, chamarFuncao, supabase } from "@/lib/supabase";
 
 /**
  * Admin estático: login no GoTrue (e-mail e senha) e leitura/atualização pela REST com o token do admin.
@@ -31,7 +40,36 @@ export interface LeadLinha {
   status: StatusLead;
   notas: string | null;
   ambiente: string;
+  responsavel: string | null;
+  /** AAAA-MM-DD */
+  proximo_contato: string | null;
+  relatorio_enviado_em: string | null;
 }
+
+export interface Atividade {
+  id: string;
+  criado_em: string;
+  autor: string;
+  tipo: TipoAtividade;
+  texto: string;
+}
+
+export interface EmailEnviado {
+  id: string;
+  criado_em: string;
+  tipo: "relatorio" | "reset";
+  assunto: string;
+  status: "enviado" | "falhou" | "nao-configurado";
+  autor: string;
+}
+
+/** Campos do lead que o admin pode mudar (o banco só concede UPDATE nestes). */
+export type CamposCrm = Partial<{
+  status: StatusLead;
+  notas: string | null;
+  responsavel: string | null;
+  proximo_contato: string | null;
+}>;
 
 export interface AvaliacaoLinha {
   id: string;
@@ -173,11 +211,7 @@ export async function listar(s: Sessao): Promise<AvaliacaoLinha[] | "sessao" | "
   }
 }
 
-export async function atualizarLead(
-  s: Sessao,
-  id: string,
-  campos: { status: StatusLead; notas: string | null },
-): Promise<"ok" | "sessao" | "erro"> {
+export async function atualizarLead(s: Sessao, id: string, campos: CamposCrm): Promise<"ok" | "sessao" | "erro"> {
   try {
     const r = await pedir(s, `leads?id=eq.${encodeURIComponent(id)}`, {
       method: "PATCH",
@@ -189,4 +223,73 @@ export async function atualizarLead(
   } catch {
     return "erro";
   }
+}
+
+async function lerLista<T>(s: Sessao, caminho: string): Promise<T[] | "sessao" | "erro"> {
+  try {
+    const r = await pedir(s, caminho);
+    if (r === "sessao") return r;
+    return r.ok ? ((await r.json()) as T[]) : "erro";
+  } catch {
+    return "erro";
+  }
+}
+
+export const listarAtividades = (s: Sessao, leadId: string) =>
+  lerLista<Atividade>(
+    s,
+    `atividades?lead_id=eq.${encodeURIComponent(leadId)}&select=id,criado_em,autor,tipo,texto&order=criado_em.desc&limit=200`,
+  );
+
+export const listarEmails = (s: Sessao, leadId: string) =>
+  lerLista<EmailEnviado>(
+    s,
+    `emails?lead_id=eq.${encodeURIComponent(leadId)}&select=id,criado_em,tipo,assunto,status,autor&order=criado_em.desc&limit=50`,
+  );
+
+/** Dicas por IA guardadas para a avaliação (só existem depois que o lead abriu o relatório completo). */
+export async function lerDicasDaAvaliacao(s: Sessao, avaliacaoId: string): Promise<unknown | null> {
+  const r = await lerLista<{ conteudo: unknown }>(
+    s,
+    `dicas?avaliacao_id=eq.${encodeURIComponent(avaliacaoId)}&select=conteudo`,
+  );
+  return Array.isArray(r) ? (r[0]?.conteudo ?? null) : null;
+}
+
+export async function registrarAtividade(
+  s: Sessao,
+  leadId: string,
+  tipo: TipoAtividade,
+  texto: string,
+): Promise<"ok" | "sessao" | "erro"> {
+  try {
+    const r = await pedir(s, "atividades", {
+      method: "POST",
+      headers: { Prefer: "return=minimal" },
+      body: JSON.stringify({ lead_id: leadId, tipo, texto: texto.slice(0, 4000) }),
+    });
+    if (r === "sessao") return r;
+    return r.ok ? "ok" : "erro";
+  } catch {
+    return "erro";
+  }
+}
+
+/** E-mail sobre a Reset IA, pela função (que confere se o token é de um admin e registra o envio). */
+export async function enviarEmailReset(s: Sessao, leadId: string, assunto: string, corpo: string) {
+  const r = await chamarFuncao<{ status?: string }>(
+    { acao: "email-reset", lead_id: leadId, assunto, corpo },
+    { token: s.access_token, timeout: 30_000 },
+  );
+  if (r.status === 401) return "sessao" as const;
+  return (r.dados?.status as "enviado" | "falhou" | "nao-configurado" | undefined) ?? ("erro" as const);
+}
+
+/** Relatório completo por e-mail para um lead que ainda não recebeu (a mesma ação do site). */
+export async function enviarRelatorio(avaliacaoId: string, leadId: string) {
+  const r = await chamarFuncao<{ status?: string }>(
+    { acao: "enviar-relatorio", avaliacao_id: avaliacaoId, lead_id: leadId },
+    { timeout: 120_000 },
+  );
+  return r.dados?.status ?? "erro";
 }

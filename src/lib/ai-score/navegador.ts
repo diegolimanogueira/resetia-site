@@ -79,6 +79,8 @@ export interface Liberacao {
   empresa?: string;
   data: string;
   completo: boolean;
+  /** A função confirmou o envio do relatório por e-mail. */
+  emailEnviado?: boolean;
 }
 
 export const relatorio = {
@@ -100,6 +102,7 @@ export function lerLiberacao(texto: string | null): Liberacao | null {
       data: l.data,
       // Liberações gravadas antes das duas etapas (28/10) já eram o relatório completo.
       completo: typeof l.completo === "boolean" ? l.completo : Boolean(empresa),
+      emailEnviado: l.emailEnviado === true,
     };
   } catch {
     return null;

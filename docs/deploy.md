@@ -52,7 +52,7 @@ Checar, nesta ordem, em Apps → resetia-site → Settings → componente:
 
 Configurado em 28/10/2026 no projeto **`site_resetia`** (`pjjzjbjamalwkjtlifgm`, South America / São Paulo, plano gratuito; o `projetosunimed` foi pausado para liberar a vaga).
 
-- **Migrações aplicadas:** `supabase/migrations/0001_ai_score.sql` (tabelas, RLS, permissões, `ping()`) e `0002_cadastro_fechado.sql` (um gatilho em `auth.users` recusa qualquer cadastro novo; também tira da API a função `rls_auto_enable` do RLS automático do Supabase). Conferido pela API pública: o anônimo só insere, cadastro por e-mail e anônimo recusados, o admin lê e só muda status e notas.
+- **Migrações aplicadas:** `supabase/migrations/0001_ai_score.sql` (tabelas, RLS, permissões, `ping()`), `0002_cadastro_fechado.sql` (um gatilho em `auth.users` recusa qualquer cadastro novo; também tira da API a função `rls_auto_enable` do RLS automático do Supabase), `0003_captura_em_duas_etapas.sql` (`completar_lead`) e `0004_crm_email_dicas.sql` (CRM, e-mails, dicas e `lead_liberado`). Conferido pela API pública: o anônimo só insere, cadastro por e-mail e anônimo recusados, o admin lê e só muda os campos do CRM.
 - **Admin:** `contato@resetia.com.br`, criado direto no banco e já em `public.admins`. A senha foi entregue ao Diego; a recuperação por e-mail passa a funcionar quando a caixa existir.
 - **Chaves no site:** `.env.production` (versionado) traz a URL e a chave `sb_publishable_…`. O `next build` lê esse arquivo na DigitalOcean, sem configurar o painel. O CI sobrescreve com um Supabase fictício e o staging com valores vazios (modo demonstração). Não declarar essas variáveis no painel da DO: um valor vazio lá venceria o arquivo.
 - **Keep-alive:** as variáveis `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` estão em GitHub → Settings → Variables; o `keepalive.yml` chama `public.ping()` a cada dois dias.
@@ -80,6 +80,43 @@ insert into public.admins (user_id) select id from u;
 **Trocar a senha de um admin** (SQL Editor): `update auth.users set encrypted_password = extensions.crypt('NOVA-SENHA', extensions.gen_salt('bf')) where email = 'contato@resetia.com.br';`
 
 **Se o projeto pausar** (o GitHub avisa quando o keep-alive falha): painel do Supabase → Restore. O site guarda no navegador o que não conseguiu gravar e reenvia quando a pessoa volta. Para eliminar o risco, plano Pro (US$ 25/mês, organização separada).
+
+## Função `ai-score`: relatório por e-mail e dicas por IA
+
+Código em `supabase/functions/ai-score/` (`index.ts` + `nucleo.js`, gerado por `npm run funcao:nucleo` a partir de `src/lib/ai-score/servidor.ts`). Publicada com **verificação de JWT desligada** (a chave `sb_publishable_…` não é JWT; a própria função confere o par lead e avaliação e, no e-mail do admin, o token e a tabela `admins`).
+
+**Publicar de novo** (depois de mexer em `src/lib/ai-score`, no conteúdo do AI Score ou na função):
+
+```bash
+npm run funcao:nucleo
+npx supabase functions deploy ai-score --project-ref pjjzjbjamalwkjtlifgm --no-verify-jwt
+```
+
+(Pede `npx supabase login` uma vez.) Sem a CLI, dá para publicar pelo MCP do Supabase trocando, no `index.ts` enviado, o `./nucleo.js` pela URL do jsDelivr fixada no commit (`https://cdn.jsdelivr.net/gh/diegolimanogueira/resetia-site@<sha>/supabase/functions/ai-score/nucleo.js`), como foi feito na primeira publicação.
+
+**Segredos** (Supabase → Edge Functions → Secrets). Sem eles a função funciona em modo reserva: dicas da biblioteca e e-mail "não configurado".
+
+| Segredo                                 | Valor                                                                                         |
+| --------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `ANTHROPIC_API_KEY`                     | Chave da API da Anthropic (console.anthropic.com). Defina um teto de gasto mensal no console. |
+| `RESEND_API_KEY`                        | Chave do Resend (resend.com), depois de verificar o domínio.                                  |
+| `EMAIL_REMETENTE`                       | `Reset IA <contato@resetia.com.br>`                                                           |
+| `EMAIL_RESPOSTA`                        | Opcional: endereço que recebe as respostas, se não for o remetente.                           |
+| `SITE_URL`                              | Opcional; padrão `https://www.resetia.com.br`.                                                |
+| `DICAS_POR_HORA`, `RELATORIOS_POR_HORA` | Opcionais; padrão 20 e 30 (limites contra abuso).                                             |
+
+**E-mail (Resend), uma vez:** criar a conta, adicionar o domínio `resetia.com.br` (região São Paulo, se oferecida) e criar no DNS do domínio os registros que o Resend mostrar (SPF e DKIM, em geral num subdomínio `send.`; não mexem no MX que recebe o e-mail de `contato@`). Quando o domínio aparecer como verificado, criar a chave e gravar `RESEND_API_KEY` e `EMAIL_REMETENTE`. Recomendado: um registro DMARC (`_dmarc`, `v=DMARC1; p=none; rua=mailto:contato@resetia.com.br`).
+
+**Conferir no ar:**
+
+```bash
+curl -s -X POST https://pjjzjbjamalwkjtlifgm.supabase.co/functions/v1/ai-score \
+  -H "Authorization: Bearer sb_publishable_OaKut3f98HlEiw8v5B0t_g_JnZhwa3h" \
+  -H "Content-Type: application/json" -d '{"acao":"x"}'
+# {"erro":"acao"}: a função está no ar
+```
+
+Os logs ficam em Supabase → Edge Functions → ai-score → Logs. No admin, a seção E-mails de cada lead mostra o que saiu, o que falhou e por quê.
 
 ## Operação
 
