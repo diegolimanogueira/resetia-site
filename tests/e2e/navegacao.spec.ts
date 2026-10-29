@@ -24,7 +24,7 @@ test.describe("navegação", () => {
   });
 
   for (const rota of rotas) {
-    test(`header sticky e carvão em ${rota.caminho}`, async ({ page }) => {
+    test(`header sticky no tom base em ${rota.caminho}`, async ({ page }) => {
       await page.goto(rota.caminho);
       await expect(page.locator("header")).toHaveAttribute("data-tom", "carvao");
       await expect(page.locator("header")).toHaveCSS("position", "sticky");

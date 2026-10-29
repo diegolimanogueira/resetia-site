@@ -1,5 +1,5 @@
-/** Fundo da seção. Todas são escuras (reset360); muda só a superfície. */
-export type Tom = "carvao" | "escuro" | "contraste";
+/** Fundo da seção (superfície do tema). "noite" é carvão nos dois temas: no claro, é o fecho escuro (CTA final e rodapé). */
+export type Tom = "carvao" | "escuro" | "contraste" | "noite";
 
 export interface Link {
   label: string;

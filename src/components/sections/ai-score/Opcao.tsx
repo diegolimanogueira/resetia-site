@@ -34,7 +34,7 @@ export function Opcao({
     <label
       className={cn(
         "flex cursor-pointer items-start border transition-colors duration-200",
-        "has-[:checked]:border-verde hover:border-neutro/50 has-[:checked]:hover:border-verde",
+        "has-[:checked]:border-verde hover:border-fg/50 has-[:checked]:hover:border-verde",
         compacta ? "gap-2.5 px-4 py-3 text-[14px]" : "gap-4 px-5 py-4 text-[16px] md:px-6",
         discreta ? "border-line border-dashed bg-transparent" : "border-line bg-painel",
         disabled && "hover:border-line cursor-not-allowed opacity-50",

@@ -285,7 +285,7 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
         </div>
 
         {falha || erroMover ? (
-          <p role="alert" className="border-neutro mb-6 border-l-2 pl-3 font-semibold">
+          <p role="alert" className="border-fg mb-6 border-l-2 pl-3 font-semibold">
             {falha ?? erroMover}
           </p>
         ) : null}
@@ -370,7 +370,7 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
               onClick={() => setVista(v)}
               className={cn(
                 "cursor-pointer px-4 py-2 text-[13px] font-semibold transition-colors",
-                vista === v ? "bg-verde text-carvao" : "text-fg-2 hover:text-fg",
+                vista === v ? "bg-verde-vivo text-carvao" : "text-fg-2 hover:text-fg",
               )}
             >
               {admin.vistas[v]}
@@ -459,7 +459,7 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
           onClick={(e) => {
             if (e.target === e.currentTarget) e.currentTarget.close();
           }}
-          className="border-line bg-carvao text-fg backdrop:bg-carvao/70 fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-[min(780px,100vw)] max-w-none overflow-y-auto border-l p-0"
+          className="border-line bg-fundo text-fg backdrop:bg-carvao/70 fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-[min(780px,100vw)] max-w-none overflow-y-auto border-l p-0"
         >
           {selecionado ? (
             <DetalheLead

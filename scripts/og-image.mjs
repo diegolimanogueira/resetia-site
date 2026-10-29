@@ -1,6 +1,7 @@
 // Gera src/app/opengraph-image.png (1200×630) e o .alt.txt com next/og (Satori), sem rota em runtime.
 // Em export estático a rota opengraph-image.tsx vira um arquivo sem extensão (content-type errado nos
 // hosts estáticos); a convenção de arquivo .png resolve. Rodar: npm run images.
+// Tema claro do site (29/10): fundo neutro, texto carvão, ícone para fundo claro; o verde puro só na barra e no glow.
 import { ImageResponse } from "next/og.js";
 import { readFile, writeFile } from "node:fs/promises";
 import { createElement as h } from "react";
@@ -14,7 +15,7 @@ const alt = `${nome} — ${linha1} ${linha2}`;
 const [inter700, inter400, icone] = await Promise.all([
   readFile("node_modules/@fontsource/inter/files/inter-latin-700-normal.woff"),
   readFile("node_modules/@fontsource/inter/files/inter-latin-400-normal.woff"),
-  readFile("public/brand/icone-dark.png"),
+  readFile("public/brand/icone-light.png"),
 ]);
 const iconeSrc = `data:image/png;base64,${icone.toString("base64")}`;
 
@@ -28,8 +29,8 @@ const arvore = h(
       flexDirection: "column",
       justifyContent: "space-between",
       padding: "72px 80px",
-      background: "#0B0F0E",
-      color: "#F6F7F5",
+      background: "#F6F7F5",
+      color: "#0B0F0E",
       fontFamily: "Inter",
       position: "relative",
     },
@@ -73,7 +74,7 @@ const arvore = h(
         display: "flex",
         justifyContent: "space-between",
         fontSize: 26,
-        color: "#F6F7F5",
+        color: "#0B0F0E",
         letterSpacing: "0.02em",
       },
     },

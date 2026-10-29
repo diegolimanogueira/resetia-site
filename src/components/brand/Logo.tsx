@@ -1,12 +1,21 @@
 import { site } from "@/content/site";
 import { asset } from "@/lib/asset";
+import { varianteMarca } from "@/lib/tema";
 
 // PLACEHOLDER brand: logo em PNG/WebP exportada do manual. Trocar por SVG quando o Diego enviar.
-// O site é todo escuro (reset360), então só a versão para fundo carvão é usada.
-const base = "/brand/logo-dark";
+// A versão segue o tema do site (logo-dark no carvão, logo-light no neutro); o rodapé, sempre em carvão, pede a dark.
 
-/** Logo horizontal da Reset IA sobre fundo escuro. */
-export function Logo({ altura = 40, className }: { altura?: number; className?: string }) {
+/** Logo horizontal da Reset IA na versão do tema do site (ou na pedida). */
+export function Logo({
+  altura = 40,
+  variante = varianteMarca,
+  className,
+}: {
+  altura?: number;
+  variante?: "dark" | "light";
+  className?: string;
+}) {
+  const base = `/brand/logo-${variante}`;
   const largura = Math.round(altura * 4.45);
   return (
     <picture className={className}>

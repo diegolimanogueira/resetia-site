@@ -2,6 +2,7 @@ import { Botao } from "@/components/ui/botao";
 import { Linhas } from "@/components/ui/linhas";
 import { home } from "@/content/home";
 import { asset } from "@/lib/asset";
+import { varianteMarca } from "@/lib/tema";
 import { cn } from "@/lib/utils";
 
 /** Posição das pílulas em volta do núcleo (reset360 .pill-a/b/c). */
@@ -27,9 +28,9 @@ function Orbitas() {
       ].map((tamanho) => (
         <span key={tamanho} className={cn("border-verde/30 absolute rounded-full border", tamanho)} />
       ))}
-      <span className="border-verde/50 bg-carvao grid size-[100px] place-items-center rounded-[35%] border shadow-[0_0_100px_rgba(0,230,118,0.18)] sm:size-[130px] md:size-[175px]">
+      <span className="border-verde/50 bg-painel grid size-[100px] place-items-center rounded-[35%] border shadow-[0_0_100px_rgba(0,230,118,0.18)] sm:size-[130px] md:size-[175px]">
         <img
-          src={asset("/brand/icone-dark.webp")}
+          src={asset(`/brand/icone-${varianteMarca}.webp`)}
           alt=""
           width={180}
           height={180}
@@ -40,7 +41,7 @@ function Orbitas() {
         <span
           key={p}
           className={cn(
-            "bg-carvao/85 border-verde/40 text-fg absolute border px-[7px] py-[7px] text-[8px] font-bold tracking-[.08em] uppercase sm:px-[17px] sm:py-[13px] sm:text-[11px]",
+            "bg-painel/85 border-verde/40 text-fg absolute border px-[7px] py-[7px] text-[8px] font-bold tracking-[.08em] uppercase sm:px-[17px] sm:py-[13px] sm:text-[11px]",
             posicoes[i],
           )}
         >
@@ -66,7 +67,7 @@ export function Hero() {
       <div className="container-site relative grid items-center md:min-h-[680px] md:grid-cols-2">
         <div className="relative z-[2] pt-5 pb-[70px] md:py-[70px]">
           <p className="eyebrow text-verde mb-6 flex items-center gap-[9px]">
-            <span className="bg-verde inline-block size-[7px] rounded-full shadow-[0_0_12px_#00e676]" />
+            <span className="bg-verde-vivo inline-block size-[7px] rounded-full shadow-[0_0_12px_#00e676]" />
             {h.eyebrow}
           </p>
           <h1 className="mb-[30px] text-[clamp(38px,4.4vw,64px)] leading-[1.04] font-bold tracking-[-0.035em]">
@@ -84,7 +85,7 @@ export function Hero() {
         </div>
         <Orbitas />
       </div>
-      <div className="container-site text-fg-2 border-neutro/15 relative flex justify-between border-t py-5 text-[8px] tracking-[.2em] uppercase sm:text-[10px]">
+      <div className="container-site text-fg-2 border-fg/15 relative flex justify-between border-t py-5 text-[8px] tracking-[.2em] uppercase sm:text-[10px]">
         {h.rodape.map((item, i) => (
           <span key={item} className={i === 1 ? "hidden sm:inline" : undefined}>
             {item}

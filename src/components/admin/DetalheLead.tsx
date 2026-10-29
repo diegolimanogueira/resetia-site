@@ -216,7 +216,7 @@ export function DetalheLead({
         </span>
       </div>
       {l.whatsapp && !l.pediu_contato ? (
-        <p className="border-neutro text-fg-2 -mt-3 mb-6 border-l-2 pl-3 text-[13px]">{d.semPedido}</p>
+        <p className="border-fg text-fg-2 -mt-3 mb-6 border-l-2 pl-3 text-[13px]">{d.semPedido}</p>
       ) : null}
 
       <div className="grid gap-6">
@@ -338,7 +338,7 @@ export function DetalheLead({
                 <li key={at.id} className="relative pb-4 text-[14px] leading-[1.5]">
                   <span
                     aria-hidden="true"
-                    className="bg-verde absolute top-[7px] -left-[21px] size-[9px] rounded-full"
+                    className="bg-verde-vivo absolute top-[7px] -left-[21px] size-[9px] rounded-full"
                   />
                   <span className="text-fg-2 block text-[12px]">
                     {d.atividades.tipos[at.tipo]} ·{" "}

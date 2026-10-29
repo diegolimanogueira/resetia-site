@@ -39,8 +39,8 @@ export function Catalogo({ area }: { area: AreaId | null }) {
                 data-filtro={o.id ?? "todos"}
                 onClick={() => escolher(o.id)}
                 className={cn(
-                  "hover:bg-verde hover:text-carvao cursor-pointer border px-[17px] py-3 text-[14px] transition-colors duration-200 max-sm:px-2.5 max-sm:py-2.5 max-sm:text-[12px]",
-                  ativo ? "border-verde bg-verde text-carvao" : "border-line bg-painel text-fg",
+                  "hover:bg-verde-vivo hover:text-carvao cursor-pointer border px-[17px] py-3 text-[14px] transition-colors duration-200 max-sm:px-2.5 max-sm:py-2.5 max-sm:text-[12px]",
+                  ativo ? "border-verde bg-verde-vivo text-carvao" : "border-line bg-painel text-fg",
                 )}
               >
                 {o.nome}

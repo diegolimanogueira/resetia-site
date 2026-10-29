@@ -34,7 +34,7 @@ export function BarraMobile() {
       inert={!visivel}
       className={cn(
         "fixed z-40 transition-[transform,visibility,opacity] duration-300 ease-out",
-        "border-line bg-carvao/90 inset-x-0 bottom-0 border-t px-[6vw] pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur-[12px]",
+        "border-line bg-fundo/90 inset-x-0 bottom-0 border-t px-[6vw] pt-3 pb-[calc(12px+env(safe-area-inset-bottom))] backdrop-blur-[12px]",
         "md:inset-x-auto md:right-6 md:bottom-6 md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none",
         visivel ? "visible translate-y-0 opacity-100" : "invisible translate-y-full opacity-0",
       )}

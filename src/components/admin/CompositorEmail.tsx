@@ -47,7 +47,7 @@ export function CompositorEmail({
     <dialog
       ref={refDialogo}
       aria-labelledby="compositor-titulo"
-      className="border-line bg-carvao text-fg backdrop:bg-carvao/80 m-auto w-[min(680px,calc(100vw-24px))] border p-0"
+      className="border-line bg-fundo text-fg backdrop:bg-carvao/80 m-auto w-[min(680px,calc(100vw-24px))] border p-0"
     >
       <form onSubmit={enviar} className="grid gap-4 p-[22px] md:p-[30px]">
         <h2 id="compositor-titulo" className="text-[22px] font-bold">

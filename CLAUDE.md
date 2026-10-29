@@ -10,7 +10,8 @@ Site institucional estático da Reset IA (`www.resetia.com.br`). Next.js 16 App 
 
 - **Copy só em `src/content/*.ts`.** Nenhuma string de texto do site dentro de componente. Não invente copy, cliente, número ou promessa: use a constante `FALTA` e siga.
 - **Design é fechado.** Layout, estrutura e efeitos: `design/reset360/` (protótipo HTML). Identidade (logo, paleta, Inter): `docs/brand.md`. O lime do protótipo é sempre o verde Reset IA. Verde é ação e destaque, nunca fundo de seção. Sem sombras em cards, sem gradiente além do glow, sem emojis.
-- **Tom por seção** via `data-tom` (`Section`: `carvao`, `escuro`, `contraste`): use `text-fg`, `text-fg-2`, `border-line`, `bg-painel`, nunca cores fixas em componentes compartilhados.
+- **Site claro desde 29/10** (`data-tema="claro"`, `src/lib/tema.ts`), com o CTA final e o rodapé em carvão. `text-verde`/`border-verde` são o verde de texto (mistura com carvão, passa no contraste); o verde puro é `bg-verde-vivo`, só em preenchimentos com texto carvão.
+- **Tom por seção** via `data-tom` (`Section`: `carvao` = fundo base, `escuro`, `contraste`, `noite` = fecho em carvão): use `text-fg`, `text-fg-2`, `border-line`, `bg-fundo`, `bg-painel`, nunca cores fixas em componentes compartilhados.
 - **Títulos em linhas** (`string[]` no conteúdo); destaque verde com `*trecho*`, renderizado por `Linhas`.
 - **Efeitos só em CSS** (hover, header sticky, scroll suave nativo). Deslocamentos com `motion-safe:`; `prefers-reduced-motion` zera transições e o scroll suave. Nada de biblioteca de animação ou listener de scroll para efeito.
 - Links externos: `target="_blank" rel="noopener"`. CTAs de WhatsApp sempre via `src/lib/whatsapp.ts` (`waDiagnostico()` para "Falar com um especialista", `waUrl(s.cta.mensagem)` nas soluções, `waGeral()`); teste da Spotlite via `testeSpotliteUrl(origem)` em `src/lib/teste-spotlite.ts`.
