@@ -24,8 +24,8 @@ const tamanhos = {
   sm: "text-[14px] px-[18px] py-[10px]",
 };
 const variantes = {
-  primario: "bg-verde text-carvao hover:text-carvao",
-  secundario: "border-[1.5px] border-neutro/40 text-neutro hover:border-neutro hover:text-neutro",
+  primario: "bg-verde-vivo text-carvao hover:text-carvao",
+  secundario: "border-[1.5px] border-fg/40 text-fg hover:border-fg hover:text-fg",
 };
 
 const classesBotao = (variante: Variante, tamanho: Tamanho, className?: string) =>

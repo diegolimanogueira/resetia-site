@@ -4,6 +4,7 @@ import { Linhas } from "@/components/ui/linhas";
 import { Section } from "@/components/ui/section";
 import type { CtaFinal as Cta } from "@/content/types";
 import { site } from "@/content/site";
+import { tema } from "@/lib/tema";
 import { waDiagnostico } from "@/lib/whatsapp";
 import { cn } from "@/lib/utils";
 
@@ -12,7 +13,7 @@ type Acao = { label: string; href: string; origem: string };
 /**
  * Fecho de todas as páginas, antes do rodapé. Por padrão o botão principal leva ao RESET AI Score e o segundo
  * abre o WhatsApp com um especialista (Análise Estratégica). Nas soluções, o botão comercial da solução vem
- * primeiro e o AI Score fica como segundo caminho.
+ * primeiro e o AI Score fica como segundo caminho. No tema claro abre o fecho em carvão, junto com o rodapé.
  */
 export function CtaFinal({
   cta,
@@ -33,7 +34,7 @@ export function CtaFinal({
   const principal = primario ?? aiScore;
   const segundo = secundario ?? especialista;
   return (
-    <Section tom="contraste" className="border-line border-t text-center">
+    <Section tom={tema === "claro" ? "noite" : "contraste"} className="border-line border-t text-center">
       <div className="container-site">
         {cta.kicker ? <Eyebrow>{cta.kicker}</Eyebrow> : null}
         <h2

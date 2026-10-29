@@ -32,12 +32,14 @@ async function icon(size, output, { padding = 0.18 } = {}) {
 await convert("logo-dark.png", [{ file: "logo-dark.webp", fmt: "webp", opts: { quality: 90 } }]);
 await convert("logo-light.png", [{ file: "logo-light.webp", fmt: "webp", opts: { quality: 90 } }]);
 
-// Ícone no núcleo das órbitas do hero (até 92px na tela; 180px cobre 2x).
-await sharp(`${BRAND}/icone-dark.png`)
-  .resize(180, 180, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
-  .webp({ quality: 90 })
-  .toFile(`${BRAND}/icone-dark.webp`);
-console.log(`icone-dark.png → icone-dark.webp (${await kb(`${BRAND}/icone-dark.webp`)})`);
+// Ícone no núcleo das órbitas do hero (até 92px na tela; 180px cobre 2x), nas duas versões do tema.
+for (const v of ["dark", "light"]) {
+  await sharp(`${BRAND}/icone-${v}.png`)
+    .resize(180, 180, { fit: "contain", background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .webp({ quality: 90 })
+    .toFile(`${BRAND}/icone-${v}.webp`);
+  console.log(`icone-${v}.png → icone-${v}.webp (${await kb(`${BRAND}/icone-${v}.webp`)})`);
+}
 
 // Fotos dos fundadores (design/fotos/<nome>.png): quadrado centrado no rosto, para os retratos redondos.
 // `recorte` enquadra o rosto quando a foto já é quadrada (a da Élida é 800×800 com o rosto no terço de cima).

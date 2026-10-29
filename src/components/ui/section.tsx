@@ -9,7 +9,7 @@ const espacos = {
 };
 
 /**
- * Seção com tom (carvão, escuro ou contraste). O atributo data-tom define --bg em globals.css;
+ * Seção com tom (carvao = fundo base, escuro, contraste ou noite). O atributo data-tom define --bg em globals.css;
  * filhos usam text-fg, text-fg-2 e border-line.
  */
 export function Section({

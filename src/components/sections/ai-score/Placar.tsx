@@ -45,7 +45,7 @@ export function Barra({ valor }: { valor: number | null }) {
   return (
     <span aria-hidden="true" data-imprimir-cor className="bg-line relative block h-[3px] w-full overflow-hidden">
       {valor !== null ? (
-        <span className="bg-verde absolute inset-y-0 left-0 block" style={{ width: `${valor}%` }} />
+        <span className="bg-verde-vivo absolute inset-y-0 left-0 block" style={{ width: `${valor}%` }} />
       ) : null}
     </span>
   );
@@ -90,7 +90,10 @@ export function Regua({ indice, nivel }: { indice: number; nivel: NivelId }) {
           <li key={n.id} aria-current={i === atual ? "step" : undefined}>
             <span
               data-imprimir-cor
-              className={cn("block h-[6px]", i < atual ? "bg-verde/45" : i === atual ? "bg-verde" : "bg-line")}
+              className={cn(
+                "block h-[6px]",
+                i < atual ? "bg-verde-vivo/45" : i === atual ? "bg-verde-vivo" : "bg-line",
+              )}
             />
             <span
               className={cn(

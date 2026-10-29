@@ -17,7 +17,7 @@ export function Header() {
   return (
     <header
       data-tom="carvao"
-      className="gutter border-line bg-carvao/94 text-fg sticky top-0 z-50 flex h-[72px] items-center justify-between border-b backdrop-blur-[18px]"
+      className="gutter border-line bg-fundo/94 text-fg sticky top-0 z-50 flex h-[72px] items-center justify-between border-b backdrop-blur-[18px]"
     >
       <Link href="/" aria-label={site.nome} className="flex items-center">
         <Logo altura={36} />

@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 
 /** Entrada de texto no tom da seção: painel, linha cinza, foco verde (o outline vem do :focus-visible global). */
 export const classesEntrada =
-  "border-line bg-painel text-fg w-full border px-4 py-3 text-[16px] leading-[1.4] transition-colors duration-200 hover:border-neutro/50 aria-invalid:border-neutro";
+  "border-line bg-painel text-fg w-full border px-4 py-3 text-[16px] leading-[1.4] transition-colors duration-200 hover:border-fg/50 aria-invalid:border-fg";
 
 const descricao = (id: string, apoio?: ReactNode, erro?: string) =>
   [apoio ? `${id}-apoio` : null, erro ? `${id}-erro` : null].filter(Boolean).join(" ") || undefined;
@@ -11,7 +11,7 @@ const descricao = (id: string, apoio?: ReactNode, erro?: string) =>
 /** Mensagem de erro de campo: texto, não só cor (a paleta não tem vermelho). */
 function ErroCampo({ id, children }: { id: string; children: ReactNode }) {
   return (
-    <p id={id} className="border-neutro mt-2 border-l-2 pl-2.5 text-[13px] font-semibold">
+    <p id={id} className="border-fg mt-2 border-l-2 pl-2.5 text-[13px] font-semibold">
       {children}
     </p>
   );

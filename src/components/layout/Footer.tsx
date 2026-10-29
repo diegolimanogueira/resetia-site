@@ -6,16 +6,16 @@ import { waGeral } from "@/lib/whatsapp";
 
 const linkRodape = "text-fg mb-[9px] block text-[13px]";
 
-/** Rodapé: marca, as cinco soluções, Explore e Fale com a Reset; linha legal com a política de privacidade. */
+/** Rodapé em carvão (nos dois temas): marca, as cinco soluções, Explore e Fale com a Reset; linha legal com a política de privacidade. */
 export function Footer() {
   return (
     <footer
-      data-tom="carvao"
+      data-tom="noite"
       className="gutter border-line text-fg relative border-t bg-(--bg) pt-[60px] pb-28 md:pt-[75px] md:pb-[25px]"
     >
       <div className="container-site grid grid-cols-2 gap-x-10 gap-y-12 md:grid-cols-[1.6fr_1fr_1fr_1fr] md:gap-[50px]">
         <div className="col-span-2 md:col-span-1">
-          <Logo altura={38} />
+          <Logo altura={38} variante="dark" />
           <p className="text-fg-2 mt-[30px] text-[15px] leading-[1.6]">
             {footer.frase[0]}
             <br />

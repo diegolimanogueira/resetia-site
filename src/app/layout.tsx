@@ -7,6 +7,7 @@ import { BarraMobile } from "@/components/layout/BarraMobile";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { seo, site } from "@/content/site";
 import { STAGING } from "@/lib/asset";
+import { tema } from "@/lib/tema";
 import "./globals.css";
 
 // Inter variável (subconjunto latino, OFL) no repositório: o build não depende do Google Fonts.
@@ -36,7 +37,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" className={`${inter.variable} h-full antialiased`}>
+    <html lang="pt-BR" data-tema={tema} className={`${inter.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans">
         <Header />
         {children}

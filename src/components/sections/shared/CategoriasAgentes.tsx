@@ -34,7 +34,9 @@ export function CategoriasAgentes({ icones }: { icones: ReactNode[] }) {
             }}
             className={cn(
               "inline-flex cursor-pointer items-center gap-2.5 border px-[18px] py-3 text-[14px] font-semibold transition-colors duration-200",
-              i === ativa ? "border-verde bg-verde text-carvao" : "border-line bg-painel text-fg hover:border-verde",
+              i === ativa
+                ? "border-verde bg-verde-vivo text-carvao"
+                : "border-line bg-painel text-fg hover:border-verde",
             )}
           >
             <span className={i === ativa ? "[&_svg]:text-carvao" : undefined}>{icones[i]}</span>

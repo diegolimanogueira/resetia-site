@@ -2,12 +2,15 @@
 
 /*
  * Tokens do manual de marca Reset IA. Layout e efeitos seguem design/reset360 (25/10).
- * Derivados só por opacidade: as superfícies são neutro sobre carvão.
+ * Derivados só por mistura e opacidade. Os valores abaixo são os do tema escuro; o site usa o claro desde 29/10
+ * (data-tema="claro", mais abaixo), que redefine as superfícies e o verde de texto.
  */
 @theme {
   --color-carvao: #0b0f0e;
   --color-neutro: #f6f7f5;
   --color-verde: #00e676;
+  /* Verde puro para preenchimentos (botões, pontos, barras). No tema escuro é o próprio verde. */
+  --color-verde-vivo: #00e676;
   --color-cinza: #9ca3af;
   /* Seção escura, seção de contraste e painel (cards): 3%, 5% e 7% de neutro sobre carvão. */
   --color-escuro: color-mix(in srgb, #f6f7f5 3%, #0b0f0e);
@@ -19,15 +22,20 @@
   --radius: 0;
 }
 
-/* Tom por seção: data-tom="carvao" | "escuro" | "contraste" troca só o fundo; texto e linhas são os mesmos. */
+/*
+ * Tom por seção: data-tom="carvao" (fundo base: carvão no escuro, neutro no claro) | "escuro" | "contraste" troca
+ * só o fundo; texto e linhas são os mesmos. "noite" é carvão nos dois temas (no claro, o fecho escuro).
+ */
 @theme inline {
   --color-fg: var(--fg);
   --color-fg-2: var(--fg-2);
   --color-line: var(--line);
+  --color-fundo: var(--bg);
 }
 
 :root,
-[data-tom="carvao"] {
+[data-tom="carvao"],
+[data-tom="noite"] {
   --bg: #0b0f0e;
   --fg: #f6f7f5;
   /* Texto de apoio em branco (pedido do Diego, 27/10): no fundo preto lê melhor que o cinza. Linhas continuam cinza. */
@@ -41,6 +49,40 @@
 
 [data-tom="contraste"] {
   --bg: var(--color-contraste);
+}
+
+/*
+ * Tema claro (desde 29/10, data-tema="claro" no <html>): texto carvão sobre neutro, superfícies de carvão
+ * sobre neutro (escuro 3%, contraste 5%) e cards brancos. O verde puro no claro fica em ~1,6:1,
+ * então `verde` (texto, traços, foco) vira a mistura com carvão a 45% (≥5,1:1 em todas as superfícies) e o
+ * verde puro (`verde-vivo`) fica só nos preenchimentos, com texto carvão por cima.
+ */
+[data-tema="claro"] {
+  --color-verde: color-mix(in srgb, #00e676 45%, #0b0f0e);
+  /* Destaque dos títulos (h1/h2, texto grande): mais perto do verde da logo, ≥3,4:1 em todas as superfícies. */
+  --verde-titulo: color-mix(in srgb, #00e676 60%, #0b0f0e);
+  --color-escuro: color-mix(in srgb, #0b0f0e 3%, #f6f7f5);
+  --color-contraste: color-mix(in srgb, #0b0f0e 5%, #f6f7f5);
+  --color-painel: #ffffff;
+}
+
+[data-tema="claro"],
+[data-tema="claro"] [data-tom="carvao"] {
+  --bg: #f6f7f5;
+  --fg: #0b0f0e;
+  --fg-2: rgba(11, 15, 14, 0.72);
+  --line: rgba(11, 15, 14, 0.12);
+}
+
+/* Fecho em carvão no tema claro (CTA final e rodapé): a única faixa escura, com os valores do tema escuro. */
+[data-tema="claro"] [data-tom="noite"] {
+  --bg: #0b0f0e;
+  --fg: #f6f7f5;
+  --fg-2: #f6f7f5;
+  --line: rgba(156, 163, 175, 0.25);
+  --color-verde: #00e676;
+  --verde-titulo: #00e676;
+  --color-painel: color-mix(in srgb, #f6f7f5 7%, #0b0f0e);
 }
 
 @layer base {
@@ -70,7 +112,7 @@
   h1 em,
   h2 em {
     font-style: normal;
-    color: var(--color-verde);
+    color: var(--verde-titulo, var(--color-verde));
   }
   a {
     color: inherit;
@@ -108,12 +150,15 @@
  */
 @media print {
   :root,
-  [data-tom] {
+  [data-tom],
+  [data-tema] [data-tom] {
     --bg: #ffffff;
     --fg: #0b0f0e;
     --fg-2: rgba(11, 15, 14, 0.72);
     --line: rgba(11, 15, 14, 0.18);
     --color-verde: color-mix(in srgb, #00e676 55%, #0b0f0e);
+    --color-verde-vivo: color-mix(in srgb, #00e676 55%, #0b0f0e);
+    --verde-titulo: color-mix(in srgb, #00e676 55%, #0b0f0e);
     --color-painel: #ffffff;
     --color-escuro: #ffffff;
     --color-contraste: #ffffff;
@@ -169,11 +214,11 @@
   line-height: 1.04;
   letter-spacing: -0.03em;
 }
-/* Grade sutil do hero (reset360), esmaecida à esquerda. */
+/* Grade sutil do hero (reset360), esmaecida à esquerda: linhas na cor do texto a 2,5% (neutro no escuro, carvão no claro). */
 @utility grade {
   background-image:
-    linear-gradient(rgba(246, 247, 245, 0.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(246, 247, 245, 0.025) 1px, transparent 1px);
+    linear-gradient(color-mix(in srgb, var(--fg) 2.5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--fg) 2.5%, transparent) 1px, transparent 1px);
   background-size: 76px 76px;
   mask-image: linear-gradient(to right, transparent, #000 65%);
 }

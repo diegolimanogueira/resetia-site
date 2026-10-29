@@ -22,7 +22,7 @@ export function LinkSeta({
   const classes = cn(
     voltar
       ? "text-fg-2 hover:text-verde inline-block text-[13px]"
-      : "text-verde hover:text-neutro inline-flex items-center gap-1.5 text-[14px] font-bold",
+      : "text-verde hover:text-fg inline-flex items-center gap-1.5 text-[14px] font-bold",
     className,
   );
   const externo = /^https?:\/\//.test(href);

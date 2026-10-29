@@ -34,7 +34,7 @@ function CartaoLead({
         e.dataTransfer.effectAllowed = "move";
       }}
       data-lead={lead.id}
-      className="border-line bg-painel hover:border-neutro/50 min-w-0 cursor-grab border p-3 transition-colors active:cursor-grabbing"
+      className="border-line bg-painel hover:border-fg/50 min-w-0 cursor-grab border p-3 transition-colors active:cursor-grabbing"
     >
       <button
         type="button"

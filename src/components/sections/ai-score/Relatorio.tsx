@@ -56,7 +56,7 @@ function Bloco({
 }
 
 const corPrioridade = {
-  critica: "border-verde bg-verde text-carvao print:text-white",
+  critica: "border-verde-vivo bg-verde-vivo text-carvao print:text-white",
   alta: "border-verde text-verde",
   media: "border-line text-fg",
   baixa: "border-line text-fg-2",
@@ -153,7 +153,7 @@ export function Relatorio({
             {t.titulo}
           </h2>
           {demo ? (
-            <p data-nao-imprimir className="text-fg-2 border-neutro mt-4 border-l-2 pl-3 text-[13px]">
+            <p data-nao-imprimir className="text-fg-2 border-fg mt-4 border-l-2 pl-3 text-[13px]">
               {formulario.demo}
             </p>
           ) : null}

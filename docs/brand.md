@@ -1,21 +1,36 @@
 # Identidade visual — Reset IA (manual de marca + layout do protótipo reset360)
 
-Desde 25/10/2026 o layout, a estrutura e os efeitos seguem `design/reset360/`; a identidade (cores, logo, tipografia) é a do manual abaixo. O lime do protótipo é sempre o verde Reset IA.
+Desde 25/10/2026 o layout, a estrutura e os efeitos seguem `design/reset360/`; a identidade (cores, logo, tipografia) é a do manual abaixo. O lime do protótipo é sempre o verde Reset IA. Desde 29/10/2026 o site é **claro** (neutro), com o CTA final e o rodapé em carvão; o protótipo continua valendo para layout e efeitos.
 
 ## Cores
 
-| Token       | Hex       | Uso                                                                           |
-| ----------- | --------- | ----------------------------------------------------------------------------- |
-| carvão      | `#0B0F0E` | fundo escuro; texto em fundo claro                                            |
-| neutro      | `#F6F7F5` | fundo claro; texto em fundo escuro                                            |
-| verde reset | `#00E676` | acento único: CTAs, numerais, traços, foco. **Nunca fundo de seção inteira.** |
-| cinza       | `#9CA3AF` | texto secundário em fundo escuro                                              |
+| Token       | Hex       | Uso                                                                        |
+| ----------- | --------- | -------------------------------------------------------------------------- |
+| carvão      | `#0B0F0E` | texto; fundo do fecho (CTA final e rodapé)                                 |
+| neutro      | `#F6F7F5` | fundo da página; texto no fecho                                            |
+| verde reset | `#00E676` | acento único. **Nunca fundo de seção inteira.** Ver as duas formas abaixo. |
+| cinza       | `#9CA3AF` | só linhas e bordas no fecho em carvão                                      |
 
-Derivados só por opacidade (nunca inventar hex novo). **Todo texto é branco (neutro `#F6F7F5`)**, inclusive o de apoio (`text-fg-2`), a pedido do Diego em 27/10: no fundo preto lê melhor que o cinza. O cinza `#9CA3AF` fica só nas linhas e bordas (`rgba(156,163,175,.25)`). O site é todo escuro, como o protótipo; as superfícies são neutro sobre carvão (`color-mix`): seção **escura** 3%, seção de **contraste** 5%, **painel** (cards) 7%. Tokens `bg-escuro`, `bg-contraste`, `bg-painel` em `globals.css`.
+Derivados só por mistura (`color-mix`) e opacidade (nunca inventar hex novo). Tokens em `globals.css`, ativados por `data-tema="claro"` no `<html>` (`src/lib/tema.ts`); os componentes usam `text-fg`, `text-fg-2`, `border-line`, `bg-fundo`, `bg-painel`, nunca cores fixas.
 
-Glow (`radial-gradient` verde a 10–16%, transparente a partir de ~40–55%): no hero da home, no topo das páginas internas, no bloco do RESET Scan, no hub do diagrama e nas faixas do diagnóstico. Nenhum outro gradiente, exceto a grade sutil do hero (linhas a 2,5% de neutro).
+| Papel                                 | Valor                                                 | Contraste                |
+| ------------------------------------- | ----------------------------------------------------- | ------------------------ |
+| Fundo base (`data-tom="carvao"`)      | neutro `#F6F7F5`                                      |                          |
+| Seção **escura** / de **contraste**   | carvão a 3% / 5% sobre neutro (`#EFF0EE` / `#EAEBE9`) |                          |
+| **Painel** (cards)                    | branco `#FFFFFF`                                      |                          |
+| Texto / apoio (`text-fg-2`)           | carvão / carvão a 72%                                 | 16,1–17,9 / 7,2–7,6:1    |
+| Linhas                                | carvão a 12%                                          |                          |
+| `verde` (texto, ícones, traços, foco) | verde a 45% com carvão (`#06703D`)                    | 5,2–6,2:1                |
+| Destaque dos títulos (`h1/h2 em`)     | verde a 60% com carvão (`#04904C`)                    | 3,4–3,8:1 (texto grande) |
+| `verde-vivo` (preenchimentos)         | `#00E676`, sempre com texto carvão por cima           | 11,6:1                   |
 
-Contraste: `#9CA3AF` sobre `#0B0F0E` ≈ 6,9:1; `rgba(11,15,14,.6)` sobre `#F6F7F5` ≈ 6,6:1. `#9CA3AF` sobre `#F6F7F5` **não passa** para texto pequeno.
+O verde puro sobre o claro fica em ~1,6:1: por isso ele aparece só como **preenchimento** (botões, ponto do hero, barras do AI Score, filtros ativos, selo "Crítica") e no glow, e o texto verde usa as misturas acima. Os nomes dos tons ficaram do tema escuro: `carvao` é o fundo base (neutro no claro).
+
+**Fecho em carvão** (`data-tom="noite"`, CTA final e rodapé): a única faixa escura, com os valores do tema escuro: fundo carvão, todo texto neutro (inclusive o de apoio, pedido do Diego em 27/10), linhas `rgba(156,163,175,.25)`, verde puro em texto e destaque. A logo do rodapé é a `logo-dark`.
+
+Glow (`radial-gradient` verde a 10–16%, transparente a partir de ~40–55%): no hero da home, no topo das páginas internas, no bloco do AI Score, no hub do diagrama e nas faixas do AI Score. Nenhum outro gradiente, exceto a grade sutil do hero (linhas na cor do texto a 2,5%).
+
+Voltar ao escuro: `tema = "escuro"` em `src/lib/tema.ts` (o CTA final volta para `contraste` e a logo para `logo-dark`).
 
 ## Tipografia (Inter, pesos 400/500/600/700)
 
@@ -32,14 +47,14 @@ Contraste: `#9CA3AF` sobre `#0B0F0E` ≈ 6,9:1; `rgba(11,15,14,.6)` sobre `#F6F7
 
 - Gutter `6vw`; container 1220px
 - Seção: 75px (celular) / 120px (desktop) em cima e embaixo
-- Botões pill (`border-radius: 999px`), `14px 24px`, 15px/600, seta ↗ em links externos. Primário verde/carvão. Secundário borda 1.5px `rgba(246,247,245,.4)`.
-- Header sticky de 72px em todas as páginas, carvão a 94% com blur; link da página atual com sublinhado verde 2px
-- Cards quadrados (sem border-radius), borda `line`, fundo `painel`; no hover sobem 4px e a borda fica verde
+- Botões pill (`border-radius: 999px`), `14px 24px`, 15px/600, seta ↗ em links externos. Primário verde vivo com texto carvão. Secundário borda 1.5px na cor do texto a 40%.
+- Header sticky de 72px em todas as páginas, fundo base a 94% com blur; link da página atual com sublinhado verde 2px
+- Cards quadrados (sem border-radius), borda `line`, fundo `painel` (branco); no hover sobem 4px e a borda fica verde
 - Efeitos só em CSS; deslocamentos com `motion-safe:`; `prefers-reduced-motion` zera transições e scroll suave
 - Sem sombras em cards; o núcleo das órbitas tem um halo verde (parte do glow do hero). Sem emojis.
 - Ícones de linha (traçado do Lucide, 1,5px, verde) só para identificar soluções, áreas e o diagnóstico: `components/ui/icone.tsx`, sempre `aria-hidden`. Glifos tipográficos (↗ → ✓ +) marcam links, listas e o FAQ.
 - Microinterações: cards sobem 4px e a borda fica verde no hover; o “+” do FAQ gira; nas conexões do diagrama RESET 360 corre um brilho verde lento. Tudo some com `prefers-reduced-motion`.
-- Foco: `outline: 2px solid #00E676; outline-offset: 3px`
+- Foco: `outline: 2px solid` no `verde` (o de texto no claro, o puro no fecho); `outline-offset: 3px`
 - Breakpoint: 861px (abaixo: menu mobile, grids em 1–2 colunas, rodapé 2 colunas)
 
 ## Marcas das ferramentas
@@ -48,7 +63,7 @@ Spotlite (`#FF7A45`, ponto) e Fluxa BPM (`#0B7A4F`) aparecem só como um ponto c
 
 ## Logo e ícone
 
-`public/brand/`: `logo-dark` (usada no site todo), `logo-light` (fundo neutro, sem uso hoje), `icone-dark` (também em WebP de 180px no núcleo das órbitas do hero), `icone-light`. Hoje em PNG/WebP exportados do manual. **[FALTA]** SVGs oficiais. Favicon e ícones PWA gerados por `npm run images` (placeholder até o SVG chegar).
+`public/brand/`: `logo-light` (header e o resto do site), `logo-dark` (rodapé em carvão), `icone-light` (WebP de 180px no núcleo das órbitas do hero e na imagem de compartilhamento), `icone-dark` (favicon e ícones PWA, sobre carvão). Hoje em PNG/WebP exportados do manual. **[FALTA]** SVGs oficiais. Favicon e ícones PWA gerados por `npm run images` (placeholder até o SVG chegar).
 
 ## Imagens
 

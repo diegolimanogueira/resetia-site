@@ -66,7 +66,7 @@ export function Reset360() {
                 <li key={s.slug}>
                   <Link
                     href={`/solucoes/${s.slug}/`}
-                    className="border-line bg-carvao/60 hover:border-verde hover:text-fg flex h-full items-center gap-3 border px-4 py-3 text-[14px] font-semibold transition-colors"
+                    className="border-line bg-fundo/60 hover:border-verde hover:text-fg flex h-full items-center gap-3 border px-4 py-3 text-[14px] font-semibold transition-colors"
                   >
                     <Icone id={s.icone} tamanho={20} />
                     {s.nome.replace("RESET ", "")}

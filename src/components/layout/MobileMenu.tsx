@@ -47,7 +47,7 @@ export function MobileMenu({ pathname }: { pathname: string }) {
       <div
         id="menu-mobile"
         hidden={!aberto}
-        className="gutter border-line bg-carvao absolute inset-x-0 top-[72px] max-h-[calc(100dvh-72px)] overflow-y-auto border-b pt-2 pb-7 lg:hidden"
+        className="gutter border-line bg-fundo absolute inset-x-0 top-[72px] max-h-[calc(100dvh-72px)] overflow-y-auto border-b pt-2 pb-7 lg:hidden"
       >
         <nav aria-label="Menu" className="flex flex-col">
           {nav.map((l) => {
