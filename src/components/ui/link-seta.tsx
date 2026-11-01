@@ -12,12 +12,15 @@ export function LinkSeta({
   seta = "↗",
   voltar = false,
   className,
+  origem,
 }: {
   href: string;
   children: ReactNode;
   seta?: "↗" | "→";
   voltar?: boolean;
   className?: string;
+  /** Origem do clique para analytics (`data-cta`), como nos botões. */
+  origem?: string;
 }) {
   const classes = cn(
     voltar
@@ -36,11 +39,11 @@ export function LinkSeta({
     </>
   );
   return externo ? (
-    <a href={href} target="_blank" rel="noopener" className={classes}>
+    <a href={href} target="_blank" rel="noopener" className={classes} data-cta={origem}>
       {conteudo}
     </a>
   ) : (
-    <Link href={href} className={classes}>
+    <Link href={href} className={classes} data-cta={origem}>
       {conteudo}
     </Link>
   );

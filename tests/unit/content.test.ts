@@ -82,7 +82,7 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
 
   it("navegação: Início, Soluções, Agentes de IA, Tecnologias, Sobre a Reset e o botão do AI Score", () => {
     expect(nav.map((l) => l.label)).toEqual(["Início", "Soluções", "Agentes de IA", "Tecnologias", "Sobre a Reset"]);
-    expect(navDiagnostico).toEqual({ label: "Descubra seu AI Score", href: "/ai-score" });
+    expect(navDiagnostico).toEqual({ label: "Avaliação gratuita", href: "/ai-score" });
     expect(footer.explore.links.map((l) => l.href)).toEqual(
       expect.arrayContaining(["/ai-score", "/diagnostico-gratuito"]),
     );
@@ -99,10 +99,28 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
   });
 
   it("AI Score como porta de entrada; Análise Estratégica no WhatsApp como segundo caminho", () => {
-    expect(site.ctaAiScore).toBe("Descobrir meu AI Score");
+    expect(site.ctaAiScore).toBe("Fazer a avaliação gratuita");
     expect(site.ctaDiagnostico).toBe("Falar com um especialista");
     expect(site.mensagens.diagnostico).toMatch(/Análise Estratégica RESET/);
     expect(home.hero.ctaPrimario).toBe(site.ctaAiScore);
+    // A abertura fala das dores (trabalho manual, ferramentas paradas, processos soltos, por onde começar), sem promessa
+    // universal, e o nome do produto vem com a explicação em português. O aprofundamento é dito à parte, sem tempo.
+    const abertura = `${home.hero.lead} ${home.hero.produto}`;
+    for (const dor of [/trabalho manual/i, /ferramentas de IA paradas/i, /processos soltos/i, /por onde começar/i])
+      expect(abertura).toMatch(dor);
+    expect(abertura).toMatch(/RESET AI Score/);
+    expect(home.hero.produto).toMatch(/nota de 0 a 100 em seis dimensões/);
+    expect(JSON.stringify([home.hero.titulo, home.hero.lead, home.hero.produto, home.hero.opcional])).not.toMatch(
+      /garant|100%|sempre|qualquer empresa|resultado certo/i,
+    );
+    expect(home.hero.garantias).toEqual([
+      "Gratuito",
+      "Cerca de 5 minutos",
+      "Resultado na hora",
+      "Nome e e-mail só no fim",
+    ]);
+    expect(home.hero.opcional).toMatch(/opcional/);
+    expect(home.hero.opcional).not.toMatch(/\d+ minutos/);
     expect(ctaPadrao.botao).toBe(site.ctaAiScore);
     expect(diagnostico.hero.kicker).toBe("Análise Estratégica RESET");
     expect(diagnostico.avaliamos.itens).toHaveLength(6);

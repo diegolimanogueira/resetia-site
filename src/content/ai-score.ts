@@ -43,13 +43,13 @@ export const aiScore = {
         etiqueta: "Na hora, com nome e e-mail",
         nome: "Seu AI Score",
         texto:
-          "Nota de 0 a 100, nível de maturidade, resultado por dimensão, ponto forte, principal oportunidade, próximos passos e alertas.",
+          "Resumo executivo (cenário, o que merece atenção, as respostas que sustentam a leitura e a primeira ação), nota de 0 a 100, nível de maturidade, resultado por dimensão e alertas.",
       },
       {
         etiqueta: "Gratuito, com a empresa",
         nome: "Relatório completo",
         texto:
-          "Cada resposta com o próximo estágio, prioridades, pontos cegos, dicas para evoluir, simulação de evolução, plano de 90 dias e soluções indicadas, em PDF e no seu e-mail.",
+          "Lacunas de maturidade, oportunidades a investigar, cada resposta com o próximo estágio, dicas para evoluir, roteiro de 90 dias por dependências e as soluções a considerar, com evidências e condições, em PDF e no seu e-mail. Depois, se quiser, você pode aprofundar uma dor da sua operação (opcional).",
       },
       {
         etiqueta: "Mediante contato",

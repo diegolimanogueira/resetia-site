@@ -1016,6 +1016,6 @@ test.describe("RESET AI Score", () => {
       await expect(page.locator("meta[name='robots']")).toHaveAttribute("content", /noindex/);
       await expect(page).toHaveTitle(/Reset IA$/);
     }
-    expect(site.ctaAiScore).toBe("Descobrir meu AI Score");
+    expect(site.ctaAiScore).toBe("Fazer a avaliação gratuita");
   });
 });

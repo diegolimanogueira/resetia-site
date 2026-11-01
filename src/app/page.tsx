@@ -20,19 +20,19 @@ export const metadata: Metadata = {
 };
 
 /**
- * Jornada da home: entender a Reset → identificar a necessidade → explorar uma solução →
- * conhecer a experiência → descobrir o AI Score (ou falar com um especialista).
+ * Jornada da home: promessa → credibilidade → demonstração do diagnóstico (RESET AI Score) → dores por área →
+ * soluções e forma de atuação → tecnologias → equipe → dúvidas e ação final. O WhatsApp fica como segundo caminho.
  */
 export default function Home() {
   return (
     <main data-tom="carvao" className="text-fg bg-(--bg)">
       <Hero />
       <Prova />
+      <Scan />
       <Problema />
+      <Areas />
       <Reset360 />
       <Solucoes />
-      <Areas />
-      <Scan />
       <Tecnologias />
       <QuemSomos />
       <Perguntas kicker={solucoes.perguntas.kicker} titulo={solucoes.perguntas.titulo} itens={perguntas} />

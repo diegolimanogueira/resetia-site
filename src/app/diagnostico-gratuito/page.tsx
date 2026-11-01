@@ -103,31 +103,14 @@ export default function DiagnosticoGratuito() {
         </div>
       </Section>
 
-      <Section id="teste-de-ia">
-        <div className="container-site border-line grid gap-10 border p-[26px] md:grid-cols-[1.1fr_1fr] md:gap-[70px] md:p-[50px]">
-          <div>
-            <Eyebrow>{t.kicker}</Eyebrow>
-            <h2 className="display-h2 mb-6">
-              <Linhas itens={t.titulo} />
-            </h2>
-            <p className="text-fg-2 mb-4 max-w-[560px] text-[18px] leading-[1.7]">{t.lead}</p>
-            <p className="text-fg mb-8 text-[15px]">{t.paraQuem}</p>
-            <Botao href={testeSpotliteUrl("diagnostico")} origem="teste-spotlite" variante="secundario">
-              {t.cta}
-            </Botao>
-            <p className="text-fg-2 mt-5 max-w-[520px] text-[13px] leading-[1.6]">{t.nota}</p>
-            <p className="text-fg-2 mt-1 text-[13px] leading-[1.6]">{t.aviso}</p>
-          </div>
-          <ol className="grid content-center gap-3 sm:grid-cols-2">
-            {t.etapas.map((e) => (
-              <li key={e.numero} className="border-line bg-painel border px-6 py-7">
-                <span className="text-verde block text-[32px] leading-none font-bold tracking-[-0.03em]">
-                  {e.numero}
-                </span>
-                <span className="mt-4 block text-[18px] font-semibold">{e.texto}</span>
-              </li>
-            ))}
-          </ol>
+      <Section id="teste-de-ia" tom="escuro">
+        <div className="container-site border-line flex flex-col gap-4 border-t pt-8 md:flex-row md:items-baseline md:justify-between md:gap-10">
+          <p className="text-fg-2 max-w-[680px] text-[15px] leading-[1.65]">
+            <b className="text-fg">{t.kicker}</b> {t.resumo}
+          </p>
+          <LinkSeta href={testeSpotliteUrl("diagnostico")} origem="teste-spotlite" className="shrink-0">
+            {t.cta}
+          </LinkSeta>
         </div>
       </Section>
 

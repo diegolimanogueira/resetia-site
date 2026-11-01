@@ -11,7 +11,7 @@ export const diagnostico = {
     kicker: "Análise Estratégica RESET",
     titulo: ["Seu AI Score mostrou onde sua empresa está.", "*Vamos construir o caminho.*"],
     lead: "Uma conversa com especialistas da Reset para validar o seu resultado e identificar oportunidades de produtividade, eficiência e geração de receita com IA.",
-    nota: "Pelo WhatsApp. Ainda não fez o AI Score? Comece por ele: leva cerca de 5 minutos.",
+    nota: "Pelo WhatsApp, sem custo. Ainda não fez o RESET AI Score? Comece por ele: é gratuito e leva cerca de 5 minutos.",
   },
   avaliamos: {
     kicker: "O que aprofundamos",
@@ -60,18 +60,10 @@ export const diagnostico = {
   /** Texto do próprio teste em spotlite.com.br/descoberta/ia-negocios. */
   teste: {
     kicker: "Prefere começar sozinho?",
-    titulo: ["Teste de IA", "*para negócios.*"],
-    lead: "Em 5 a 7 minutos, você descobre o seu perfil de aplicação de IA, a sua nota nas competências de IA para negócios e três próximos passos para o seu trabalho.",
-    paraQuem: "Para empresários e líderes, colaboradores de empresa e profissionais individuais.",
-    etapas: [
-      { numero: "01", texto: "Sobre você" },
-      { numero: "02", texto: "Preferências" },
-      { numero: "03", texto: "Situações" },
-      { numero: "04", texto: "Seu resultado" },
-    ],
+    /** Caminho secundário, em uma linha: a página é de quem já considera a conversa. */
+    resumo:
+      "A Spotlite, tecnologia própria da Reset, tem um teste de IA para negócios (5 a 7 minutos; no fim, pede nome, e-mail e WhatsApp). É educacional, não é certificação e não substitui o RESET AI Score nem a conversa.",
     cta: "Fazer o teste na Spotlite",
-    nota: "Começa sem cadastro; no fim, você informa nome, e-mail e WhatsApp para ver a devolutiva.",
-    aviso: "Diagnóstico educacional: orienta o seu desenvolvimento e não é certificação.",
   },
   perguntas: {
     kicker: "Perguntas frequentes",

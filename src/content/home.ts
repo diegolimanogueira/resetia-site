@@ -7,9 +7,14 @@ import type { AreaId, Link } from "./types";
  */
 export const home = {
   hero: {
-    eyebrow: "Reset 360 · IA aplicada ao crescimento do negócio",
-    titulo: ["Sua parceira na *transformação digital e comercial* do seu negócio."],
-    lead: "Transformamos a forma como empresas trabalham com inteligência artificial. Desenvolvemos líderes, redesenhamos processos e criamos agentes inteligentes para potencializar Marketing, Vendas e Customer Success.",
+    eyebrow: "IA aplicada a Marketing, Vendas e Customer Success",
+    titulo: ["Descubra onde a IA pode", "*ajudar o seu negócio primeiro.*"],
+    lead: "Trabalho manual demais, ferramentas de IA paradas, processos soltos e dúvida sobre por onde começar: é aí que a Reset entra. Comece pelo RESET AI Score, a avaliação gratuita da maturidade em IA da sua empresa.",
+    /** Perto do botão: o que a pessoa precisa saber antes de clicar. O aprofundamento é à parte, sem promessa de tempo. */
+    garantias: ["Gratuito", "Cerca de 5 minutos", "Resultado na hora", "Nome e e-mail só no fim"],
+    produto:
+      "RESET AI Score: nota de 0 a 100 em seis dimensões, uma leitura apoiada nas suas respostas e o primeiro passo sugerido.",
+    opcional: "Depois do resultado, você pode aprofundar uma dor da sua operação, se quiser. É opcional.",
     /** Leva ao RESET AI Score. */
     ctaPrimario: site.ctaAiScore,
     ctaSecundario: { label: "Conhecer nossas soluções", href: "#solucoes" } satisfies Link,
@@ -97,11 +102,19 @@ export const home = {
   /** RESET AI Score em destaque: a porta de entrada. O WhatsApp fica como segundo caminho. */
   scan: {
     kicker: "RESET AI Score",
-    titulo: ["Qual é o AI Score", "*da sua empresa?*"],
-    lead: "Descubra gratuitamente o nível de maturidade em IA da sua empresa: nota de 0 a 100, seis dimensões avaliadas e os próximos passos para evoluir.",
-    nota: "Gratuito • 5 minutos • Resultado imediato",
-    dimensoes: "O que o AI Score avalia",
+    titulo: ["Veja o que a avaliação entrega,", "*antes de começar.*"],
+    lead: "O RESET AI Score avalia gratuitamente a maturidade da sua empresa em IA: uma nota de 0 a 100 em seis dimensões, uma leitura apoiada nas suas respostas e o primeiro passo sugerido, e não só um número.",
+    nota: "Gratuito · cerca de 5 minutos · resultado na hora · nome e e-mail só no fim",
+    dimensoes: "O que a avaliação mede",
     link: { label: "Como funciona o AI Score", href: "/ai-score" } satisfies Link,
+    /** Demonstração com o caso fictício da página de exemplo, calculada no build com o mesmo motor da avaliação. */
+    demo: {
+      rotulo: "Exemplo ilustrativo, com respostas hipotéticas: não é uma empresa real.",
+      nota: "AI Score",
+      de100: "de 100",
+      leitura: "O que o resultado diz neste exemplo",
+      completo: { label: "Ver o exemplo completo", href: "/ai-score/exemplo" } satisfies Link,
+    },
   },
   tecnologias: {
     kicker: "Tecnologias próprias",

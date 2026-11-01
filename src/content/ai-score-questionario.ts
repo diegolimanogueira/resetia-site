@@ -651,18 +651,18 @@ export const resultadoTextos = {
   vazio: {
     titulo: "Nenhum resultado neste link.",
     texto: "O link está incompleto. Responda ao AI Score para ver o seu resultado.",
-    cta: "Descobrir meu AI Score",
+    cta: "Fazer a avaliação gratuita",
   },
   invalido: {
     titulo: "Este link está incompleto ou foi alterado.",
     texto:
       "Não conseguimos ler as respostas deste link. Copie o link inteiro de novo ou responda ao AI Score outra vez.",
-    cta: "Descobrir meu AI Score",
+    cta: "Fazer a avaliação gratuita",
   },
   versaoDesconhecida: {
     titulo: "Este link vem de uma versão que esta página não conhece.",
     texto: "Atualize a página. Se continuar assim, responda ao AI Score outra vez.",
-    cta: "Descobrir meu AI Score",
+    cta: "Fazer a avaliação gratuita",
   },
   falha: {
     titulo: "Não foi possível carregar a leitura do seu resultado.",

@@ -7,7 +7,7 @@ export const ctaPadrao: CtaFinal = {
   titulo: ["Sua empresa está pronta", "para *resetar o futuro?*"],
   apoio:
     "Comece pelo RESET AI Score: em cerca de 5 minutos, descubra o nível de maturidade em IA da sua empresa e por onde evoluir.",
-  botao: "Descobrir meu AI Score",
+  botao: "Fazer a avaliação gratuita",
 };
 
 const lista: Solucao[] = [

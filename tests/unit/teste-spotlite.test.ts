@@ -18,8 +18,11 @@ describe("testeSpotliteUrl", () => {
     );
   });
 
-  it("o teste tem as quatro etapas e avisa que o resultado pede nome, e-mail e WhatsApp", () => {
-    expect(diagnostico.teste.etapas).toHaveLength(4);
-    expect(diagnostico.teste.nota).toMatch(/nome, e-mail e WhatsApp/);
+  it("o teste é um caminho secundário, em uma linha: avisa que pede nome, e-mail e WhatsApp e que não é certificação", () => {
+    expect(diagnostico.teste.resumo).toMatch(/nome, e-mail e WhatsApp/);
+    expect(diagnostico.teste.resumo).toMatch(/não é certificação/);
+    expect(diagnostico.teste.resumo).toMatch(/não substitui o RESET AI Score nem a conversa/);
+    // Sem seção própria: nada de passos, cartões ou botão grande competindo com a conversa.
+    expect(Object.keys(diagnostico.teste).sort()).toEqual(["cta", "kicker", "resumo"]);
   });
 });
