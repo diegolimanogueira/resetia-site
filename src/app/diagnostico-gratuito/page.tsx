@@ -4,7 +4,6 @@ import { HeroPagina } from "@/components/sections/shared/HeroPagina";
 import { Perguntas } from "@/components/sections/shared/Perguntas";
 import { Botao } from "@/components/ui/botao";
 import { CabecalhoSecao } from "@/components/ui/cabecalho-secao";
-import { Eyebrow } from "@/components/ui/eyebrow";
 import { Linhas } from "@/components/ui/linhas";
 import { LinkSeta } from "@/components/ui/link-seta";
 import { Section } from "@/components/ui/section";

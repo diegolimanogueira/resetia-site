@@ -178,6 +178,42 @@ export default async function SolucaoPagina({ params }: PageProps<"/solucoes/[sl
         </div>
       </HeroPagina>
 
+      <Section id="comecar">
+        <div className="container-site">
+          <CabecalhoSecao kicker={d.comecar.kicker} titulo={d.comecar.titulo} />
+          <dl data-comecar className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            {(
+              [
+                [d.comecar.problema, s.comecar.problema],
+                [d.comecar.entrega, s.comecar.entrega],
+                [d.comecar.prerequisitos, s.comecar.prerequisitos],
+                [d.comecar.proximoPasso, s.comecar.proximoPasso],
+              ] as const
+            ).map(([rotulo, conteudo]) => (
+              <div key={rotulo} className="border-line bg-painel border p-[24px]">
+                <dt className="eyebrow text-verde mb-3 text-[11px]">{rotulo}</dt>
+                <dd className="text-[15px] leading-[1.6]">
+                  {Array.isArray(conteudo) ? (
+                    <ul className="grid gap-2">
+                      {conteudo.map((c) => (
+                        <li key={c} className="flex gap-2">
+                          <span aria-hidden="true" className="text-verde">
+                            ✓
+                          </span>
+                          {c}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    conteudo
+                  )}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </Section>
+
       <Section tom="escuro" id="sobre">
         <div className="container-site grid gap-[30px] md:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] md:gap-[90px]">
           <div>

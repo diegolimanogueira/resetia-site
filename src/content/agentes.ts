@@ -9,7 +9,7 @@ export const areas: Array<{ id: AreaId; nome: string }> = [
 
 export const nomeDaArea = (id: AreaId) => areas.find((a) => a.id === id)!.nome;
 
-const lista: Agente[] = [
+const base: Array<Omit<Agente, "ficha">> = [
   {
     area: "marketing",
     nome: "Social Content",
@@ -50,6 +50,226 @@ const lista: Agente[] = [
   { area: "customer-success", nome: "Customer Journey", texto: "Gargalos e oportunidades na experiência do cliente." },
 ];
 
+/**
+ * Como cada agente funciona, em termos gerais: o que precisa receber, a tarefa, o que entrega, quem revisa e um
+ * indicador possível. É descrição de oportunidade, não de integração entregue: dados, ferramentas, autonomia e
+ * controles reais são definidos em cada projeto. Texto escrito pelo agente de código, a revisar com o Diego.
+ */
+const fichas: Record<string, Agente["ficha"]> = {
+  "Social Content": {
+    entrada: "Tema, público, tom de voz e calendário da marca.",
+    tarefa: "Propor pautas, legendas, roteiros e carrosséis.",
+    saida: "Rascunhos e calendário editorial.",
+    revisao: "Quem responde pela marca aprova antes de publicar.",
+    indicador: "Tempo de produção por peça e peças aprovadas sem retrabalho.",
+  },
+  "Creative Studio": {
+    entrada: "Briefing e guia visual da marca.",
+    tarefa: "Gerar conceitos e variações criativas.",
+    saida: "Variações visuais para escolha.",
+    revisao: "Quem responde pela marca revisa a marca e os direitos de imagem.",
+    indicador: "Variações aproveitadas por briefing.",
+  },
+  "Campaign Builder": {
+    entrada: "Objetivo, público, oferta e canais.",
+    tarefa: "Montar briefings e mensagens por canal.",
+    saida: "Plano de campanha e peças-base.",
+    revisao: "O responsável de marketing valida oferta e promessas.",
+    indicador: "Tempo do briefing ao plano aprovado.",
+  },
+  "Market Intelligence": {
+    entrada: "Lista de concorrentes e fontes públicas autorizadas.",
+    tarefa: "Reunir e resumir movimentos de mercado.",
+    saida: "Resumo periódico com as fontes citadas.",
+    revisao: "Quem decide confere as fontes antes de agir.",
+    indicador: "Tempo de preparo do resumo e decisões que o usaram.",
+  },
+  "Performance Analyst": {
+    entrada: "Dados de mídia, CRM e vendas, com acesso autorizado.",
+    tarefa: "Cruzar os dados e destacar variações.",
+    saida: "Leitura integrada, com perguntas para investigar.",
+    revisao: "Análise confirmada por quem conhece as campanhas.",
+    indicador: "Tempo para consolidar o relatório.",
+  },
+  "SEO & Content": {
+    entrada: "Temas, palavras-chave e conteúdo existente.",
+    tarefa: "Sugerir temas e otimizações.",
+    saida: "Lista de temas e ajustes editoriais.",
+    revisao: "O editor aprova o conteúdo e o tom.",
+    indicador: "Temas aprovados por mês e tempo de pesquisa.",
+  },
+  "CRM & Segmentation": {
+    entrada: "Base de contatos e histórico de comportamento, dentro do que a política permite.",
+    tarefa: "Sugerir segmentos e mensagens.",
+    saida: "Segmentos e rascunhos de comunicação.",
+    revisao: "Uma pessoa confere o consentimento e a mensagem antes do envio.",
+    indicador: "Segmentos usados e taxa de resposta por segmento.",
+  },
+  "Brand Guardian": {
+    entrada: "Manual de marca e tom de voz.",
+    tarefa: "Conferir peças contra as diretrizes.",
+    saida: "Lista de desvios e sugestões de ajuste.",
+    revisao: "A decisão final é de quem responde pela marca.",
+    indicador: "Desvios apontados antes da publicação.",
+  },
+  "Customer Insights": {
+    entrada: "Avaliações, comentários e pesquisas.",
+    tarefa: "Agrupar temas e sentimentos recorrentes.",
+    saida: "Síntese de temas com exemplos.",
+    revisao: "Leitura conferida com uma amostra do material original.",
+    indicador: "Tempo para sintetizar um lote de feedbacks.",
+  },
+  "Marketing Planning": {
+    entrada: "Metas, orçamento e histórico de campanhas.",
+    tarefa: "Montar o plano e o acompanhamento.",
+    saida: "Plano com metas e rotina de acompanhamento.",
+    revisao: "A liderança aprova metas e prioridades.",
+    indicador: "Aderência do realizado ao plano.",
+  },
+  "AI SDR": {
+    entrada: "Critérios de qualificação e canais de entrada dos contatos.",
+    tarefa: "Fazer a qualificação inicial e encaminhar.",
+    saida: "Contato qualificado, com resumo para o vendedor.",
+    revisao: "O vendedor assume e confirma antes de avançar; exceções vão para uma pessoa.",
+    indicador: "Tempo até a primeira resposta e contatos qualificados encaminhados.",
+  },
+  "Sales Prospecting": {
+    entrada: "Perfil de cliente ideal e fontes autorizadas.",
+    tarefa: "Pesquisar contas e preparar abordagens.",
+    saida: "Lista de contas com um ponto de partida para a abordagem.",
+    revisao: "O vendedor valida contas e mensagem.",
+    indicador: "Tempo de preparo por conta.",
+  },
+  "Follow-up": {
+    entrada: "Etapa do negócio e histórico de contatos.",
+    tarefa: "Sugerir cadência e lembretes.",
+    saida: "Próximo passo e rascunho de mensagem.",
+    revisao: "O vendedor decide o que enviar.",
+    indicador: "Negócios sem retorno marcado.",
+  },
+  "Sales Proposal": {
+    entrada: "Modelos aprovados, condições e dados do cliente.",
+    tarefa: "Montar a proposta a partir do modelo.",
+    saida: "Rascunho de proposta.",
+    revisao: "Condições e preços aprovados por quem responde pela venda.",
+    indicador: "Tempo do pedido ao rascunho.",
+  },
+  "CRM Intelligence": {
+    entrada: "Registros do CRM e regras do funil.",
+    tarefa: "Apontar negócios parados e lacunas de registro.",
+    saida: "Lista priorizada para revisão.",
+    revisao: "O gestor confirma e distribui.",
+    indicador: "Negócios parados sem responsável.",
+  },
+  "Sales Coach": {
+    entrada: "Interações gravadas ou registradas, com autorização.",
+    tarefa: "Destacar objeções e padrões.",
+    saida: "Pontos de aprendizado por conversa.",
+    revisao: "O gestor revisa, e só se usa com ciência e autorização de quem é analisado.",
+    indicador: "Objeções recorrentes tratadas.",
+  },
+  "Sales Forecast": {
+    entrada: "Histórico e pipeline.",
+    tarefa: "Apoiar a projeção com cenários.",
+    saida: "Projeção com as premissas visíveis.",
+    revisao: "O gestor valida as premissas e decide.",
+    indicador: "Diferença entre projetado e realizado.",
+  },
+  "Product Knowledge": {
+    entrada: "Catálogo, condições e políticas atualizadas.",
+    tarefa: "Responder consultas com base nesses documentos.",
+    saida: "Resposta com a fonte citada.",
+    revisao: "Dúvidas fora da base vão para uma pessoa.",
+    indicador: "Consultas resolvidas sem escalonar.",
+  },
+  "Sales Opportunity": {
+    entrada: "Carteira e histórico de compras.",
+    tarefa: "Apontar sinais de cross-sell e upsell.",
+    saida: "Lista de oportunidades com o sinal que as sustenta.",
+    revisao: "O vendedor confirma antes de abordar.",
+    indicador: "Oportunidades abordadas e convertidas.",
+  },
+  "Sales Management": {
+    entrada: "Dados do funil e metas do time.",
+    tarefa: "Montar painéis e recomendações.",
+    saida: "Painel e pontos de atenção.",
+    revisao: "O gestor interpreta e decide.",
+    indicador: "Tempo de preparo da reunião de pipeline.",
+  },
+  "Customer Onboarding": {
+    entrada: "Etapas de implantação e dados do cliente.",
+    tarefa: "Orientar e acompanhar os passos.",
+    saida: "Checklist de implantação e alertas de atraso.",
+    revisao: "O responsável de CS acompanha as exceções.",
+    indicador: "Tempo até o primeiro uso.",
+  },
+  "Customer Support": {
+    entrada: "Base de conhecimento e histórico de atendimento.",
+    tarefa: "Sugerir respostas e escalar exceções.",
+    saida: "Resposta assistida ou encaminhamento.",
+    revisao: "Exceções e respostas sensíveis passam por uma pessoa.",
+    indicador: "Tempo de primeira resposta e escalonamentos.",
+  },
+  "Churn Risk": {
+    entrada: "Sinais de uso, atendimento e financeiro.",
+    tarefa: "Apontar contas com sinais de risco.",
+    saida: "Lista de contas com o motivo.",
+    revisao: "O CS confirma o risco com o cliente.",
+    indicador: "Contas em risco acompanhadas.",
+  },
+  "Customer Health": {
+    entrada: "Dados de uso, satisfação e relacionamento.",
+    tarefa: "Consolidar uma visão da carteira.",
+    saida: "Visão da saúde por conta.",
+    revisao: "A definição de conta saudável é validada pelo time.",
+    indicador: "Contas com a visão atualizada.",
+  },
+  Retention: {
+    entrada: "Contas em risco e histórico.",
+    tarefa: "Propor planos de recuperação.",
+    saida: "Plano por conta.",
+    revisao: "O CS aprova e conduz o contato.",
+    indicador: "Contas com plano aprovado.",
+  },
+  Expansion: {
+    entrada: "Uso e necessidades registradas.",
+    tarefa: "Identificar oportunidades de ampliação.",
+    saida: "Lista com o sinal e a próxima conversa.",
+    revisao: "O CS confirma com o cliente.",
+    indicador: "Oportunidades levadas à conversa.",
+  },
+  "Voice of Customer": {
+    entrada: "Feedbacks, tickets e pesquisas.",
+    tarefa: "Sintetizar temas e pedidos.",
+    saida: "Resumo de temas com exemplos.",
+    revisao: "Amostra conferida no original.",
+    indicador: "Temas tratados pelo produto ou pelo time.",
+  },
+  Renewal: {
+    entrada: "Datas de vencimento e histórico da conta.",
+    tarefa: "Acompanhar vencimentos e sugerir a abordagem.",
+    saida: "Agenda de renovações com o contexto.",
+    revisao: "O responsável conduz a negociação.",
+    indicador: "Renovações com contato antecipado.",
+  },
+  "CS Copilot": {
+    entrada: "Histórico da conta e reuniões.",
+    tarefa: "Resumir o contexto e propor próximos passos.",
+    saida: "Resumo e rascunho de próximos passos.",
+    revisao: "O CS revisa antes de registrar ou enviar.",
+    indicador: "Tempo de preparo para reuniões com o cliente.",
+  },
+  "Customer Journey": {
+    entrada: "Pontos de contato e dados de cada etapa.",
+    tarefa: "Apontar gargalos e oportunidades.",
+    saida: "Mapa da jornada com os pontos críticos.",
+    revisao: "O time valida os pontos com clientes.",
+    indicador: "Gargalos tratados.",
+  },
+};
+
+const lista: Agente[] = base.map((a) => ({ ...a, ficha: fichas[a.nome] }));
+
 export const agentes = {
   hero: {
     kicker: "Agentes de IA",
@@ -64,6 +284,19 @@ export const agentes = {
     contagem: (n: number) => `${n} agentes`,
   },
   lista,
+  /** Rótulos da ficha de cada agente e o aviso de que ela descreve uma possibilidade, não uma integração entregue. */
+  ficha: {
+    abrir: "Como funciona",
+    rotulos: {
+      entrada: "Entrada necessária",
+      tarefa: "Tarefa",
+      saida: "Saída",
+      revisao: "Revisão humana",
+      indicador: "Indicador possível",
+    },
+    aviso:
+      "Cada ficha descreve, em termos gerais, o que o agente pode fazer. Dados, ferramentas, autonomia e controles reais são definidos em cada projeto: nada aqui significa uma integração já entregue.",
+  },
   aviso:
     "As aplicações são oportunidades de solução, não produtos prontos e universalmente compatíveis. Autonomia, integrações, dados, segurança, qualidade e custos são definidos em cada projeto.",
   complexidade: {

@@ -261,3 +261,35 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
     );
   });
 });
+
+describe("serviços e agentes: o essencial antes de conversar", () => {
+  it("cada solução diz o problema que atende, a entrega, o que precisa estar pronto e o próximo passo", () => {
+    expect(solucoes.lista).toHaveLength(5);
+    for (const s of solucoes.lista) {
+      expect(s.comecar.problema.length, s.slug).toBeGreaterThan(40);
+      expect(s.comecar.entrega.length, s.slug).toBeGreaterThan(40);
+      expect(s.comecar.prerequisitos.length, s.slug).toBeGreaterThanOrEqual(3);
+      expect(s.comecar.proximoPasso, s.slug).toMatch(/avaliação gratuita|conversa|conversar/i);
+      // Sem promessa de resultado, prazo ou ganho: só o que a solução faz e o que ela pede.
+      expect(JSON.stringify(s.comecar), s.slug).not.toMatch(
+        /garant|100%|em \d+ (dias|semanas|meses)|sem esforço|economia de/i,
+      );
+    }
+  });
+
+  it("cada um dos 30 agentes tem entrada, tarefa, saída, revisão humana e um indicador possível", () => {
+    expect(agentes.lista).toHaveLength(30);
+    for (const a of agentes.lista) {
+      for (const campo of ["entrada", "tarefa", "saida", "revisao", "indicador"] as const)
+        expect(a.ficha[campo].length, `${a.nome}: ${campo}`).toBeGreaterThan(10);
+      // Revisão humana nomeia quem revisa (uma pessoa, um papel), e o indicador é uma medida, não uma promessa.
+      expect(a.ficha.revisao, a.nome).toMatch(
+        /respond|respons|aprova|valid|confirm|conduz|decide|revisa|conferid|pessoa|time|gestor|vendedor|editor|CS|equipe|liderança|usos/i,
+      );
+      expect(JSON.stringify(a.ficha), a.nome).not.toMatch(
+        /garant|100%|automaticamente sem|sem revisão|integrado com|integração com/i,
+      );
+    }
+    expect(agentes.ficha.aviso).toMatch(/nada aqui significa uma integração já entregue/);
+  });
+});

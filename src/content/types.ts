@@ -70,6 +70,8 @@ export interface Solucao {
   cta: CtaSolucao;
   /** Botão secundário do hero: âncora para uma seção da própria página. */
   ctaSecundario: Link;
+  /** O essencial antes de contratar: o problema, a entrega, o que precisa estar pronto e o próximo passo. */
+  comecar: { problema: string; entrega: string; prerequisitos: string[]; proximoPasso: string };
   sobre: { titulo: string[]; paragrafos: string[] };
   beneficios: Bloco<{ titulo: string; texto: string }>;
   entregaveis: Bloco<string> & { nota?: string };
@@ -91,6 +93,8 @@ export interface Agente {
   area: AreaId;
   nome: string;
   texto: string;
+  /** O que o agente precisa receber, o que entrega, quem revisa e como saber se ajudou. Escrito em termos gerais: o detalhe é definido em cada projeto. */
+  ficha: { entrada: string; tarefa: string; saida: string; revisao: string; indicador: string };
 }
 
 /* RESET AI Score ---------------------------------------------------------------------------------------- */
