@@ -10,16 +10,16 @@ Legenda de evidência: **L** = simulado ou testado localmente; **P** = confirmad
 
 ## Estado das fases
 
-| Fase | Escopo                                                       | Estado                                                    |
-| ---- | ------------------------------------------------------------ | --------------------------------------------------------- |
-| 0    | Branch, documento de progresso                               | feita                                                     |
-| 1    | Medir a base, protótipo do PDF, consultas de produção        | feita (PDF passa para a Fase 4, ver registro)             |
-| 2    | Fidelidade, método, cobertura, versões, corte de peso        | feita (forte, lacuna, passos e plano ficam para a Fase 4) |
-| 3    | Dados, captura confiável, aprofundamento                     | feita (L; produção: nada aplicado, ver registro)          |
-| 4    | Prioridades, devolutiva, PDF, e-mail                         | feita (L; tokens e e-mail só validados com simulações)    |
-| 5    | Painel, preferências, métricas, trava de publicação          | pendente                                                  |
-| 6    | Home, celular, jornadas, serviços, agentes                   | pendente                                                  |
-| 7    | Validação integrada, documentação de publicação e calibração | pendente                                                  |
+| Fase | Escopo                                                       | Estado                                                      |
+| ---- | ------------------------------------------------------------ | ----------------------------------------------------------- |
+| 0    | Branch, documento de progresso                               | feita                                                       |
+| 1    | Medir a base, protótipo do PDF, consultas de produção        | feita (PDF passa para a Fase 4, ver registro)               |
+| 2    | Fidelidade, método, cobertura, versões, corte de peso        | feita (forte, lacuna, passos e plano ficam para a Fase 4)   |
+| 3    | Dados, captura confiável, aprofundamento                     | feita (L; produção: nada aplicado, ver registro)            |
+| 4    | Prioridades, devolutiva, PDF, e-mail                         | feita (L; tokens e e-mail só validados com simulações)      |
+| 5    | Painel, preferências, métricas, trava de publicação          | feita (L; migrações 0010 aplicada só no Postgres local)     |
+| 6    | Home, celular, jornadas, serviços, agentes, privacidade      | feita (L; prints de referência e revisão de copy pendentes) |
+| 7    | Validação integrada, documentação de publicação e calibração | pendente                                                    |
 
 ## Achados confirmados no código (31/10/2026)
 
@@ -65,9 +65,10 @@ Conferidos contra o código atual, não só contra a auditoria.
 
 Decisões de arquitetura estão no plano aprovado e viram ADR em `docs/decisions.md` ao fim de cada fase. Este quadro registra desvios do plano.
 
-| Data  | Decisão                                                              | Motivo                         |
-| ----- | -------------------------------------------------------------------- | ------------------------------ |
-| 31/10 | Branch `feat/ai-score-evolucao` parte da `main` já com o site claro. | O PR #4 foi mesclado em 30/10. |
+| Data  | Decisão                                                              | Motivo                                                                                                             |
+| ----- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 31/10 | Branch `feat/ai-score-evolucao` parte da `main` já com o site claro. | O PR #4 foi mesclado em 30/10.                                                                                     |
+| 01/11 | Teto do JS total subiu a 380 kB (de 360, que já era de 330).         | Ver a Fase 6: o total soma cópias que nenhuma página baixa junto; o orçamento por página e por chunk é o que vale. |
 
 ## Verificação
 
@@ -256,3 +257,54 @@ where routine_schema = 'public' and grantee in ('anon', 'authenticated', 'PUBLIC
 - Página de preferências (`/ai-score/preferencias/`) e botão de revogar o link no painel: Fase 5.
 - Aplicar a migração 0009 e o código da função em produção, e confirmar o envio real: ver `docs/deploy.md` (Fase 7).
 - Prints de referência (visuais) a regenerar no Docker depois das mudanças de tela das Fases 4 e 6.
+
+### Fase 5 (01/11) — feita
+
+**Painel comercial (`src/components/admin/`, `src/lib/ai-score/{leads,lead-score,fila-conversas,ficha}.ts`):** ficha de preparação da conversa (determinística: respostas, aprofundamento, marcos e consentimentos; nada gerado por IA), fila de pedidos de conversa com tempo até a primeira resposta, responsável e pendências, funil com marcos reais (reunião, proposta, desfecho) e valor só se a equipe digitar (fora do CSV). A pontuação comercial deixou de ser uma nota única: **aderência ao perfil**, **intenção de conversar** e **oportunidade investigada**, cada uma com os componentes e o máximo; cargo, porte e e-mail corporativo contam como aderência e não provam orçamento nem autoridade. A conversão em cliente mostra **n de N sobre todos os leads, descartados incluídos**; a taxa sobre os não descartados aparece à parte, com esse nome. Aba Operação: tarefas pendentes e com falha, com "Reprocessar" por tarefa, contador de gravações pelo caminho antigo e revogação de link.
+
+**Contato só a pedido (migração 0010, `contatos_permitidos()`):** o painel lê o telefone pela função, que só o devolve se a pessoa escolheu WhatsApp ou ligação e informou o número. A migração pendente `supabase/pendentes/0011` revoga a leitura direta de `leads.whatsapp` (é o que faz a regra valer no banco, não só nos botões); a `0012` fecha o caminho de gravação dos clientes antigos. Nenhuma das duas foi aplicada; as condições estão no cabeçalho de cada arquivo e em `docs/deploy.md` (Fase 7).
+
+**Preferências (`/ai-score/preferencias/`, ação `preferencias` da função):** a pessoa corrige, pelo link do e-mail, cada finalidade e canal; cada mudança é um evento com a versão do texto. Token de outra finalidade, expirado ou revogado dá 403.
+
+**Medição sem dado pessoal (`analytics*.ts`, `docs/medicao.md`):** só eventos do catálogo, só as chaves declaradas, valores curtos de vocabulário controlado; qualquer valor parecido com e-mail, telefone, UUID ou token é descartado. Eventos únicos contam uma vez por sessão. Umami com `data-exclude-hash`; GA4 com `page_location` sem o hash. Com o analytics desligado (estado de hoje em produção), o painel diz isso e não calcula taxa de visita. O módulo de medição carrega sob demanda.
+
+**Trava de publicação (`scripts/configuracao-build.mjs`):** o build de produção falha sem o Supabase, a menos que `RESETIA_MODO=demo` (prévias; `pages.yml`) ou `teste` (CI; `ci.yml`). Um valor desconhecido também falha.
+
+**Testes novos:** unidade (`admin`, `conversas`, `analytics`, `consentimentos`, `configuracao-build`), asserções de banco para marcos, primeira resposta e `contatos_permitidos`, mais as de 0011 e 0012 num Postgres local, testes da ação `preferencias` na função e o E2E do painel (`admin.spec.ts`, 3 testes). **Resultados (L, medidos em 01/11):** unidade 274, banco OK (179 asserções), função 37, lint, tipos e knip limpos.
+
+**Peso:** painel 228,4 kB (teto 240; foi de 243 a 228 carregando a gaveta e as abas sob demanda); resultado e exemplo 224,9 (teto 225); avaliação 217,3.
+
+**Decisões e desvios:**
+
+- `contatos_permitidos()` devolve o telefone, e não só um sim ou não, porque o admin precisa ligar; o `tem_numero` serve para a lista, que nunca vê o número.
+- O admin só registra **revogação** de consentimento, nunca concessão (a política de RLS só aceita `concedido = false` com fonte `admin-revogacao`).
+- Receita nunca é deduzida de mudança de status.
+- Textos novos do painel (`admin.ts`, `admin-conversas.ts`) ficam a rever com o Diego.
+
+**Pendências desta fase para as seguintes:**
+
+- Aplicar 0010 em produção e, depois do smoke, 0011; 0012 só com o contador do caminho antigo em zero: Fase 7 (`docs/deploy.md`).
+- Ligar o agendador (Supabase Cron + `PROCESSADOR_SEGREDO`) e o analytics: externo.
+
+### Fase 6 (01/11) — feita
+
+**Abertura e home (`home.ts`, `Hero.tsx`, `Scan.tsx`, `page.tsx`):** o título fala do que a pessoa quer ("Descubra onde a IA pode ajudar o seu negócio primeiro."), o texto cita as dores (trabalho manual, ferramentas de IA paradas, processos soltos, dúvida sobre por onde começar) e só depois apresenta o RESET AI Score, com o nome em português ("nota de 0 a 100 em seis dimensões, uma leitura apoiada nas suas respostas e o primeiro passo sugerido"). Gratuidade, tempo ("cerca de 5 minutos"), "resultado na hora" e "nome e e-mail só no fim" ficam logo abaixo do grupo de botões; o aprofundamento é descrito à parte, como opcional e sem prometer tempo. A ação principal é "Fazer a avaliação gratuita" (menu: "Avaliação gratuita"); o texto "diagnóstico gratuito" continua só na Análise Estratégica. Ordem: abertura → prova → **demonstração** → dores por área → Reset 360 → soluções → tecnologias → quem somos → FAQ → CTA.
+
+**Demonstração do diagnóstico:** logo depois da prova, com a nota, a leitura, o que merece atenção, as respostas que sustentam e a primeira ação, calculadas **no build com o mesmo motor** da avaliação a partir do caso hipotético da página de exemplo (a nota da home e a de `/ai-score/exemplo/` são a mesma; teste E2E confere). Rotulada: "Exemplo ilustrativo, com respostas hipotéticas: não é uma empresa real."
+
+**Celular:** texto e botão vêm antes da ilustração (saiu o `order-first`); o botão principal cabe na primeira tela do viewport real do WebKit celular (390×664); as garantias cabem no 390×844 do documento da fase. A barra persistente traz a avaliação como ação principal e o WhatsApp como alternativa, e o WhatsApp primeiro na Análise Estratégica; sem barra no questionário, no resultado e nas preferências.
+
+**Análise Estratégica:** o teste da Spotlite virou uma linha lateral; deixou de ser um bloco do mesmo peso que a conversa com o especialista.
+
+**Soluções e agentes:** cada uma das cinco soluções ganhou "Para começar" (problema, entrega, pré-requisitos e próximo passo, sem prazo, ganho ou garantia). Cada um dos 30 agentes ganhou uma ficha em `<details>` (entrada, tarefa, saída, revisão humana, indicador), com o aviso de que a ficha descreve o desenho e **nada ali significa uma integração já entregue**.
+
+**Privacidade e provas:** a política foi reescrita para o que o sistema faz (aprofundamento, navegador e links, consentimento por canal, tokens de 180 e 365 dias, provedores nomeados, "não há prazo automático de apagamento"); a promessa antiga de e-mail comercial sem escolha da pessoa saiu. `docs/provas.md` lista o que o site afirma como prova, de onde vem, e o que o proprietário precisa fornecer para termos casos reais; não há caso medido nem depoimento no material, e nenhum foi criado.
+
+**Testes novos:** `home.spec.ts` (abertura, mobile, demonstração, ordem das seções, barra, `data-cta` único), blocos de conteúdo para "Para começar", fichas e política em `content.test.ts`. **Resultados (L):** unidade 274; E2E em Chromium desktop e WebKit celular: `home.spec.ts` 11 passando e 1 pulado (o teste de celular não roda no desktop); agentes, soluções, a11y e SEO, 72 passando (a11y e SEO, 42 deles, repetidos depois da política); lint, tipos e knip limpos.
+
+**Peso:** rotas entre 205 e 228 kB (tetos 225 e 240 no painel). JS total **359,9 kB, com teto de 360**: as fichas pesam ~6,4 kB gzip em cada um de dois chunks (o catálogo é um componente client que importa o conteúdo todo). O teto da soma subiu a 380 kB. O total é a soma de **todos** os chunks, inclusive cópias que o Turbopack cria por grupo e que nenhuma página baixa junto; já subiu seis vezes (280 → 290 → 300 → 320 → 330 → 360 → 380) com a mesma causa e deixou de ser um limite informativo. O que protege o visitante é o teto por página e por chunk. **Alternativa a decidir:** trocar o teto da soma por um aviso, ou renderizar as fichas no servidor e passá-las ao catálogo como `children` (economia estimada de ~12,7 kB no total, com mais trabalho de código).
+
+**Pendências desta fase para as seguintes:**
+
+- Prints de referência (visuais) a regenerar no Docker (pouca memória disponível até agora): Fase 7.
+- Revisão de copy pelo Diego (lista no ADR de 01/11 à noite) e as pendências de `docs/provas.md`.

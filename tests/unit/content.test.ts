@@ -293,3 +293,40 @@ describe("serviços e agentes: o essencial antes de conversar", () => {
     expect(agentes.ficha.aviso).toMatch(/nada aqui significa uma integração já entregue/);
   });
 });
+
+describe("política de privacidade alinhada ao que o sistema faz", () => {
+  const texto = privacidade.secoes.flatMap((s) => [s.titulo, ...s.paragrafos]).join("\n");
+
+  it("diz o que o sistema coleta, guarda no navegador e envia, sem prometer o que não existe", () => {
+    // Aprofundamento, navegador, links com código, consentimento por canal e provedores nomeados.
+    for (const trecho of [
+      "aprofundamento",
+      "armazenamento local do seu navegador",
+      "depois do # do endereço",
+      "180 dias",
+      "365 dias",
+      "Supabase",
+      "Resend",
+      "Anthropic",
+    ])
+      expect(texto, trecho).toContain(trecho);
+    expect(texto).toMatch(/canal \(e-mail, WhatsApp ou ligação\)/);
+    // O que vai à IA: fatos estruturados, nunca texto digitado (inclui o aprofundamento).
+    expect(texto).toMatch(/nunca são enviados ao provedor de IA/);
+    // Nada de apagamento automático inventado: a política diz que não há prazo.
+    expect(texto).toContain("não há um prazo automático de apagamento");
+    expect(texto).not.toMatch(/depois são apagados|apagados automaticamente/i);
+  });
+
+  it("não mantém a promessa antiga de e-mail comercial sem escolha da pessoa", () => {
+    expect(texto).not.toMatch(/basta responder pedindo/i);
+    expect(texto).toMatch(/só envia e-mail comercial, liga ou chama no WhatsApp para quem fez essa escolha/);
+  });
+
+  it("cita só números que existem no sistema (prazos dos links) e a lei", () => {
+    const numeros = texto.match(/\d[\d.]*/g) ?? [];
+    const permitidos = new Set(["13.709", "2018", "180", "365", "1", "2026"]);
+    for (const n of numeros) expect(permitidos.has(n.replace(/\.$/, "")), `número fora da lista: ${n}`).toBe(true);
+    expect(privacidade.atualizadaEm).toBe("1 de novembro de 2026");
+  });
+});
