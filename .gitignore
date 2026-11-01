@@ -50,3 +50,6 @@ next-env.d.ts
 /.lighthouseci/
 /docs/screenshots/*.png
 !/docs/screenshots/.gitkeep
+
+# Despejo de memória de um contêiner que caiu (ex.: Chromium do Playwright sem memória)
+/core

@@ -170,8 +170,9 @@ describe("links: formato 1 congelado e formato 2", () => {
     });
     const c = decodificarV1(GOLDEN_V1_COMPLETO)!;
     expect(calcular(c)).toMatchObject({ indice: 34, nivel: "explorando" });
-    // O conteúdo de hoje continua sendo o mesmo caso.
-    expect(aiScore.exemplo.codigo).toBe(GOLDEN_V1_EXEMPLO);
+    // O exemplo público de hoje, já no formato 2, é exatamente o mesmo caso do golden do formato 1.
+    expect(aiScore.exemplo.codigo.startsWith("v=2&m=1&n=2&")).toBe(true);
+    expect(decodificar(aiScore.exemplo.codigo)).toEqual(e);
   });
 
   it("lerLink identifica o formato 1 como anterior ao versionamento: método 1, sem versão de análise", () => {

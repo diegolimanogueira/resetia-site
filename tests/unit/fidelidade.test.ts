@@ -68,6 +68,14 @@ const NEGACOES: Array<{ pergunta: string; niveis: number[]; proibido: RegExp }> 
 const descritivas = (afs: Afirmacao[]) =>
   afs.filter((a) => !a.id.includes(".declarado.") && !a.id.includes(".proximo."));
 
+/** Textos de leitura por faixa de média usados até 31/10 (análise 1), que contradiziam as respostas. Só como evidência. */
+const TEXTO_ANTIGO = {
+  processos:
+    "A IA ainda não faz parte dos processos. As atividades repetitivas não foram mapeadas e o uso, quando existe, é individual.",
+  dados:
+    "Os dados estão dispersos e cada pessoa escolhe as próprias ferramentas. Isso dificulta integrar a IA aos processos e controlar custos.",
+};
+
 describe("referências estáveis", () => {
   it("as perguntas centrais seguem p1 a p12, na ordem", () => {
     expect(ids).toEqual(Array.from({ length: 12 }, (_, i) => `p${i + 1}`));
@@ -198,10 +206,9 @@ describe("o que a auditoria apontou", () => {
     expect(texto).toContain("O mapeamento dos processos está à frente da participação da IA na execução.");
     expect(texto).not.toMatch(/\bde (a|o|as|os) /);
     expect(texto).not.toMatch(/não foram mapeadas/i);
-    // O texto antigo, escolhido pela média (20, faixa baixa), seguia afirmando isso:
-    const antigo = dimensoes.find((d) => d.id === "processos")!.leitura.baixa;
-    expect(antigo).toMatch(/não foram mapeadas/);
-    expect(texto).not.toContain(antigo);
+    // O texto antigo, escolhido pela média (20, faixa baixa), seguia afirmando isso (copiado aqui como evidência):
+    expect(TEXTO_ANTIGO.processos).toMatch(/não foram mapeadas/);
+    expect(texto).not.toContain(TEXTO_ANTIGO.processos);
   });
 
   it("dados: 'dados estruturados' não vira 'dados dispersos'", () => {
@@ -211,7 +218,8 @@ describe("o que a auditoria apontou", () => {
     expect(texto).toContain("A organização dos dados está à frente da gestão das ferramentas de IA.");
     expect(texto).not.toMatch(/\bde (a|o|as|os) /);
     expect(texto).not.toMatch(/dispers/i);
-    expect(dimensoes.find((d) => d.id === "dados")!.leitura.baixa).toMatch(/dispersos/);
+    expect(TEXTO_ANTIGO.dados).toMatch(/dispersos/);
+    expect(texto).not.toContain(TEXTO_ANTIGO.dados);
   });
 
   it("as mesmas médias com respostas diferentes dão leituras diferentes", () => {

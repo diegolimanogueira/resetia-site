@@ -2,8 +2,8 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { semMarcas } from "@/components/ui/linhas";
 import { aiScore } from "@/content/ai-score";
+import { alertas } from "@/content/ai-score-analise";
 import {
-  alertas,
   aprofundar,
   contato,
   desafios,
@@ -170,7 +170,7 @@ test.describe("RESET AI Score", () => {
     await responderArea(page, "vendas", [4, 3, 2, 3]);
     await fechar(page);
 
-    await expect(page).toHaveURL(/\/ai-score\/resultado\/#v=1&e=empresa&p=ceo&/);
+    await expect(page).toHaveURL(/\/ai-score\/resultado\/#v=2&m=1&n=2&e=empresa&p=ceo&/);
 
     // Etapa 1: nome e e-mail abrem o resultado; obrigatórios e e-mail válido.
     await page.getByRole("button", { name: contato.enviar }).click();
@@ -186,7 +186,7 @@ test.describe("RESET AI Score", () => {
     await expect(page.locator("[data-nota]")).toHaveText("34");
     await expect(page.getByText(resultadoTextos.nivelDe(2))).toBeVisible();
     await expect(page.getByText(regua.faltam(6, "Em desenvolvimento"))).toBeVisible();
-    for (const id of ["adocao-sem-governanca", "estrategia-sem-execucao", "ferramentas-sem-resultado"] as const)
+    for (const id of ["adocao-sem-governanca", "estrategia-sem-execucao", "desequilibrio"] as const)
       await expect(page.getByText(alertas.itens[id].titulo, { exact: true })).toBeVisible();
 
     const conversa = page.locator("a[data-cta='diagnostico-resultado']");
@@ -331,11 +331,20 @@ test.describe("RESET AI Score", () => {
     await expect(page.locator("[data-nota]")).toHaveCount(0);
   });
 
-  test("link vazio ou adulterado mostra o convite para começar", async ({ page }) => {
-    for (const hash of ["", "#v=1&e=governo"]) {
+  test("link vazio, adulterado ou de uma versão desconhecida mostra o convite para começar, com a mensagem certa", async ({
+    page,
+  }) => {
+    const casos: Array<[string, { titulo: string }]> = [
+      ["", resultadoTextos.vazio],
+      ["#v=1&e=governo", resultadoTextos.invalido],
+      ["#v=2&m=1&n=2&e=governo", resultadoTextos.invalido],
+      ["#v=3&e=empresa", resultadoTextos.versaoDesconhecida],
+      ["#v=2&m=9&n=2&e=empresa&r=332221221121", resultadoTextos.versaoDesconhecida],
+    ];
+    for (const [hash, esperado] of casos) {
       await page.goto(`/ai-score/resultado/${hash}`);
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(resultadoTextos.titulo);
-      await expect(page.getByText(resultadoTextos.vazio.titulo)).toBeVisible();
+      await expect(page.getByText(esperado.titulo), hash).toBeVisible();
       await expect(page.locator("a[data-cta='ai-score-resultado-vazio']")).toHaveAttribute(
         "href",
         "/ai-score/avaliacao/",
@@ -351,8 +360,15 @@ test.describe("RESET AI Score", () => {
     await expect(page.locator("[data-nota]")).toHaveText("28");
     const rel = page.locator("#relatorio");
     await expect(
-      rel.getByText("Empresa Exemplo está no nível Explorando, com AI Score 28 de 100.", { exact: false }),
+      rel.getByText(
+        "Empresa Exemplo está no nível Explorando, com AI Score 28 de 100 (nota estimada: 10 de 12 respostas).",
+        { exact: false },
+      ),
     ).toBeVisible();
+    // O exemplo tem duas respostas "Não sei": a nota é estimativa e a tela diz quais dimensões usam uma resposta só.
+    const aviso = page.locator("[data-cobertura='estimativa']");
+    await expect(aviso).toContainText(resultadoTextos.cobertura.estimativa.texto(10, 12));
+    await expect(aviso).toContainText("Governança e Segurança, Resultados e Escala");
     await expect(rel.getByText(relatorio.simulacao.texto(40, 28, 42, "Em desenvolvimento"))).toBeVisible();
     for (const id of ["adocao-sem-governanca", "estrategia-sem-execucao", "pontos-cegos"] as const)
       await expect(page.getByText(alertas.itens[id].titulo, { exact: true })).toBeVisible();
@@ -395,7 +411,7 @@ test.describe("RESET AI Score", () => {
     await page.getByRole("button", { name: resultadoTextos.compartilhar }).click();
     await expect(page.getByText(resultadoTextos.copiado)).toBeVisible();
     const copiado = await page.evaluate(() => (window as unknown as { copiado?: string }).copiado);
-    expect(copiado).toContain("/ai-score/resultado/#v=1");
+    expect(copiado).toContain("/ai-score/resultado/#v=2&m=1&n=2");
     expect(copiado).not.toContain("lead=");
 
     // Outro lead no link (ou link adulterado): volta para a etapa 1.
@@ -403,6 +419,53 @@ test.describe("RESET AI Score", () => {
     await page.goto("/ai-score/");
     await page.goto(`/ai-score/resultado/#${aiScore.exemplo.codigo}&lead=00000000-0000-4000-8000-000000000000`);
     await expect(page.getByRole("button", { name: contato.enviar })).toBeVisible();
+  });
+
+  test("a mesma nota de 100 com uma resposta baixa trocada por 'Não sei': a tela mostra que é estimativa", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => localStorage.setItem("resetia.ai-score.ver-como-admin", String(Date.now())));
+    const resto = "e=empresa&p=ceo&t=50-199&s=tecnologia&d=comecar&h=3-meses";
+
+    // Resposta baixa em Estratégia: nota 86, avaliação completa.
+    await page.goto(`/ai-score/resultado/#v=2&m=1&n=2&${resto}&r=404444444444`);
+    await expect(page.locator("[data-nota]")).toHaveText("86");
+    await expect(page.locator("[data-cobertura='completa']")).toHaveText(resultadoTextos.cobertura.completa(12, 12));
+    await expect(page.locator("[data-cobertura='estimativa']")).toHaveCount(0);
+
+    // A mesma resposta como "Não sei": a regra do método 1 tira ela da média e a nota sobe a 100. A tela não
+    // apresenta isso como avaliação completa: é estimativa, com 11 de 12 respostas e Estratégia com uma só.
+    await page.goto(`/ai-score/resultado/#v=2&m=1&n=2&${resto}&r=4x4444444444`);
+    await expect(page.locator("[data-nota]")).toHaveText("100");
+    const aviso = page.locator("[data-cobertura='estimativa']");
+    await expect(aviso).toContainText(resultadoTextos.cobertura.estimativa.titulo);
+    await expect(aviso).toContainText(resultadoTextos.cobertura.estimativa.texto(11, 12));
+    await expect(aviso).toContainText("Estratégia e Liderança");
+    await expect(page.getByText(resultadoTextos.cobertura.naDimensao(1, 2)).first()).toBeVisible();
+    await semViolacoes(page);
+  });
+
+  test("link do formato 1 (anterior ao versionamento): nota pelo método 1 e aviso de que a leitura é a atual", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => localStorage.setItem("resetia.ai-score.ver-como-admin", String(Date.now())));
+    const v1 = aiScore.exemplo.codigo.replace("v=2&m=1&n=2&", "v=1&");
+    expect(v1.startsWith("v=1&e=empresa")).toBe(true);
+    await page.goto(`/ai-score/resultado/#${v1}`);
+    await expect(page.locator("[data-nota]")).toHaveText("28");
+    await expect(page.getByText(resultadoTextos.versao.anterior("1", "2"))).toBeVisible();
+
+    // Já o link do formato atual não leva o aviso.
+    await page.goto(`/ai-score/resultado/#${aiScore.exemplo.codigo}`);
+    await expect(page.locator("[data-nota]")).toHaveText("28");
+    await expect(page.getByText(resultadoTextos.versao.anterior("1", "2"))).toHaveCount(0);
+  });
+
+  test("link de uma análise mais nova que a do site: mostra o aviso e a nota", async ({ page }) => {
+    await page.addInitScript(() => localStorage.setItem("resetia.ai-score.ver-como-admin", String(Date.now())));
+    await page.goto(`/ai-score/resultado/#${aiScore.exemplo.codigo.replace("n=2", "n=9")}`);
+    await expect(page.locator("[data-nota]")).toHaveText("28");
+    await expect(page.getByText(resultadoTextos.versao.maisNova)).toBeVisible();
   });
 
   test("admin abre o resultado de um lead sem passar pelas etapas", async ({ page }) => {

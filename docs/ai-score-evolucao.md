@@ -10,16 +10,16 @@ Legenda de evidência: **L** = simulado ou testado localmente; **P** = confirmad
 
 ## Estado das fases
 
-| Fase | Escopo                                                       | Estado                                        |
-| ---- | ------------------------------------------------------------ | --------------------------------------------- |
-| 0    | Branch, documento de progresso                               | feita                                         |
-| 1    | Medir a base, protótipo do PDF, consultas de produção        | feita (PDF passa para a Fase 4, ver registro) |
-| 2    | Fidelidade, método, cobertura, versões, corte de peso        | pendente                                      |
-| 3    | Dados, captura confiável, aprofundamento                     | pendente                                      |
-| 4    | Prioridades, devolutiva, PDF, e-mail                         | pendente                                      |
-| 5    | Painel, preferências, métricas, trava de publicação          | pendente                                      |
-| 6    | Home, celular, jornadas, serviços, agentes                   | pendente                                      |
-| 7    | Validação integrada, documentação de publicação e calibração | pendente                                      |
+| Fase | Escopo                                                       | Estado                                                    |
+| ---- | ------------------------------------------------------------ | --------------------------------------------------------- |
+| 0    | Branch, documento de progresso                               | feita                                                     |
+| 1    | Medir a base, protótipo do PDF, consultas de produção        | feita (PDF passa para a Fase 4, ver registro)             |
+| 2    | Fidelidade, método, cobertura, versões, corte de peso        | feita (forte, lacuna, passos e plano ficam para a Fase 4) |
+| 3    | Dados, captura confiável, aprofundamento                     | pendente                                                  |
+| 4    | Prioridades, devolutiva, PDF, e-mail                         | pendente                                                  |
+| 5    | Painel, preferências, métricas, trava de publicação          | pendente                                                  |
+| 6    | Home, celular, jornadas, serviços, agentes                   | pendente                                                  |
+| 7    | Validação integrada, documentação de publicação e calibração | pendente                                                  |
 
 ## Achados confirmados no código (31/10/2026)
 
@@ -166,3 +166,36 @@ where routine_schema = 'public' and grantee in ('anon', 'authenticated', 'PUBLIC
 **Desvio do plano:** o protótipo do escritor de PDF fica para a Fase 4. Ele só faz sentido com a estrutura da `Devolutiva` e o risco que ele cobria (tamanho) depende do que entrar no JS total, hoje com 15,5 kB de folga. O tamanho será medido lá, e o teto do `size-limit` só sobe com justificativa registrada, como já aconteceu em 28/10.
 
 **Riscos que mudam o desenho da Fase 2:** a página de resultado tem 2,4 kB de folga, o exemplo é o mesmo bundle e a landing `/ai-score/` tem 4 kB de folga no Lighthouse. O motor novo de leituras e seus textos entram em chunk sob demanda, não por importação direta.
+
+### Fase 2 (31/10 a 01/11) — feita
+
+**O que ficou pronto (L):**
+
+- Método 1 congelado (`metodo/metodo-1.ts`), versões em `versoes.ts`, `calcular` recebe o método, cobertura das respostas (`cobertura.ts`).
+- Codec com formato 1 congelado, formato 2 (`v=2&m=1&n=2&…`) e `lerLink`, que distingue vazio, inválido, formato desconhecido, método desconhecido e análise mais nova. Token e `&lead=` fora do código gravado.
+- Leituras pelas duas respostas (`leituras.ts`), alertas por pergunta sem corte (`alertas.ts`), modelo de evidência (`evidencia.ts`) e textos (`ai-score-analise.ts`, a revisar).
+- `Devolutiva` (`devolutiva.ts`) carregada sob demanda (`motor.ts`); a página de exemplo recebe a devolutiva calculada no build.
+- Interface: nota com cobertura e aviso de nota estimada, aviso de versão (link anterior ao versionamento, análise mais nova), estados distintos do link, alertas (3 + "Ver mais N", todos na impressão), leitura de cada dimensão com a pergunta de validação.
+- Metodologia publicada alinhada ao cálculo (fórmula, peso extra como escolha calibrável, "Não sei" vira estimativa, menos respostas podem subir a nota), amarrada por teste.
+- `scripts/conferir-notas.mjs`: confere um export das avaliações contra a reprodução pelo método 1, só local. **Rodado apenas sobre um arquivo fictício.**
+
+**Testes novos:** `versoes.test.ts` (16), `fidelidade.test.ts` (22: 216 leituras, alertas contra a especificação, exemplo e auditoria), `metodologia.test.ts` (6), mais 5 E2E (caso 86 × 100 na tela, link do formato 1, análise mais nova, estados do link) e ajustes nos existentes. Mutação: quatro defeitos injetados de propósito (o texto da auditoria, o lado do "à frente" trocado, limiar sem atualizar a declaração, pergunta de validação errada) foram todos detectados.
+
+**Resultados (L):** unidade 151, banco OK, função 7 (núcleo regenerado), E2E 162 passando e 22 visuais pulados localmente (rodam no Docker/CI), HTML válido, 0 links quebrados, nenhuma pendência `[FALTA]`, lint e tipos limpos, knip limpo.
+
+**Peso (antes → depois):** `/ai-score/resultado/` 222,6 → 221,5 kB (teto 225); avaliação 215,9 → 215,2; painel 225,6 → 225,7 (teto 240); motor sob demanda 5,3 kB (novo, teto 30); JS total 264,5 → 282,3 kB (teto 280 → 290, ver ADR). A causa do total é um terceiro chunk com o conteúdo do questionário que o Turbopack passou a duplicar; nenhuma página baixa duas cópias. Depois que o motor carrega, a página de resultado pesa 221,5 + 5,3 = 226,8 kB, 1,8 kB acima do teto de carregamento inicial, mas o motor chega enquanto a pessoa preenche nome e e-mail. Alavanca pronta se a Fase 4 apertar: carregar o `Relatorio` sob demanda só na rota de resultado.
+
+**Achado novo:** o exemplo público tem 10 de 12 respostas válidas (duas "Não sei"), então ele mesmo é uma nota estimada, com Governança e Resultados calculados por uma resposta só. Passou a aparecer assim na página de exemplo, o que é honesto e mostra o recurso; a nota do exemplo (28) não mudou.
+
+**Decisões e desvios:**
+
+- A expectativa de `ai-score.spec` sobre o resumo do exemplo mudou de propósito ("…28 de 100 (nota estimada: 10 de 12 respostas).").
+- Mantive a regra que sobe a nota quando uma resposta baixa vira "Não sei" (86 → 100): mudar pesos ou faixas está fora do pedido. A mitigação é mostrar a cobertura.
+- `ai-score.spec` passou a imprimir o link em `v=2`; links `v=1` continuam abrindo.
+- Limite de imagens da home 40 → 50 kB (o tema claro faz a home carregar três imagens da marca; o limite ainda apontava para os arquivos escuros).
+
+**Pendências desta fase para as seguintes:**
+
+- Fase 3: gravar `versao_metodo`, `versao_analise` e a devolutiva; migração 0005 amplia o CHECK de `versao` e **precisa ir antes do site** (o site grava `versao: "2"`).
+- Fase 4: ponto forte, oportunidade, próximos passos e plano ainda saem por dimensão (um "já mapeamos" ainda pode ser seguido de um passo "mapear processos"); resumo executivo; PDF; e-mail a partir da devolutiva.
+- Prints de referência da landing `/ai-score/` (texto da metodologia mudou) em regeneração.

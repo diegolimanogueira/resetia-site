@@ -32,7 +32,7 @@ export const aiScore = {
   },
   dimensoes: {
     kicker: "O que o AI Score avalia",
-    titulo: ["Seis dimensões.", "*O mesmo peso.*"],
+    titulo: ["Seis dimensões.", "*Cada uma com a sua nota.*"],
     lead: "Usar ferramentas não é o mesmo que ter maturidade. O índice olha para estratégia, pessoas, processos, dados, governança e resultados.",
   },
   camadas: {
@@ -68,7 +68,7 @@ export const aiScore = {
      * caso. Empresa de serviços B2B com direção definida, uso crescendo, governança fraca e dois pontos cegos.
      */
     codigo:
-      "v=1&e=empresa&p=ceo&t=50-199&s=servicos-b2b&r=322221211x1x&a=marketing,vendas&am=2112&av=1201&d=repetitivas,governanca&h=3-meses&id=00000000-0000-4000-8000-000000000000",
+      "v=2&m=1&n=2&e=empresa&p=ceo&t=50-199&s=servicos-b2b&r=322221211x1x&a=marketing,vendas&am=2112&av=1201&d=repetitivas,governanca&h=3-meses&id=00000000-0000-4000-8000-000000000000",
     nome: "Maria",
     empresa: "Empresa Exemplo",
     aviso: "Simulação ilustrativa com respostas hipotéticas; não representa uma empresa real.",
@@ -86,7 +86,8 @@ export const aiScore = {
       {
         numero: "02",
         titulo: "Responda 12 perguntas",
-        texto: "Duas por dimensão. Se não souber, marque Não sei responder: a pergunta fica fora do cálculo.",
+        texto:
+          "Duas por dimensão. Se não souber, marque Não sei responder: a pergunta fica fora da média e a nota vira uma estimativa.",
       },
       {
         numero: "03",
@@ -105,7 +106,8 @@ export const aiScore = {
     kicker: "Metodologia própria",
     titulo: ["Cálculo fixo,", "*sem caixa-preta.*"],
     paragrafos: [
-      "Cada dimensão tem duas perguntas. As alternativas valem pontos progressivos (0, 15, 40, 70 e 100): o que é pontual vale bem menos do que o que é estruturado e integrado. A nota da dimensão é a média das suas respostas, e o AI Score é a média das seis, com a dimensão mais fraca contando em dobro, porque a maturidade se sustenta pelo elo mais fraco. A nota não é gerada por IA: as mesmas respostas dão sempre o mesmo resultado.",
+      "Cada dimensão tem duas perguntas, e cada resposta vale pontos progressivos (0, 15, 40, 70 e 100): o que é pontual vale bem menos do que o que é estruturado e integrado. A nota da dimensão é a média das suas respostas válidas. O AI Score é a soma das seis notas mais a menor delas, dividida por sete: a dimensão mais fraca conta em dobro. Esse peso extra é uma escolha metodológica da Reset, sujeita a calibração com aplicações reais, e não uma relação universal demonstrada. A nota não é gerada por IA: as mesmas respostas dão sempre o mesmo resultado.",
+      "Respostas marcadas como Não sei responder ficam fora da média. Por isso o resultado mostra quantas respostas sustentam a nota: com as 12 respondidas ela é completa; com alguma resposta Não sei, é uma estimativa, e a dimensão calculada com uma resposta só é sinalizada. Menos respostas podem até aumentar a nota, e é por isso que a contagem aparece junto dela. O link de cada resultado traz a versão do método e da análise com que foi feito, e as avaliações antigas continuam sendo calculadas pelo método de quando foram feitas.",
       "O RESET AI Score é uma autoavaliação indicativa, baseada em metodologia própria da Reset IA. Não é certificação nem comparação com o mercado: cada resultado é comparado apenas com a escala da metodologia.",
     ],
     niveis: "Os cinco níveis",
@@ -132,7 +134,7 @@ export const aiScore = {
       {
         pergunta: "E se eu não souber responder alguma pergunta?",
         resposta:
-          "Marque Não sei responder. A pergunta fica fora do cálculo, sem contar como zero, e aparece no relatório como ponto cego. Para uma nota consolidada, são necessárias ao menos 10 das 12 respostas, com pelo menos uma em cada dimensão.",
+          "Marque Não sei responder. A pergunta fica fora da média, sem contar como zero, e aparece no relatório como ponto cego. Com alguma resposta assim, a nota passa a ser uma estimativa e o resultado mostra quantas respostas a sustentam. Para uma nota consolidada, são necessárias ao menos 10 das 12 respostas, com pelo menos uma em cada dimensão.",
       },
       {
         pergunta: "Qual é a diferença entre a Visão Empresa e a Visão por Área?",

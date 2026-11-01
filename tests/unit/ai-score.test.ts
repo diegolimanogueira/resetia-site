@@ -335,10 +335,20 @@ describe("análise do relatório completo", () => {
     expect(a.pontosCegos).toEqual([9, 11]);
   });
 
-  it("alertas pelos padrões entre dimensões, no máximo três", () => {
-    expect(a.alertas).toEqual(["adocao-sem-governanca", "estrategia-sem-execucao", "pontos-cegos"]);
+  it("alertas pelos padrões entre respostas, todos (sem corte), cada um com as respostas que o sustentam", () => {
+    expect(a.alertas.map((x) => x.alerta)).toEqual([
+      "adocao-sem-governanca",
+      "estrategia-sem-execucao",
+      "pontos-cegos",
+    ]);
+    expect(a.alertas[0].evidencias).toEqual([
+      { tipo: "resposta", ref: "p3", valor: 2 },
+      { tipo: "resposta", ref: "p9", valor: 1 },
+    ]);
     const inicial = calcular(base("00 00 00 00 00 00"));
-    expect(analisar(base("00 00 00 00 00 00"), inicial, recomendar(inicial, ["comecar"])).alertas[0]).toBe("inicio");
+    expect(analisar(base("00 00 00 00 00 00"), inicial, recomendar(inicial, ["comecar"])).alertas[0].alerta).toBe(
+      "inicio",
+    );
   });
 
   it("simulação: as dimensões abaixo de 40 chegando a 40 levam de 28 a 42 (Em desenvolvimento)", () => {

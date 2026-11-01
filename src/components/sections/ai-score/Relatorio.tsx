@@ -5,7 +5,6 @@ import { Barra } from "@/components/sections/ai-score/Placar";
 import { BotaoAcao } from "@/components/ui/botao";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import {
-  alertas,
   desafios,
   dimensoes,
   escalaAreaCurta,
@@ -19,7 +18,9 @@ import {
 } from "@/content/ai-score-questionario";
 import type { DimensaoId } from "@/content/types";
 import type { Analise } from "@/lib/ai-score/analisar";
-import { faixaDe, formatarNota } from "@/lib/ai-score/calcular";
+import { formatarNota } from "@/lib/ai-score/calcular";
+import type { Cobertura } from "@/lib/ai-score/cobertura";
+import type { LeituraDaDimensao } from "@/lib/ai-score/leituras";
 import type { Biblioteca } from "@/content/ai-score-dicas";
 import { alvosDasDicas, lerDicas, montarDicas, type Dicas } from "@/lib/ai-score/dicas";
 import type { Recomendacao, RespostasCompletas, Resultado } from "@/lib/ai-score/tipos";
@@ -71,6 +72,8 @@ export function Relatorio({
   resultado,
   recomendacao: rec,
   analise: a,
+  leituras,
+  cobertura,
   cartoes,
   quem,
   focar,
@@ -84,6 +87,8 @@ export function Relatorio({
   resultado: Resultado;
   recomendacao: Recomendacao;
   analise: Analise;
+  leituras: Record<DimensaoId, LeituraDaDimensao>;
+  cobertura: Cobertura;
   cartoes: Record<string, ReactNode>;
   /** Como o resumo chama a empresa ou a área ("A Empresa X", "Sua empresa"). */
   quem: string;
@@ -138,7 +143,7 @@ export function Relatorio({
   };
 
   const area = r.escopo !== "empresa";
-  const alertaPrincipal = a.alertas[0] ? alertas.itens[a.alertas[0]].titulo : null;
+  const alertaPrincipal = a.alertas[0]?.titulo ?? null;
   const fases = t.plano.fases.map((f, i) => ({
     ...f,
     acoes: i === t.plano.fases.length - 1 ? [...a.plano[i], t.plano.reavaliar] : a.plano[i],
@@ -181,6 +186,7 @@ export function Relatorio({
             forte: rec.forte ? dimensao(rec.forte).nome : null,
             lacuna: rec.lacunas[0] ? dimensao(rec.lacunas[0]).nome : null,
             alerta: alertaPrincipal,
+            cobertura,
           })}
         </p>
       </div>
@@ -293,8 +299,12 @@ export function Relatorio({
         <div className="grid gap-3">
           {dimensoes.map((d) => {
             const nota = resultado.dimensoes[d.id];
-            const faixa = nota === null ? null : faixaDe(nota);
+            const sobre = cobertura.porDimensao[d.id];
             const perguntas = a.respostas.filter((x) => x.dimensao === d.id);
+            // A citação da resposta e o próximo estágio já aparecem por pergunta, ao lado; aqui vai a leitura.
+            const leitura = leituras[d.id].afirmacoes.filter(
+              (x) => !x.id.includes(".declarado.") && !x.id.includes(".proximo."),
+            );
             return (
               <article key={d.id} className="border-line bg-painel break-inside-avoid border p-[22px] md:p-[30px]">
                 <div className="grid gap-6 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-10">
@@ -309,12 +319,21 @@ export function Relatorio({
                       </span>
                     </p>
                     <Barra valor={nota} />
-                    {faixa ? (
-                      <>
-                        <p className="text-verde eyebrow mt-4 mb-2 text-[11px]">{t.faixas[faixa]}</p>
-                        <p className="text-fg-2 text-[15px] leading-[1.65]">{d.leitura[faixa]}</p>
-                      </>
-                    ) : null}
+                    <p className="text-verde eyebrow mt-4 mb-2 text-[11px]">
+                      {resultadoTextos.cobertura.naDimensao(sobre.validas, sobre.total)}
+                    </p>
+                    <div className="grid gap-3">
+                      {leitura.map((x) => (
+                        <p key={x.id} className="text-fg-2 text-[15px] leading-[1.65]">
+                          {x.texto}
+                          {x.pergunta ? (
+                            <span className="text-fg mt-1 block text-[14px] font-semibold">
+                              {t.validar} {x.pergunta}
+                            </span>
+                          ) : null}
+                        </p>
+                      ))}
+                    </div>
                   </div>
                   <ul className="grid content-start gap-4">
                     {perguntas.map((x) => {

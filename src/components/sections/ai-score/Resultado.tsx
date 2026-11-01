@@ -10,7 +10,6 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { Linhas } from "@/components/ui/linhas";
 import { Section } from "@/components/ui/section";
 import {
-  alertas,
   dimensoes,
   exemplo as textosExemplo,
   modulosArea,
@@ -18,9 +17,11 @@ import {
   relatorio as impresso,
   resultadoTextos as t,
 } from "@/content/ai-score-questionario";
-import { analisar } from "@/lib/ai-score/analisar";
 import { calcular, formatarNota } from "@/lib/ai-score/calcular";
-import { completas, decodificar } from "@/lib/ai-score/codificar";
+import { completas, lerLink } from "@/lib/ai-score/codificar";
+import type { Devolutiva, OrigemDoLink } from "@/lib/ai-score/devolutiva";
+import { metodoDe } from "@/lib/ai-score/metodo";
+import { tentarCarregarMotor, useMotor } from "@/lib/ai-score/motor";
 import {
   assinarArmazenamento,
   assinarHash,
@@ -30,7 +31,6 @@ import {
   relatorio,
   verComoAdmin,
 } from "@/lib/ai-score/navegador";
-import { recomendar } from "@/lib/ai-score/recomendar";
 import type { RespostasCompletas } from "@/lib/ai-score/tipos";
 import { consultarLiberacao, reenviarPendentes, supabase } from "@/lib/supabase";
 import { waUrl } from "@/lib/whatsapp";
@@ -47,37 +47,91 @@ const dimensao = (id: string) => dimensoes.find((d) => d.id === id)!;
 const topo =
   "border-line overflow-hidden border-b bg-[radial-gradient(circle_at_85%_30%,rgba(0,230,118,0.12)_0%,rgba(0,230,118,0)_45%)] pt-[50px] pb-[60px] md:pt-[80px] md:pb-[90px]";
 
-/** Exemplo fixo (/ai-score/exemplo): mostra tudo, sem etapas de captura nem gravação. */
+/**
+ * Exemplo fixo (/ai-score/exemplo): mostra tudo, sem etapas de captura nem gravação. A devolutiva vem pronta do
+ * servidor (calculada no build), então a página não baixa o motor.
+ */
 export interface Exemplo {
   codigo: string;
   nome: string;
   empresa: string;
+  devolutiva: Devolutiva;
 }
 
 type Modo = { tipo: "publico" } | { tipo: "admin" } | ({ tipo: "exemplo" } & Exemplo);
 
-/** Estado sem resultado (servidor, link vazio ou adulterado): o mesmo H1, com o convite para começar. */
-function SemResultado({ carregando }: { carregando: boolean }) {
+type EstadoSemResultado = "carregando" | "vazio" | "invalido" | "versao" | "falha";
+
+/** Estado sem resultado (servidor, link vazio, adulterado, de versão desconhecida ou leitura que não carregou). */
+function SemResultado({ estado }: { estado: EstadoSemResultado }) {
+  const texto = estado === "invalido" ? t.invalido : estado === "versao" ? t.versaoDesconhecida : t.vazio;
   return (
     <Section espaco="nenhum" className={topo}>
       <div className="container-site max-w-[760px]">
         <Eyebrow>{t.kicker}</Eyebrow>
         <h1 className="display-h2 mb-6">{t.titulo}</h1>
-        {carregando ? (
+        {estado === "carregando" ? (
           <p className="text-fg-2 text-[18px]" aria-live="polite">
             {t.carregando}
           </p>
+        ) : estado === "falha" ? (
+          <>
+            <p className="mb-2 text-[22px] font-bold">{t.falha.titulo}</p>
+            <p className="text-fg-2 mb-8 text-[18px] leading-[1.6]">{t.falha.texto}</p>
+            <BotaoAcao type="button" onClick={tentarCarregarMotor}>
+              {t.falha.tentar}
+            </BotaoAcao>
+          </>
         ) : (
           <>
-            <p className="mb-2 text-[22px] font-bold">{t.vazio.titulo}</p>
-            <p className="text-fg-2 mb-8 text-[18px] leading-[1.6]">{t.vazio.texto}</p>
+            <p className="mb-2 text-[22px] font-bold">{texto.titulo}</p>
+            <p className="text-fg-2 mb-8 text-[18px] leading-[1.6]">{texto.texto}</p>
             <Botao href={AVALIACAO} origem="ai-score-resultado-vazio">
-              {t.vazio.cta}
+              {texto.cta}
             </Botao>
           </>
         )}
       </div>
     </Section>
+  );
+}
+
+const ALERTAS_VISIVEIS = 3;
+
+function CartaoDeAlerta({ alerta }: { alerta: Devolutiva["analise"]["alertas"][number] }) {
+  return (
+    <li className="border-line border-l-verde bg-painel break-inside-avoid border border-l-2 p-[22px]">
+      <p className="mb-2 text-[17px] leading-[1.3] font-bold">{alerta.titulo}</p>
+      <p className="text-fg-2 text-[14px] leading-[1.6]">{alerta.texto}</p>
+    </li>
+  );
+}
+
+/**
+ * Quanta informação existe por trás da nota: nota estimada (com "Não sei") ou completa, sempre com a contagem de
+ * respostas. Nunca vira margem de erro nem grau de confiança.
+ */
+function CoberturaDaNota({ cobertura }: { cobertura: Devolutiva["cobertura"] }) {
+  const { situacao, validas, total } = cobertura;
+  if (situacao === "estimativa")
+    return (
+      <div
+        className="border-verde mt-6 max-w-[560px] border-l-2 pl-3 text-[14px] leading-[1.6]"
+        data-cobertura={situacao}
+      >
+        <p className="font-semibold">{t.cobertura.estimativa.titulo}</p>
+        <p className="text-fg-2">{t.cobertura.estimativa.texto(validas, total)}</p>
+        {cobertura.umaResposta.length ? (
+          <p className="text-fg-2 mt-1">
+            {t.cobertura.estimativa.umaResposta(cobertura.umaResposta.map((id) => dimensao(id).nome).join(", "))}
+          </p>
+        ) : null}
+      </div>
+    );
+  return (
+    <p className="text-fg-2 mt-6 max-w-[560px] text-[14px]" data-cobertura={situacao}>
+      {situacao === "parcial" ? t.cobertura.parcial(validas, total) : t.cobertura.completa(validas, total)}
+    </p>
   );
 }
 
@@ -95,34 +149,57 @@ export function Resultado({ cartoes, exemplo }: { cartoes: Record<string, ReactN
     () => false,
   );
   const texto = exemplo ? exemplo.codigo : hash;
-  const respostas = useMemo(() => (texto === null ? undefined : decodificar(texto)), [texto]);
+  const link = useMemo(() => (texto === null ? undefined : lerLink(texto)), [texto]);
 
   useEffect(() => {
     if (!exemplo) void reenviarPendentes();
   }, [exemplo]);
 
-  if (respostas === undefined) return <SemResultado carregando />;
-  if (!completas(respostas)) return <SemResultado carregando={false} />;
+  if (link === undefined) return <SemResultado estado="carregando" />;
+  if (link.tipo === "vazio") return <SemResultado estado="vazio" />;
+  if (link.tipo === "invalido") return <SemResultado estado="invalido" />;
+  if (link.tipo !== "ok") return <SemResultado estado="versao" />;
+  if (!completas(link.respostas)) return <SemResultado estado="vazio" />;
   const modo: Modo = exemplo ? { tipo: "exemplo", ...exemplo } : admin ? { tipo: "admin" } : { tipo: "publico" };
-  return <Pronto respostas={respostas} codigo={texto!} cartoes={cartoes} modo={modo} leadDoLink={leadDoHash(hash)} />;
+  return (
+    <Pronto
+      respostas={link.respostas}
+      link={link}
+      codigo={texto!}
+      cartoes={cartoes}
+      modo={modo}
+      leadDoLink={leadDoHash(hash)}
+      previa={exemplo?.devolutiva}
+    />
+  );
 }
 
 function Pronto({
   respostas: r,
+  link,
   codigo,
   cartoes,
   modo,
   leadDoLink,
+  previa,
 }: {
   respostas: RespostasCompletas;
+  link: OrigemDoLink;
   codigo: string;
   cartoes: Record<string, ReactNode>;
   modo: Modo;
   leadDoLink: string | null;
+  /** Devolutiva já calculada no servidor (só a página de exemplo). */
+  previa?: Devolutiva;
 }) {
-  const resultado = useMemo(() => calcular(r), [r]);
-  const rec = useMemo(() => recomendar(resultado, r.desafios), [resultado, r.desafios]);
-  const analise = useMemo(() => analisar(r, resultado, rec), [r, resultado, rec]);
+  // A nota é leve e sai na hora; o resto (leituras, alertas, recomendações, plano) vem do motor, carregado sob
+  // demanda enquanto a pessoa preenche nome e e-mail.
+  const { motor, falhou } = useMotor(!previa);
+  const devolutiva = useMemo(
+    () => previa ?? (motor ? motor.montarDevolutiva(r, link) : null),
+    [previa, motor, r, link],
+  );
+  const resultadoBase = useMemo(() => calcular(r, metodoDe(link.metodo)), [r, link.metodo]);
   const chave = r.id ?? codigo;
   const liberadoTexto = useSyncExternalStore(
     assinarArmazenamento,
@@ -168,10 +245,14 @@ function Pronto({
   const nome = modo.tipo === "exemplo" ? modo.nome : liberacao?.nome;
   const empresa = modo.tipo === "exemplo" ? modo.empresa : liberacao?.empresa;
 
-  if (!viuResultado && conferindo) return <SemResultado carregando />;
+  if (!viuResultado && conferindo) return <SemResultado estado="carregando" />;
   if (!viuResultado)
-    return <EtapaContato respostas={r} resultado={resultado} codigo={codigo} aoLiberar={() => setFoco("resultado")} />;
+    return (
+      <EtapaContato respostas={r} resultado={resultadoBase} codigo={codigo} aoLiberar={() => setFoco("resultado")} />
+    );
+  if (!devolutiva) return <SemResultado estado={falhou ? "falha" : "carregando"} />;
 
+  const { resultado, recomendacao: rec, analise, cobertura, versoes } = devolutiva;
   const nivel = niveis.find((n) => n.id === resultado.nivel);
   const lacuna = rec.lacunas[0] ? dimensao(rec.lacunas[0]) : null;
   const mensagem = t.mensagem({
@@ -241,10 +322,20 @@ function Pronto({
                 {t.parcial.nome}
               </p>
             )}
+            <CoberturaDaNota cobertura={cobertura} />
             <h2 className="mt-9 text-[22px] leading-[1.3] font-bold">{nivel ? nivel.titulo : t.parcial.titulo}</h2>
             <p className="text-fg-2 mt-3 max-w-[560px] text-[17px] leading-[1.7]">
               {nivel ? nivel.texto : t.parcial.texto}
             </p>
+            {versoes.analiseMaisNova ? (
+              <p className="border-fg text-fg-2 mt-6 max-w-[560px] border-l-2 pl-3 text-[13px] leading-[1.6]">
+                {t.versao.maisNova}
+              </p>
+            ) : versoes.anteriorAoVersionamento ? (
+              <p className="border-line text-fg-2 mt-6 max-w-[560px] border-l-2 pl-3 text-[13px] leading-[1.6]">
+                {t.versao.anterior(versoes.metodo, versoes.analiseAtual)}
+              </p>
+            ) : null}
           </div>
           <div className="border-line bg-painel self-start border p-[26px] md:p-[36px]">
             <h2 className="eyebrow text-fg-2 mb-6 text-[11px]">{t.dimensoes}</h2>
@@ -291,18 +382,31 @@ function Pronto({
 
           {analise.alertas.length ? (
             <div className="mt-14">
-              <h2 className="mb-6 text-[24px] leading-[1.2] font-bold">{alertas.titulo}</h2>
+              <h2 className="mb-6 text-[24px] leading-[1.2] font-bold">{t.alertas.titulo}</h2>
               <ul className="grid gap-3 md:grid-cols-3">
-                {analise.alertas.map((id) => (
-                  <li
-                    key={id}
-                    className="border-line border-l-verde bg-painel break-inside-avoid border border-l-2 p-[22px]"
-                  >
-                    <p className="mb-2 text-[17px] leading-[1.3] font-bold">{alertas.itens[id].titulo}</p>
-                    <p className="text-fg-2 text-[14px] leading-[1.6]">{alertas.itens[id].texto}</p>
-                  </li>
+                {analise.alertas.slice(0, ALERTAS_VISIVEIS).map((a) => (
+                  <CartaoDeAlerta key={a.id} alerta={a} />
                 ))}
               </ul>
+              {analise.alertas.length > ALERTAS_VISIVEIS ? (
+                <>
+                  <details data-nao-imprimir className="mt-4">
+                    <summary className="text-verde cursor-pointer text-[14px] font-semibold">
+                      {t.alertas.outros(analise.alertas.length - ALERTAS_VISIVEIS)}
+                    </summary>
+                    <ul className="mt-4 grid gap-3 md:grid-cols-3">
+                      {analise.alertas.slice(ALERTAS_VISIVEIS).map((a) => (
+                        <CartaoDeAlerta key={a.id} alerta={a} />
+                      ))}
+                    </ul>
+                  </details>
+                  <ul className="mt-3 hidden gap-3 print:grid print:grid-cols-3">
+                    {analise.alertas.slice(ALERTAS_VISIVEIS).map((a) => (
+                      <CartaoDeAlerta key={a.id} alerta={a} />
+                    ))}
+                  </ul>
+                </>
+              ) : null}
             </div>
           ) : null}
 
@@ -356,6 +460,8 @@ function Pronto({
             resultado={resultado}
             recomendacao={rec}
             analise={analise}
+            leituras={devolutiva.leituras}
+            cobertura={cobertura}
             cartoes={cartoes}
             quem={quem}
             focar={foco === "relatorio"}

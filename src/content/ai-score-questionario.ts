@@ -18,7 +18,7 @@ import type {
  * Este módulo vai para o navegador (questionário e resultado são client); a landing page fica em ai-score.ts.
  *
  * Perguntas, alternativas, níveis, desafios e horizontes vêm do documento do Diego (28/10).
- * Textos por dimensão (ponto forte, oportunidade, passos e leitura) foram escritos a partir das alternativas
+ * Textos por dimensão (ponto forte, oportunidade e passos) foram escritos a partir das alternativas
  * de maior pontuação de cada dimensão: revisar com o Diego.
  */
 
@@ -35,13 +35,6 @@ export const dimensoes: Dimensao[] = [
       evoluir:
         "Revisar periodicamente o portfólio de iniciativas e concentrar o investimento nas que geram mais valor.",
     },
-    leitura: {
-      baixa:
-        "A IA ainda não tem objetivos nem responsáveis definidos. As iniciativas tendem a surgir de forma isolada, sem conexão com as metas do negócio.",
-      media:
-        "Já existem prioridades ou iniciativas, mas o direcionamento ainda é parcial. O próximo passo é formalizar objetivos, responsáveis e acompanhamento.",
-      alta: "A liderança direciona o tema com objetivos e responsáveis claros. O desafio passa a ser manter as prioridades conectadas aos resultados.",
-    },
   },
   {
     id: "pessoas",
@@ -54,13 +47,6 @@ export const dimensoes: Dimensao[] = [
       estruturar:
         "Capacitar lideranças e equipes com casos de uso do próprio trabalho e formar multiplicadores internos.",
       evoluir: "Manter a formação contínua e acompanhar a adoção para levar as boas práticas a novas equipes.",
-    },
-    leitura: {
-      baixa:
-        "O uso de IA é raro ou depende da iniciativa de poucas pessoas, sem orientação. O conhecimento fica concentrado e as ferramentas são pouco aproveitadas.",
-      media:
-        "Parte das equipes já usa IA com frequência, mas a adoção é desigual e a capacitação ainda acontece de forma pontual.",
-      alta: "A IA faz parte da rotina de boa parte das equipes, com formação estruturada. O foco agora é sustentar a adoção e espalhar as boas práticas.",
     },
   },
   {
@@ -75,13 +61,6 @@ export const dimensoes: Dimensao[] = [
       evoluir:
         "Evoluir as automações existentes para agentes integrados aos processos, com monitoramento de qualidade.",
     },
-    leitura: {
-      baixa:
-        "A IA ainda não faz parte dos processos. As atividades repetitivas não foram mapeadas e o uso, quando existe, é individual.",
-      media:
-        "Há prompts, modelos ou automações reutilizados, e alguns processos já foram mapeados. Falta redesenhar os fluxos para que a IA execute etapas com responsáveis e controles.",
-      alta: "A IA executa etapas de processos recorrentes, com responsáveis e controles. O desafio é aprimorar continuamente e levar o modelo a novos fluxos.",
-    },
   },
   {
     id: "dados",
@@ -95,13 +74,6 @@ export const dimensoes: Dimensao[] = [
         "Levantar as ferramentas de IA em uso, eliminar sobreposições e organizar os dados das aplicações prioritárias.",
       evoluir: "Integrar dados e ferramentas em uma arquitetura coordenada, com controles de qualidade e de acesso.",
     },
-    leitura: {
-      baixa:
-        "Os dados estão dispersos e cada pessoa escolhe as próprias ferramentas. Isso dificulta integrar a IA aos processos e controlar custos.",
-      media:
-        "Há dados estruturados e ferramentas contratadas, mas pouca integração entre eles. Organizar a base tecnológica destrava aplicações mais consistentes.",
-      alta: "Dados confiáveis e ferramentas aprovadas e integradas sustentam as aplicações de IA. O foco é manter a arquitetura coordenada à medida que o uso cresce.",
-    },
   },
   {
     id: "governanca",
@@ -114,13 +86,6 @@ export const dimensoes: Dimensao[] = [
       estruturar: "Formalizar diretrizes básicas de governança, com responsáveis e critérios de revisão humana.",
       evoluir: "Revisar as políticas periodicamente e ajustar os controles ao risco de cada aplicação.",
     },
-    leitura: {
-      baixa:
-        "Não há regras claras para o uso de IA, e a verificação das respostas depende de cada pessoa. Ampliar o uso sem diretrizes aumenta os riscos com dados e decisões.",
-      media:
-        "Existem regras básicas ou revisões ocasionais, mas ainda sem política formal comunicada às equipes nem controles proporcionais ao risco.",
-      alta: "Políticas, responsáveis e controles estão definidos e aplicados. O desafio é manter a governança atualizada sem travar a inovação.",
-    },
   },
   {
     id: "resultados",
@@ -132,13 +97,6 @@ export const dimensoes: Dimensao[] = [
     passos: {
       estruturar: "Definir indicadores e uma linha de base para medir os resultados das iniciativas.",
       evoluir: "Acompanhar eficiência, qualidade e indicadores de negócio para decidir onde escalar.",
-    },
-    leitura: {
-      baixa:
-        "Os ganhos com IA ainda não são acompanhados. Sem indicadores, fica difícil priorizar investimentos e mostrar valor.",
-      media:
-        "Há casos promissores e algum acompanhamento de uso ou produtividade, mas os resultados ainda são pouco documentados.",
-      alta: "Os resultados são medidos e recorrentes em diferentes processos ou equipes. A próxima etapa é usar esses dados para escalar o que funciona.",
     },
   },
 ];
@@ -602,7 +560,7 @@ export const questionario = {
   segmentacaoApoio: "Quatro perguntas rápidas para adaptar o AI Score. Elas não entram no cálculo.",
   areaApoio: "Escala padronizada: do não uso à IA integrada à operação.",
   naoSei: "Não sei responder",
-  naoSeiApoio: "Não conta como zero: a pergunta fica fora do cálculo.",
+  naoSeiApoio: "Não conta como zero: a pergunta fica fora da média e a nota vira uma estimativa.",
   progresso: "Progresso do AI Score",
   continuar: "Continuar",
   voltar: "Voltar",
@@ -640,6 +598,30 @@ export const resultadoTextos = {
     texto:
       "Para calcular o AI Score, responda a pelo menos 10 das 12 perguntas, com uma resposta válida em cada dimensão. As notas por dimensão abaixo usam apenas o que foi respondido.",
   },
+  /** Quanta informação existe por trás da nota: contagem de respostas, nunca probabilidade nem margem de erro. */
+  cobertura: {
+    completa: (validas: number, total: number) => `Baseada em ${validas} de ${total} respostas.`,
+    estimativa: {
+      titulo: "Nota estimada",
+      texto: (validas: number, total: number) =>
+        `Baseada em ${validas} de ${total} respostas. As respostas Não sei responder ficam fora da média, então esta nota é uma estimativa e pode mudar quando elas forem respondidas.`,
+      umaResposta: (nomes: string) => `Calculada com uma resposta só: ${nomes}.`,
+    },
+    parcial: (validas: number, total: number) =>
+      `Baseada em ${validas} de ${total} respostas: faltaram respostas para uma nota consolidada.`,
+    naDimensao: (validas: number, total: number) => `${validas} de ${total} respostas`,
+  },
+  /** De que versão é a avaliação (a tela não finge que o texto de uma avaliação antiga foi o mesmo de hoje). */
+  versao: {
+    anterior: (metodo: string, analise: string) =>
+      `Esta avaliação é anterior ao versionamento do RESET AI Score. A nota usa o método ${metodo}, o mesmo de quando foi feita; a leitura abaixo foi montada agora, com a análise ${analise}, porque o texto daquela época não foi guardado.`,
+    maisNova:
+      "Este link foi gerado por uma versão mais nova do RESET AI Score. A nota está correta, mas a leitura abaixo pode ser diferente da que foi gerada. Atualize a página para ver a versão mais recente.",
+  },
+  alertas: {
+    titulo: "O que o resultado revela",
+    outros: (n: number) => (n === 1 ? "Ver mais 1 alerta" : `Ver mais ${n} alertas`),
+  },
   dimensoes: "Seu resultado por dimensão",
   semResposta: "Sem resposta",
   forte: "Ponto forte identificado",
@@ -660,6 +642,22 @@ export const resultadoTextos = {
     titulo: "Nenhum resultado neste link.",
     texto: "O link está incompleto. Responda ao AI Score para ver o seu resultado.",
     cta: "Descobrir meu AI Score",
+  },
+  invalido: {
+    titulo: "Este link está incompleto ou foi alterado.",
+    texto:
+      "Não conseguimos ler as respostas deste link. Copie o link inteiro de novo ou responda ao AI Score outra vez.",
+    cta: "Descobrir meu AI Score",
+  },
+  versaoDesconhecida: {
+    titulo: "Este link vem de uma versão que esta página não conhece.",
+    texto: "Atualize a página. Se continuar assim, responda ao AI Score outra vez.",
+    cta: "Descobrir meu AI Score",
+  },
+  falha: {
+    titulo: "Não foi possível carregar a leitura do seu resultado.",
+    texto: "Verifique a conexão e tente de novo.",
+    tentar: "Tentar de novo",
   },
   conversa: {
     kicker: "Análise Estratégica RESET",
@@ -747,57 +745,6 @@ export const regua = {
   voceAqui: "Você está aqui",
 };
 
-/** Padrões que o cruzamento das dimensões revela (regras em src/lib/ai-score/analisar.ts). */
-export const alertas = {
-  titulo: "O que o resultado revela",
-  itens: {
-    "adocao-sem-governanca": {
-      titulo: "A adoção está à frente das regras",
-      texto:
-        "As equipes já usam IA, mas sem diretrizes claras de uso, dados e revisão. É o cenário em que informações sensíveis e decisões sem verificação viram risco.",
-    },
-    "estrategia-sem-execucao": {
-      titulo: "Direção definida, pouca execução",
-      texto:
-        "A liderança já tem objetivos para IA, mas os processos ainda não mudaram. Sem levar a IA para o fluxo de trabalho, a estratégia não vira resultado.",
-    },
-    "uso-sem-direcao": {
-      titulo: "O uso cresce sem direção",
-      texto:
-        "Há uso de IA no dia a dia, mas sem objetivos nem responsáveis. As iniciativas tendem a se espalhar sem prioridade e sem conexão com as metas.",
-    },
-    "ferramentas-sem-resultado": {
-      titulo: "Ferramentas sem medição de retorno",
-      texto:
-        "Já existem dados e ferramentas, mas os resultados não são medidos. Fica difícil saber o que funciona e onde vale investir.",
-    },
-    "lideranca-a-frente": {
-      titulo: "A liderança está à frente das equipes",
-      texto:
-        "A direção existe, mas as pessoas ainda não foram preparadas para usar IA na rotina. A capacitação é o que transforma a intenção em prática.",
-    },
-    "processos-sem-dados": {
-      titulo: "Processos sem base de dados",
-      texto:
-        "A IA começa a entrar nos processos, mas os dados estão dispersos. Sem dados organizados, as aplicações ficam limitadas e pouco confiáveis.",
-    },
-    "pontos-cegos": {
-      titulo: "Pouca visibilidade sobre o próprio cenário",
-      texto:
-        "Várias respostas ficaram como Não sei. Quando a liderança não enxerga como a IA está sendo usada, controlar riscos e medir ganhos fica difícil.",
-    },
-    desequilibrio: {
-      titulo: "Maturidade desigual entre as dimensões",
-      texto: "Algumas dimensões avançaram muito mais que outras. Na prática, a evolução fica presa ao elo mais fraco.",
-    },
-    inicio: {
-      titulo: "A jornada está por começar",
-      texto:
-        "Ainda não há uma base estruturada para IA. A vantagem: dá para começar do jeito certo, com objetivos, pessoas preparadas e regras claras desde o início.",
-    },
-  },
-};
-
 /** Relatório completo (liberado depois da etapa 2) e a versão impressa. */
 export const relatorio = {
   titulo: "Seu relatório completo",
@@ -810,11 +757,13 @@ export const relatorio = {
       forte: string | null;
       lacuna: string | null;
       alerta: string | null;
+      /** Respostas válidas e total; com "Não sei" a nota é dita estimativa. */
+      cobertura?: { validas: number; total: number };
     }) =>
       [
         r.indice === null
           ? `${r.quem} tem um resultado parcial: faltaram respostas para uma nota consolidada.`
-          : `${r.quem} está no nível ${r.nivel}, com AI Score ${r.indice} de 100.`,
+          : `${r.quem} está no nível ${r.nivel}, com AI Score ${r.indice} de 100${r.cobertura && r.cobertura.validas < r.cobertura.total ? ` (nota estimada: ${r.cobertura.validas} de ${r.cobertura.total} respostas)` : ""}.`,
         r.forte ? `A maior força está em ${r.forte}.` : "Nenhuma dimensão se destaca ainda.",
         r.lacuna ? `A principal lacuna está em ${r.lacuna}.` : "",
         r.alerta ? `Ponto de atenção: ${r.alerta.charAt(0).toLowerCase()}${r.alerta.slice(1)}.` : "",
@@ -839,6 +788,7 @@ export const relatorio = {
     desafio: "Você apontou como desafio",
   },
   leitura: "Análise por dimensão",
+  validar: "Para validar internamente:",
   hoje: "Hoje",
   proximo: "Próximo estágio",
   topo: "Estágio mais alto da escala.",

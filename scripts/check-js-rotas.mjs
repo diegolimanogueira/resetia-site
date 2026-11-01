@@ -11,6 +11,7 @@ const LIMITE = Number(process.argv[2] ?? 225) * 1000;
 // O /admin/ fica atrás do login, fora do índice e do Lighthouse, e carrega o mini CRM inteiro (funil, gaveta do
 // lead, atividades, compositor de e-mail): teto próprio, para não afrouxar o das páginas públicas.
 const LIMITES = { "/admin/": 240_000 };
+const LIMITE_SOB_DEMANDA = 30_000;
 
 const paginas = (dir) =>
   readdirSync(dir).flatMap((n) => {
@@ -40,7 +41,25 @@ for (const { rota, total } of linhas) {
   console.log(`${passou ? "  " : "✗ "}${(total / 1000).toFixed(1).padStart(6)} kB  ${rota}`);
 }
 console.log(`\nLimite por página: ${LIMITE / 1000} kB (gzip); /admin/: ${LIMITES["/admin/"] / 1000} kB.`);
+
+// Chunks que nenhum HTML referencia: carregados sob demanda (import()), como o motor da devolutiva e o gerador de PDF.
+// Não pesam no carregamento da página, mas pesam quando a pessoa chega ao ponto que os pede, por isso têm teto próprio.
+const emPagina = new Set(
+  paginas(OUT).flatMap((html) => readFileSync(html, "utf8").match(/_next\/static\/chunks\/[^"']+\.js/g) ?? []),
+);
+const sobDemanda = readdirSync(join(OUT, "_next/static/chunks"))
+  .filter((n) => n.endsWith(".js") && !emPagina.has(`_next/static/chunks/${n}`))
+  .map((n) => ({ n, total: gz(`_next/static/chunks/${n}`) }))
+  .sort((a, b) => b.total - a.total);
+console.log(`\nSob demanda (teto de ${LIMITE_SOB_DEMANDA / 1000} kB cada):`);
+if (!sobDemanda.length) console.log("   nenhum");
+for (const { n, total } of sobDemanda) {
+  const passou = total <= LIMITE_SOB_DEMANDA;
+  falhou ||= !passou;
+  console.log(`${passou ? "  " : "✗ "}${(total / 1000).toFixed(1).padStart(6)} kB  ${n}`);
+}
+
 if (falhou) {
-  console.error("Alguma página passou do limite de JS.");
+  console.error("Alguma página ou chunk sob demanda passou do limite de JS.");
   process.exit(1);
 }

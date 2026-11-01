@@ -1,4 +1,3 @@
-import { niveis } from "@/content/ai-score-questionario";
 import type { DimensaoId, NivelId } from "@/content/types";
 import { metodoAtual, type Metodo } from "./metodo";
 import { regras } from "./regras";
@@ -37,7 +36,8 @@ export function nivelDe(indice: number, metodo: Metodo = metodoAtual): NivelId {
 }
 
 /** Posição do nível (1 a 5), para "Nível 3 de 5". */
-export const numeroDoNivel = (id: NivelId) => niveis.findIndex((n) => n.id === id) + 1;
+export const numeroDoNivel = (id: NivelId, metodo: Metodo = metodoAtual) =>
+  metodo.niveis.findIndex((n) => n.id === id) + 1;
 
 /** Faixa de leitura de uma nota de dimensão. É regra de análise (textos e prioridades), não do método da nota. */
 export function faixaDe(nota: number): Faixa {

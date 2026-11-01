@@ -10,6 +10,7 @@ import type { Respostas } from "./tipos";
  * O formato 1 continua legível para sempre (`codec/v1.ts`).
  */
 export { respostasVazias, completas } from "./codec/comum";
+export { lerLink } from "./codec";
 
 export const codificar = (r: Respostas) => codificarV2(r, { metodo: METODO_ATUAL, analise: ANALISE_ATUAL });
 

@@ -19,17 +19,10 @@ export const regras = {
 
   /** Simulação de evolução: as dimensões abaixo do primeiro alvo sobem até ele (40, depois 70). */
   alvosSimulacao: [40, 70],
-  /** Alertas: limites de cada padrão (ver analisar.ts) e quantos mostrar. */
+  /** Alertas que dependem de contagem ou de diferença entre dimensões (os demais são decididos por perguntas). */
   alertas: {
-    avancou: 40,
-    atrasou: 40,
-    estrategiaForte: 55,
-    semDirecao: 30,
-    dadosFrageis: 30,
     pontosCegos: 2,
     desequilibrio: 50,
-    inicio: 20,
-    maximo: 3,
   },
 
   /** Soluções na ordem de desempate (a mesma do portfólio). */

@@ -127,8 +127,6 @@ export interface Dimensao {
   lacuna: string;
   /** Próximo passo: `estruturar` abaixo da faixa alta, `evoluir` na faixa alta. */
   passos: { estruturar: string; evoluir: string };
-  /** Leitura do relatório completo por faixa de nota. */
-  leitura: { baixa: string; media: string; alta: string };
 }
 
 /** Pergunta central: duas por dimensão, cinco alternativas (0 a 4 pontos, na ordem) e "Não sei responder". */

@@ -1,5 +1,5 @@
 import { emailRelatorio as er, emailReset } from "@/content/ai-score-email";
-import { alertas, dimensoes, niveis, relatorio } from "@/content/ai-score-questionario";
+import { dimensoes, niveis, relatorio } from "@/content/ai-score-questionario";
 import type { DimensaoId } from "@/content/types";
 import type { Analise } from "./analisar";
 import { formatarNota } from "./calcular";
@@ -61,7 +61,7 @@ export function montarEmailRelatorio(d: DadosEmailRelatorio) {
     nivel,
     forte: rec.forte ? nomeDimensao(rec.forte) : null,
     lacuna: rec.lacunas[0] ? nomeDimensao(rec.lacunas[0]) : null,
-    alerta: a.alertas[0] ? alertas.itens[a.alertas[0]].titulo : null,
+    alerta: a.alertas[0]?.titulo ?? null,
   });
   const fases = relatorio.plano.fases.map((f, i) => ({
     ...f,
@@ -88,11 +88,7 @@ export function montarEmailRelatorio(d: DadosEmailRelatorio) {
     a.alertas.length
       ? h2(er.titulos.alertas) +
         a.alertas
-          .map(
-            (id) =>
-              p(alertas.itens[id].titulo, "font-weight:700;margin-bottom:2px;") +
-              p(alertas.itens[id].texto, `color:${COR.apoio};`),
-          )
+          .map((x) => p(x.titulo, "font-weight:700;margin-bottom:2px;") + p(x.texto, `color:${COR.apoio};`))
           .join("")
       : "",
     d.dicas.dimensoes.length

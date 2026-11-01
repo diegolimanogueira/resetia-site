@@ -113,13 +113,6 @@ export const afirmaDoPadrao: Record<PadraoLeitura, readonly [readonly number[], 
 };
 
 export const leitura = {
-  /** Rótulos das naturezas de uma afirmação, para tela, PDF, e-mail e painel. */
-  naturezas: {
-    declarado: "Você respondeu",
-    derivado: "Leitura a partir das respostas",
-    hipotese: "Hipótese a investigar",
-    validar: "A validar",
-  },
   papeis,
   padrao: (padrao: PadraoLeitura, dimensao: DimensaoId): string => {
     const { primeira, segunda } = papeis[dimensao];
@@ -149,13 +142,10 @@ export const leitura = {
   umaResposta: (tema: string) =>
     `A resposta sobre ${tema} ficou como "Não sei responder": esta leitura se apoia em uma única resposta.`,
   semDados: "As duas perguntas desta dimensão ficaram sem resposta válida: não há leitura possível.",
-  validar: (pergunta: string) => `Para validar internamente: ${pergunta}`,
 };
 
 /** Alertas: padrões entre respostas que merecem atenção. Cada um cita as respostas que o sustentam. */
 export const alertas = {
-  titulo: "O que o resultado revela",
-  outros: (n: number) => (n === 1 ? "Ver mais 1 alerta" : `Ver mais ${n} alertas`),
   itens: {
     inicio: {
       titulo: "A jornada está por começar",
