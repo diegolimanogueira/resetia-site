@@ -20,7 +20,6 @@ const lead = (id: string, extra: Partial<LeadLinha> = {}): LeadLinha => ({
   email: `${id}@empresa.com.br`,
   email_pessoal: false,
   empresa: `Empresa ${id}`,
-  whatsapp: "5585999990000",
   pediu_contato: true,
   consentimento_marketing: false,
   status: "novo",
@@ -177,6 +176,7 @@ describe("ficha de preparação da conversa", () => {
     whatsapp: true,
     ligacao: true,
     telefone: "5585999990000",
+    tem_numero: true,
   };
   const aprofundamento: Aprofundamento = {
     area: "vendas",
@@ -250,7 +250,7 @@ describe("ficha de preparação da conversa", () => {
       "Prazo: Sem prazo marcado",
     ]);
     const semPedido = ficha(lead("b", { pediu_contato: false }), {
-      contato: { ...todos, whatsapp: false, ligacao: false, telefone: null, email: false },
+      contato: { ...todos, whatsapp: false, ligacao: false, telefone: null, email: false, tem_numero: false },
     });
     expect(linhas(semPedido, "proximo").join(" ")).toContain("não iniciar contato por WhatsApp ou ligação");
     expect(linhas(semPedido, "proximo").join(" ")).toContain("Canal permitido: Nenhum canal liberado");

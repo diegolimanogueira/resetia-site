@@ -242,7 +242,10 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
     };
   }, [vista, email, versao, versaoComercial]);
 
-  const leads = useMemo(() => montarLeads(dados ?? [], aprofundamentos), [dados, aprofundamentos]);
+  const leads = useMemo(
+    () => montarLeads(dados ?? [], aprofundamentos, contatos ?? undefined),
+    [dados, aprofundamentos, contatos],
+  );
   const lista = useMemo(() => filtrarLeads(leads, f), [leads, f]);
   const resumo = useMemo(() => resumir(dados ?? [], f.ambiente), [dados, f.ambiente]);
   const numeros = useMemo(
@@ -311,7 +314,9 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
   }
 
   function exportar() {
-    const blob = new Blob([csvLeads(lista, (slug) => nomesSolucoes[slug] ?? slug)], { type: "text/csv;charset=utf-8" });
+    const blob = new Blob([csvLeads(lista, (slug) => nomesSolucoes[slug] ?? slug, contatos ?? undefined)], {
+      type: "text/csv;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;

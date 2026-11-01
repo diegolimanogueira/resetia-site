@@ -1,7 +1,7 @@
 import { admin } from "@/content/admin";
 import { desafios, dimensoes, horizontes, modulosArea, niveis, segmentacao } from "@/content/ai-score-questionario";
 import type { Escopo, NivelId, StatusLead } from "@/content/types";
-import type { AprofundamentoLinha, AvaliacaoLinha, LeadLinha } from "@/lib/supabase-admin";
+import type { AprofundamentoLinha, AvaliacaoLinha, ContatoPermitido, LeadLinha } from "@/lib/supabase-admin";
 import { calcular, formatarNota } from "./calcular";
 import { decodificar } from "./codificar";
 import { paraCsv } from "./csv";
@@ -53,6 +53,7 @@ export function aprofundamentoDaLinha(l: AprofundamentoLinha): Aprofundamento | 
 export function montarLeads(
   avaliacoes: AvaliacaoLinha[],
   aprofundamentos: ReadonlyMap<string, Aprofundamento> = new Map(),
+  contatos: ReadonlyMap<string, ContatoPermitido> = new Map(),
 ): LeadVisao[] {
   return avaliacoes.flatMap((a) => {
     const respostas = decodificar(a.codigo);
@@ -74,7 +75,7 @@ export function montarLeads(
           escopo: a.escopo,
           desafios: respostas?.desafios.length ?? 0,
           emailPessoal: lead.email_pessoal,
-          whatsapp: Boolean(lead.whatsapp),
+          whatsapp: contatos.get(lead.id)?.tem_numero === true,
           relatorioCompleto: Boolean(lead.empresa),
           pediuContato: lead.pediu_contato,
           solucaoIndicada: rec?.indicacoes.some((i) => i.forca === "indicada") ?? false,
@@ -203,7 +204,12 @@ export const dataBr = (iso: string) =>
     timeZone: "America/Sao_Paulo",
   });
 
-export function csvLeads(leads: LeadVisao[], solucaoNome: (slug: string) => string): string {
+/** O número só entra na planilha quando a pessoa escolheu ser contatada por WhatsApp ou por ligação. */
+export function csvLeads(
+  leads: LeadVisao[],
+  solucaoNome: (slug: string) => string,
+  contatos: ReadonlyMap<string, ContatoPermitido> = new Map(),
+): string {
   const c = admin.csv;
   const cabecalho = [
     c.data,
@@ -244,7 +250,7 @@ export function csvLeads(leads: LeadVisao[], solucaoNome: (slug: string) => stri
     l.email,
     l.email_pessoal,
     l.empresa,
-    l.whatsapp,
+    contatos.get(l.id)?.telefone ?? null,
     rotulos.papel(a.papel),
     rotulos.porte(a.porte),
     rotulos.segmento(a.segmento),

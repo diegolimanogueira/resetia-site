@@ -566,4 +566,33 @@ delete from public.leads where id = 'e1000000-0000-4000-8000-000000000002';
 select teste.afirmar('cascata: os marcos e as atividades do lead apagado se vão com ele',
   (select count(*) from public.marcos where lead_id = 'e1000000-0000-4000-8000-000000000002') = 0);
 
+\echo '--- pendentes: 0011 (o admin não lê whatsapp nem chave direto) e 0012 (fecha o caminho antigo)'
+set role authenticated;
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+select teste.afirmar('contatos permitidos: diz se há número sem entregá-lo (tem_numero)',
+  (select tem_numero from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000003')
+  and not (select tem_numero from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000002'));
+reset role;
+\i supabase/pendentes/0011_leads_sem_whatsapp_direto.sql
+set role authenticated;
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+select teste.afirmar('0011: o admin ainda lê as colunas que o painel usa', (select count(*) > 0 from (select id, nome, email, status, pedido_conversa_em, primeira_resposta_em, canal from public.leads) x));
+select teste.negar($q$select whatsapp from public.leads$q$);
+select teste.negar($q$select chave_hash from public.leads$q$);
+select teste.negar($q$select * from public.leads$q$);
+select teste.afirmar('0011: o telefone só chega por contatos_permitidos() e só com a escolha do canal (a pessoa voltou a escolher WhatsApp; quem não tem número, nulo)',
+  (select telefone = '5511999990000' from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000003')
+  and (select telefone is null from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000004'));
+update public.leads set status = 'contatado' where id = 'd1000000-0000-4000-8000-000000000004';
+select teste.afirmar('0011: o admin continua atualizando as colunas do CRM', (select status = 'contatado' from public.leads where id = 'd1000000-0000-4000-8000-000000000004'));
+reset role;
+\i supabase/pendentes/0012_fechar_caminho_antigo.sql
+set role anon;
+select teste.negar($q$insert into public.avaliacoes (id, escopo, papel, porte, segmento, respostas, desafios, horizonte, indice, nivel, parcial, dimensoes, codigo, versao) values (gen_random_uuid(), 'empresa', 'ceo', '50-199', 'tecnologia', '{}', array['comecar'], '3-meses', 34, 'explorando', false, '{}', 'v=1&e=empresa', '1')$q$);
+select teste.negar($q$select public.completar_lead(gen_random_uuid(), 'X')$q$);
+select teste.negar($q$select public.lead_liberado(gen_random_uuid(), gen_random_uuid())$q$);
+reset role;
+select teste.afirmar('0012: a função de captura (service_role) continua funcionando depois de fechar o caminho antigo',
+  (select count(*) = 1 from public.avaliacoes where id = 'a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1'));
+
 \echo 'CAPTURA_OK'

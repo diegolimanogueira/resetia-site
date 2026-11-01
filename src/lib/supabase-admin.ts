@@ -34,7 +34,6 @@ export interface LeadLinha {
   email_pessoal: boolean;
   /** Vazia até a pessoa pedir o relatório completo (etapa 2). */
   empresa: string | null;
-  whatsapp: string | null;
   pediu_contato: boolean;
   consentimento_marketing: boolean;
   status: StatusLead;
@@ -207,7 +206,7 @@ export async function listar(s: Sessao): Promise<AvaliacaoLinha[] | "sessao" | "
   try {
     const r = await pedir(
       s,
-      "avaliacoes?select=id,criada_em,escopo,papel,porte,segmento,horizonte,indice,nivel,parcial,codigo,origem,ambiente,leads(id,avaliacao_id,criado_em,atualizado_em,nome,email,email_pessoal,empresa,whatsapp,pediu_contato,consentimento_marketing,status,notas,ambiente,responsavel,proximo_contato,relatorio_enviado_em,pedido_conversa_em,primeira_resposta_em,canal)&order=criada_em.desc&limit=1000",
+      "avaliacoes?select=id,criada_em,escopo,papel,porte,segmento,horizonte,indice,nivel,parcial,codigo,origem,ambiente,leads(id,avaliacao_id,criado_em,atualizado_em,nome,email,email_pessoal,empresa,pediu_contato,consentimento_marketing,status,notas,ambiente,responsavel,proximo_contato,relatorio_enviado_em,pedido_conversa_em,primeira_resposta_em,canal)&order=criada_em.desc&limit=1000",
     );
     if (r === "sessao") return r;
     return r.ok ? ((await r.json()) as AvaliacaoLinha[]) : "erro";
@@ -351,6 +350,8 @@ export interface ContatoPermitido {
   ligacao: boolean;
   /** O número só volta quando a pessoa escolheu ser contatada por WhatsApp ou por ligação. */
   telefone: string | null;
+  /** A pessoa informou um número (ele mesmo só aparece em `telefone`, e só com a escolha do canal). */
+  tem_numero: boolean;
 }
 
 /** O que a equipe pode fazer com cada lead: a função do banco confere a escolha registrada, canal por canal. */

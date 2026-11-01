@@ -72,7 +72,7 @@ create policy "admin corrige marco" on public.marcos for delete to authenticated
 -- contatada por WhatsApp ou por ligação (e ele existe); sem a escolha, volta nulo.
 
 create function public.contatos_permitidos()
-returns table (lead_id uuid, email boolean, whatsapp boolean, ligacao boolean, telefone text)
+returns table (lead_id uuid, email boolean, whatsapp boolean, ligacao boolean, telefone text, tem_numero boolean)
 language plpgsql stable security definer set search_path = '' as $$
 begin
   if not public.eh_admin() then
@@ -85,7 +85,8 @@ begin
     public.elegivel(l.id, 'contato-analise', 'whatsapp'),
     public.elegivel(l.id, 'contato-analise', 'ligacao'),
     case when public.elegivel(l.id, 'contato-analise', 'whatsapp') or public.elegivel(l.id, 'contato-analise', 'ligacao')
-      then l.whatsapp end
+      then l.whatsapp end,
+    l.whatsapp is not null
   from public.leads l;
 end $$;
 

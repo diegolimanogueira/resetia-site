@@ -10,7 +10,13 @@ import {
   montarLeads,
   resumir,
 } from "@/lib/ai-score/leads";
-import type { AvaliacaoLinha, LeadLinha } from "@/lib/supabase-admin";
+import type { AvaliacaoLinha, ContatoPermitido, LeadLinha } from "@/lib/supabase-admin";
+
+/** O que o banco libera: o telefone só vem com a escolha do canal (a coluna não é mais lida direto). */
+const CONTATOS = new Map<string, ContatoPermitido>([
+  ["l1", { lead_id: "l1", email: true, whatsapp: true, ligacao: true, telefone: "5585999990000", tem_numero: true }],
+  ["l2", { lead_id: "l2", email: false, whatsapp: false, ligacao: false, telefone: null, tem_numero: false }],
+]);
 
 const lead = (extra: Partial<LeadLinha>): LeadLinha => ({
   id: "l1",
@@ -21,7 +27,6 @@ const lead = (extra: Partial<LeadLinha>): LeadLinha => ({
   email: "maria@empresa.com.br",
   email_pessoal: false,
   empresa: "Empresa Ágil",
-  whatsapp: "5585999990000",
   pediu_contato: true,
   consentimento_marketing: false,
   status: "novo",
@@ -75,7 +80,6 @@ const dados: AvaliacaoLinha[] = [
         criado_em: "2026-10-27T10:05:00Z",
         pediu_contato: false,
         status: "contatado",
-        whatsapp: null,
         email_pessoal: true,
       }),
     ],
@@ -86,7 +90,7 @@ const dados: AvaliacaoLinha[] = [
 
 describe("admin: visão dos leads", () => {
   it("recalcula o resultado a partir do código (regras atuais, não a nota gravada) e separa as três pontuações", () => {
-    const [maria] = montarLeads(dados);
+    const [maria] = montarLeads(dados, new Map(), CONTATOS);
     expect(maria.avaliacao.indice).toBe(46);
     expect(maria.resultado?.indice).toBe(34);
     expect(maria.resultado?.areas).toEqual({ vendas: 70 });
@@ -122,7 +126,7 @@ describe("admin: visão dos leads", () => {
   });
 
   it("lead só da etapa 1 (sem empresa) entra na lista e perde só os pontos do relatório completo", () => {
-    const so = montarLeads([avaliacao({ leads: [lead({ empresa: null })] })])[0];
+    const so = montarLeads([avaliacao({ leads: [lead({ empresa: null })] })], new Map(), CONTATOS)[0];
     expect(so.pontuacoes.intencao.pontos).toBe(50);
     expect(filtrarLeads([so], { ...filtrosIniciais, busca: "maria" })).toHaveLength(1);
   });
@@ -163,7 +167,11 @@ describe("admin: visão dos leads", () => {
     expect(celula(null)).toBe("");
     expect(paraCsv(["a", "b"], [[1, "x"]])).toBe("﻿a;b\r\n1;x\r\n");
 
-    const csv = csvLeads(filtrarLeads(montarLeads(dados), filtrosIniciais), (s) => s.toUpperCase());
+    const csv = csvLeads(
+      filtrarLeads(montarLeads(dados, new Map(), CONTATOS), filtrosIniciais),
+      (s) => s.toUpperCase(),
+      CONTATOS,
+    );
     const [cabecalho, primeira] = csv.replace("﻿", "").split("\r\n");
     expect(cabecalho.split(";")).toContain("Estratégia e Liderança");
     expect(primeira).toContain("Maria Teste;maria@empresa.com.br;não;Empresa Ágil;5585999990000;Empresário ou CEO");
