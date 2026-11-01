@@ -184,9 +184,20 @@ function montarResumo(
   const foco = lacuna ?? rec.forte;
   const declaradas = foco ? respostasDaDimensao(foco, r) : [];
 
-  const desafio = r.desafios.map((id) => desafios.find((d) => d.id === id)!)[0];
+  // A hipótese é sobre a dimensão mais frágil. Ela só é pareada com um desafio declarado quando o desafio é DESSA
+  // dimensão; senão os desafios aparecem à parte, e o texto diz que a dimensão mais frágil é outro assunto (pôr os
+  // dois lado a lado sugeriria que um é consequência do outro).
+  const declarados = r.desafios.map((id) => desafios.find((d) => d.id === id)!);
+  const doFoco = lacuna ? declarados.find((d) => d.dimensao === lacuna) : undefined;
   const consequencia = [
-    desafio ? t.consequencia.declarada(desafio.label) : t.consequencia.semDeclarada,
+    ...(doFoco
+      ? [t.consequencia.declarada(doFoco.label), declarados.length > 1 ? t.consequencia.outroDesafio : ""]
+      : declarados.length
+        ? [
+            t.consequencia.declaradas(declarados.map((d) => d.label)),
+            lacuna ? t.consequencia.foraDoFoco(dimensao(lacuna).nome) : "",
+          ]
+        : [t.consequencia.semDeclarada]),
     lacuna ? t.consequencia.hipotese(hipoteses[lacuna]) : "",
   ]
     .filter(Boolean)

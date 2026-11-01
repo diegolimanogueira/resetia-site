@@ -48,6 +48,13 @@ export const resumo = {
   },
   consequencia: {
     declarada: (desafio: string) => `Você apontou como desafio: ${desafio.charAt(0).toLowerCase()}${desafio.slice(1)}`,
+    /** Desafios declarados que não são da dimensão mais frágil: ditos à parte, sem ligar a hipótese a eles. */
+    declaradas: (desafios: string[]) =>
+      `Você apontou como ${desafios.length > 1 ? "desafios" : "desafio"}: ${desafios
+        .map((d) => `${d.charAt(0).toLowerCase()}${d.slice(1)}`.replace(/\.$/, ""))
+        .join("; ")}.`,
+    foraDoFoco: (dimensao: string) => `A dimensão mais frágil, ${dimensao}, é outro assunto.`,
+    outroDesafio: "O outro desafio que você marcou é lido à parte, em oportunidades a investigar.",
     semDeclarada: "O questionário não registrou nenhuma consequência declarada.",
     hipotese: (texto: string) => `Hipótese, a validar: ${texto}`,
   },

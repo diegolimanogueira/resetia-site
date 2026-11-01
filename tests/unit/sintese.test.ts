@@ -58,6 +58,57 @@ describe("resumo executivo", () => {
     expect(por["primeira-acao"].texto).toBe(s.plano.etapas[0].acao);
   });
 
+  describe("consequência declarada e hipótese: só se pareiam quando falam da mesma dimensão", () => {
+    const consequencia = (t: string, d: DesafioId[]) =>
+      sinteseDe(t, d).resumo.itens.find((i) => i.id === "consequencia")!.texto;
+    const minuscula = (id: DesafioId) => {
+      const l = desafios.find((x) => x.id === id)!.label;
+      return `${l.charAt(0).toLowerCase()}${l.slice(1)}`;
+    };
+    // "33 22 21 22 11 21": a dimensão mais frágil é Governança e Segurança (15).
+    const fragil = "33 22 21 22 11 21";
+
+    it("o desafio é da dimensão mais frágil: vem logo antes da hipótese", () => {
+      const texto = consequencia(fragil, ["governanca"]);
+      expect(texto).toMatch(
+        new RegExp(
+          `^Você apontou como desafio: ${minuscula("governanca").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")} Hipótese, a validar:`,
+        ),
+      );
+      expect(texto).not.toContain("é outro assunto");
+    });
+
+    it("o desafio é de outra dimensão: aparece à parte, e o texto diz que a mais frágil é outro assunto", () => {
+      const texto = consequencia(fragil, ["repetitivas"]);
+      expect(texto).toContain(`Você apontou como desafio: ${minuscula("repetitivas")}`);
+      expect(texto).toContain("A dimensão mais frágil, Governança e Segurança, é outro assunto.");
+      // A hipótese vem depois e continua marcada como hipótese (a ficha comercial a extrai por esse marcador).
+      expect(texto.indexOf("é outro assunto")).toBeLessThan(texto.indexOf("Hipótese, a validar:"));
+    });
+
+    it("dois desafios, um da dimensão mais frágil: pareia esse e avisa que o outro é lido à parte", () => {
+      const texto = consequencia(fragil, ["repetitivas", "governanca"]);
+      expect(texto).toContain(`Você apontou como desafio: ${minuscula("governanca")}`);
+      expect(texto).not.toContain(minuscula("repetitivas"));
+      expect(texto).toContain("O outro desafio que você marcou é lido à parte, em oportunidades a investigar.");
+    });
+
+    it("dois desafios, nenhum da dimensão mais frágil: os dois entram, sem ligar a hipótese a eles", () => {
+      const texto = consequencia(fragil, ["repetitivas", "comecar"]);
+      expect(texto).toContain("Você apontou como desafios:");
+      expect(texto).toContain(minuscula("repetitivas").replace(/\.$/, ""));
+      expect(texto).toContain(minuscula("comecar").replace(/\.$/, ""));
+      expect(texto).toContain("é outro assunto");
+    });
+
+    it("sem desafio declarado: diz que não há, e a hipótese segue marcada", () => {
+      const texto = consequencia(fragil, []);
+      expect(texto).toContain("O questionário não registrou nenhuma consequência declarada.");
+      expect(texto).toContain("Hipótese, a validar:");
+      expect(texto).not.toContain("é outro assunto");
+    });
+  });
+
   it("sem lacuna, não inventa fragilidade; sem nota, não aponta dimensão", () => {
     const topo = sinteseDe("44 44 44 44 44 44");
     expect(topo.resumo.itens.find((i) => i.id === "atencao")!.texto).toMatch(/Nenhuma fragilidade/);
