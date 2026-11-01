@@ -5,7 +5,7 @@
  */
 import { biblioteca } from "@/content/ai-score-dicas";
 import { instrucoes } from "@/content/ai-score-instrucoes";
-import { dimensoes, modulosArea, niveis, relatorio, resultadoTextos } from "@/content/ai-score-questionario";
+import { dimensoes, modulosArea, niveis, relatorio } from "@/content/ai-score-questionario";
 import { nomesSolucoes } from "@/content/solucoes-nomes";
 import { waUrl } from "@/lib/whatsapp";
 import { CONSENTIMENTOS_VERSAO } from "@/content/ai-score-consentimentos";
@@ -79,13 +79,5 @@ export const linkPreferencias = (site: string, token: string) => `${site}/ai-sco
 
 /** WhatsApp da Análise Estratégica com a nota e as duas maiores lacunas, como na tela de resultado. */
 export function whatsappDoResultado(r: RespostasCompletas) {
-  const resultado = calcular(r);
-  const rec = recomendar(resultado, r.desafios, r.centrais);
-  return waUrl(
-    resultadoTextos.mensagem({
-      indice: resultado.indice,
-      nivel: nomeDoNivel(resultado.nivel),
-      lacunas: rec.lacunas.slice(0, 2).map(nomeDaDimensao),
-    }),
-  );
+  return waUrl(montarDevolutiva(r).sintese.conversa.mensagem);
 }

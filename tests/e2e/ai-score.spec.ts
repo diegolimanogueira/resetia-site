@@ -219,8 +219,15 @@ test.describe("RESET AI Score", () => {
     const conversa = page.locator("a[data-cta='diagnostico-resultado']");
     const texto = new URL((await conversa.getAttribute("href"))!).searchParams.get("text")!;
     expect(texto).toContain("34/100, nível Explorando");
-    expect(texto).toContain("Governança e Segurança e Processos e Aplicações");
+    expect(texto).toContain("Principais lacunas: Governança e Segurança, Processos e Aplicações.");
     expect(await conversa.getAttribute("href")).toBe(waUrl(texto));
+    // O convite do resumo reconhece o resultado e mostra, antes do clique, o que a mensagem leva (sem dado pessoal nem link).
+    const convite = page.locator("[data-convite='resumo']");
+    await expect(convite).toContainText("Seu resultado aponta Governança e Segurança como a dimensão mais frágil.");
+    await convite.getByText("O que a mensagem leva").click();
+    await expect(convite.locator("[data-previa-whatsapp]")).toHaveText(texto);
+    expect(texto).not.toMatch(/maria|Empresa Teste|@|https?:/i);
+    await expect(convite.locator("a[data-cta='diagnostico-resultado-resumo']")).toHaveAttribute("href", waUrl(texto));
     await semViolacoes(page);
 
     // Etapa 2: a empresa libera o relatório completo.

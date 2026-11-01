@@ -287,13 +287,8 @@ function Pronto({
     );
   if (!devolutiva) return <SemResultado estado={falhou ? "falha" : "carregando"} />;
 
-  const { resultado, recomendacao: rec, analise, cobertura, versoes } = devolutiva;
+  const { resultado, analise, cobertura, versoes } = devolutiva;
   const nivel = niveis.find((n) => n.id === resultado.nivel);
-  const mensagem = t.mensagem({
-    indice: resultado.indice,
-    nivel: nivel?.nome ?? null,
-    lacunas: rec.lacunas.slice(0, 2).map((id) => dimensao(id).nome),
-  });
   const moduloDaArea = modulosArea.find((m) => m.area === r.escopo)?.nome;
   const quem =
     r.escopo === "empresa"
@@ -390,6 +385,33 @@ function Pronto({
       <Section tom="escuro">
         <div className="container-site">
           <ResumoExecutivo resumo={devolutiva.sintese.resumo} quem={quem} />
+          <div
+            data-nao-imprimir
+            data-convite="resumo"
+            className="border-line bg-painel mt-3 border p-[22px] md:p-[28px]"
+          >
+            <p className="text-[17px] leading-[1.55] font-semibold">
+              {devolutiva.sintese.conversa.contexto} {devolutiva.sintese.conversa.utilidade}
+            </p>
+            <details className="text-fg-2 mt-4 text-[14px] leading-[1.6]">
+              <summary className="text-verde cursor-pointer font-semibold">
+                {devolutiva.sintese.conversa.previa.titulo}
+              </summary>
+              <p data-previa-whatsapp className="border-line bg-fundo mt-3 border p-3">
+                {devolutiva.sintese.conversa.mensagem}
+              </p>
+              <p className="mt-2">{devolutiva.sintese.conversa.previa.aviso}</p>
+            </details>
+            <div className="mt-5">
+              <Botao
+                href={waUrl(devolutiva.sintese.conversa.mensagem)}
+                origem="diagnostico-resultado-resumo"
+                tamanho="sm"
+              >
+                {devolutiva.sintese.conversa.cta}
+              </Botao>
+            </div>
+          </div>
 
           {analise.alertas.length ? (
             <div className="mt-14">
@@ -502,15 +524,17 @@ function Pronto({
       <Section tom="contraste" data-nao-imprimir="" className="border-line border-t">
         <div className="container-site grid gap-8 md:grid-cols-[1.2fr_1fr] md:items-end md:gap-[80px]">
           <div>
-            <Eyebrow>{t.conversa.kicker}</Eyebrow>
+            <Eyebrow>{devolutiva.sintese.conversa.kicker}</Eyebrow>
             <h2 className="text-[clamp(32px,4vw,56px)] leading-[1.05] font-bold tracking-[-0.03em]">
-              <Linhas itens={t.conversa.titulo} />
+              <Linhas itens={devolutiva.sintese.conversa.titulo} />
             </h2>
           </div>
           <div>
-            <p className="text-fg-2 mb-7 text-[17px] leading-[1.7]">{t.conversa.texto}</p>
-            <Botao href={waUrl(mensagem)} origem="diagnostico-resultado">
-              {t.conversa.cta}
+            <p className="text-fg-2 mb-7 text-[17px] leading-[1.7]">
+              {devolutiva.sintese.conversa.contexto} {devolutiva.sintese.conversa.utilidade}
+            </p>
+            <Botao href={waUrl(devolutiva.sintese.conversa.mensagem)} origem="diagnostico-resultado">
+              {devolutiva.sintese.conversa.cta}
             </Botao>
           </div>
         </div>

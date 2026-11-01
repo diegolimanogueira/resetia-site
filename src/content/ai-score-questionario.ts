@@ -669,18 +669,6 @@ export const resultadoTextos = {
     texto: "Verifique a conexão e tente de novo.",
     tentar: "Tentar de novo",
   },
-  conversa: {
-    kicker: "Análise Estratégica RESET",
-    titulo: ["Seu AI Score mostrou onde você está.", "*Vamos identificar como evoluir?*"],
-    texto:
-      "Solicite uma avaliação estratégica com nossos especialistas para explorar oportunidades de redução de custos, produtividade e geração de receita.",
-    cta: "Conversar com um especialista da Reset",
-  },
-  /** Mensagem do WhatsApp com o resultado, para a conversa começar do ponto certo. */
-  mensagem: (r: { indice: number | null; nivel: string | null; lacunas: string[] }) =>
-    r.indice === null
-      ? "Olá! Fiz o RESET AI Score (resultado parcial) e quero conversar com um especialista sobre a Análise Estratégica RESET."
-      : `Olá! Fiz o RESET AI Score: ${r.indice}/100, nível ${r.nivel}.${r.lacunas.length ? ` Principais lacunas: ${r.lacunas.join(" e ")}.` : ""} Quero conversar com um especialista sobre a Análise Estratégica RESET.`,
 };
 
 /**

@@ -154,7 +154,7 @@ async function tarefaDeEmail(t: Tarefa, deps: Dependencias) {
     // O id do lead nunca vai no link: o que abre o relatório é o token, que expira e pode ser revogado.
     link: nucleo.linkRelatorio(SITE, lead.avaliacao.codigo, null, leitura),
     preferencias: nucleo.linkPreferencias(SITE, preferencias),
-    whatsapp: nucleo.whatsappDoResultado(a.respostas),
+    whatsapp: nucleo.waUrl(a.sintese.conversa.mensagem),
     site: SITE,
     nomesSolucoes: nucleo.nomesSolucoes,
   });

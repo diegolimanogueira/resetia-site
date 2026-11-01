@@ -4,11 +4,13 @@ import {
   indicacoes as textosDeIndicacao,
   lacunas as textosDeLacuna,
   oportunidades as textosDeOportunidade,
+  conversa as textosDaConversa,
   plano as textosDoPlano,
   resumo as textosDoResumo,
   type EtapaId,
 } from "@/content/ai-score-sintese";
 import { desafios, dimensoes, niveis, perguntasCentrais } from "@/content/ai-score-questionario";
+import { nomesSolucoes } from "@/content/solucoes-nomes";
 import type { DesafioId, DimensaoId } from "@/content/types";
 import type { Analise } from "./analisar";
 import { formatarNota } from "./calcular";
@@ -83,6 +85,16 @@ export interface Sintese {
   };
   indicacoes: { titulo: string; nota: string; condicoes: string; semIndicacao: string | null; itens: IndicacaoTexto[] };
   plano: { titulo: string; nota: string; rotulos: typeof textosDoPlano.rotulos; etapas: EtapaDoPlano[] };
+  conversa: {
+    kicker: string;
+    titulo: string[];
+    contexto: string;
+    utilidade: string;
+    cta: string;
+    previa: { titulo: string; aviso: string };
+    /** A mensagem que o WhatsApp leva: só nota, nível, lacunas e soluções em avaliação, nunca dado pessoal nem link. */
+    mensagem: string;
+  };
 }
 
 const dimensao = (id: DimensaoId) => dimensoes.find((d) => d.id === id)!;
@@ -281,6 +293,34 @@ function montarPlano(rec: Recomendacao, analise: Analise) {
   });
 }
 
+function montarConversa(resultado: Resultado, rec: Recomendacao): Sintese["conversa"] {
+  const t = textosDaConversa;
+  const nivel = niveis.find((n) => n.id === resultado.nivel)?.nome ?? "";
+  const lacunas = rec.lacunas.slice(0, 2).map((id) => dimensao(id).nome);
+  const solucoes = rec.indicacoes.map((i) => nomesSolucoes[i.slug as keyof typeof nomesSolucoes] ?? i.slug);
+  const juntar = (nomes: string[]) => nomes.join(", ");
+  const contexto =
+    resultado.indice === null
+      ? t.contexto.parcial
+      : (rec.lacunas[0] ? t.contexto.lacuna(dimensao(rec.lacunas[0]).nome) : t.contexto.semLacuna) +
+        (solucoes.length ? t.contexto.indicacoes(juntar(solucoes)) : "");
+  return {
+    kicker: t.kicker,
+    titulo: t.titulo,
+    contexto,
+    utilidade: t.utilidade,
+    cta: t.cta,
+    previa: t.previa,
+    mensagem:
+      resultado.indice === null
+        ? t.mensagem.parcial
+        : t.mensagem.base(resultado.indice, nivel) +
+          (lacunas.length ? t.mensagem.lacunas(juntar(lacunas)) : "") +
+          (solucoes.length ? t.mensagem.solucoes(juntar(solucoes)) : "") +
+          t.mensagem.fim,
+  };
+}
+
 export function montarSintese(
   r: RespostasCompletas,
   resultado: Resultado,
@@ -346,5 +386,6 @@ export function montarSintese(
       itens: itensDeIndicacao,
     },
     plano: { titulo: textosDoPlano.titulo, nota: textosDoPlano.nota, rotulos: textosDoPlano.rotulos, etapas },
+    conversa: montarConversa(resultado, rec),
   };
 }

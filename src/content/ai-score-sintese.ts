@@ -179,6 +179,35 @@ export const indicacoes = {
   },
 };
 
+/** O convite para a Análise Estratégica: reconhece o resultado, diz para que serve a conversa e mostra o que a mensagem leva. */
+export const conversa = {
+  kicker: "Análise Estratégica RESET",
+  titulo: ["Quer validar esta leitura", "*com um especialista?*"],
+  cta: "Conversar com um especialista da Reset",
+  /** Contexto do resultado, em uma frase. */
+  contexto: {
+    lacuna: (dimensao: string) => `Seu resultado aponta ${dimensao} como a dimensão mais frágil.`,
+    semLacuna: "Seu resultado não mostra uma lacuna clara de maturidade.",
+    parcial: "Seu resultado ainda é parcial.",
+    indicacoes: (nomes: string) => ` Há ${nomes} como caminho a testar.`,
+  },
+  utilidade:
+    "A conversa, sem custo, serve para validar o que ficou como hipótese, confirmar as condições que faltam e decidir se vale testar uma solução ou seguir por conta própria.",
+  previa: {
+    titulo: "O que a mensagem leva",
+    aviso:
+      "Só a nota, o nível, as lacunas e as soluções em avaliação. Não vão seu nome, seu e-mail, sua empresa nem o link do relatório.",
+  },
+  mensagem: {
+    parcial:
+      "Olá! Fiz o RESET AI Score (resultado parcial) e quero conversar com um especialista sobre a Análise Estratégica RESET.",
+    base: (indice: number, nivel: string) => `Olá! Fiz o RESET AI Score: ${indice}/100, nível ${nivel}.`,
+    lacunas: (nomes: string) => ` Principais lacunas: ${nomes}.`,
+    solucoes: (nomes: string) => ` Quero entender se faz sentido: ${nomes}.`,
+    fim: " Quero conversar com um especialista sobre a Análise Estratégica RESET.",
+  },
+};
+
 export const plano = {
   titulo: "Roteiro de 90 dias",
   nota: "Roteiro inicial, para validar com a sua equipe. A ordem importa mais que as datas: cada etapa depende das anteriores. Não é promessa de prazo de implantação nem de resultado.",

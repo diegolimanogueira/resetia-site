@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { agentes, areas, categoriasAgentes, consolidacao } from "@/content/agentes";
 import { aiScore } from "@/content/ai-score";
 import * as questionario from "@/content/ai-score-questionario";
+import { conversa } from "@/content/ai-score-sintese";
 import { diagnostico } from "@/content/diagnostico";
 import { home } from "@/content/home";
 import { privacidade } from "@/content/privacidade";
@@ -140,7 +141,7 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
       aiScore.metodologia.titulo,
       aiScore.perguntas.titulo,
       aiScore.ctaFinal.titulo,
-      questionario.resultadoTextos.conversa.titulo,
+      conversa.titulo,
       questionario.formulario.titulo,
       questionario.contato.titulo,
     ].flat();
