@@ -20,6 +20,7 @@ import type { DimensaoId } from "@/content/types";
 import type { Analise } from "@/lib/ai-score/analisar";
 import { formatarNota } from "@/lib/ai-score/calcular";
 import type { Cobertura } from "@/lib/ai-score/cobertura";
+import type { EmailEstado } from "@/lib/ai-score/navegador";
 import type { LeituraDaDimensao } from "@/lib/ai-score/leituras";
 import type { Biblioteca } from "@/content/ai-score-dicas";
 import { alvosDasDicas, lerDicas, montarDicas, type Dicas } from "@/lib/ai-score/dicas";
@@ -81,7 +82,8 @@ export function Relatorio({
   avaliacaoId,
   leadId,
   buscarDicas = false,
-  emailEnviadoPara,
+  chave,
+  email,
 }: {
   respostas: RespostasCompletas;
   resultado: Resultado;
@@ -99,8 +101,10 @@ export function Relatorio({
   leadId?: string;
   /** Pede as dicas à função (IA); sem isso, ou se ela falhar, usa a biblioteca. */
   buscarDicas?: boolean;
-  /** E-mail para onde a função confirmou o envio do relatório. */
-  emailEnviadoPara?: string;
+  /** Chave do lead (leads novos): sem ela as dicas por IA não são entregues. */
+  chave?: string;
+  /** Estado real do envio do relatório por e-mail e o endereço, como o servidor informa. */
+  email?: { estado: EmailEstado; endereco: string };
 }) {
   const titulo = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -126,15 +130,16 @@ export function Relatorio({
   useEffect(() => {
     if (!pedir) return;
     let vivo = true;
-    void chamarFuncao({ acao: "dicas", avaliacao_id: avaliacaoId, lead_id: leadId }, { timeout: 90_000 }).then(
-      (res) => {
-        if (vivo) setDaFuncao((res.ok && lerDicas(res.dados, alvos)) || "falhou");
-      },
-    );
+    void chamarFuncao(
+      { acao: "dicas", avaliacao_id: avaliacaoId, lead_id: leadId, ...(chave ? { chave } : {}) },
+      { timeout: 90_000 },
+    ).then((res) => {
+      if (vivo) setDaFuncao((res.ok && lerDicas(res.dados, alvos)) || "falhou");
+    });
     return () => {
       vivo = false;
     };
-  }, [pedir, avaliacaoId, leadId, alvos]);
+  }, [pedir, avaliacaoId, leadId, chave, alvos]);
   const dicas: Dicas | null = !pedir ? reserva : daFuncao === null ? null : daFuncao === "falhou" ? reserva : daFuncao;
 
   const baixar = () => {
@@ -162,9 +167,13 @@ export function Relatorio({
               {formulario.demo}
             </p>
           ) : null}
-          {emailEnviadoPara ? (
-            <p data-nao-imprimir className="text-verde mt-4 text-[14px] font-semibold">
-              {t.enviado(emailEnviadoPara)}
+          {email ? (
+            <p
+              data-nao-imprimir
+              data-email-estado={email.estado}
+              className={cn("mt-4 text-[14px] font-semibold", email.estado === "aceito" ? "text-verde" : "text-fg-2")}
+            >
+              {t.email[email.estado](email.endereco)}
             </p>
           ) : null}
         </div>

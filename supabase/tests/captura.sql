@@ -101,8 +101,8 @@ select teste.afirmar('logado: tabelas só para leitura (e atividades para regist
    where n.nspname = 'public' and c.relkind = 'r' and has_table_privilege('authenticated', c.oid, p))
   = 'aprofundamentos:SELECT,atividades:INSERT,atividades:SELECT,avaliacoes:SELECT,consentimentos:SELECT,dicas:SELECT,emails:SELECT,leads:SELECT,relatorios:SELECT,tarefas:SELECT');
 select teste.afirmar('service_role executa as funções de captura, de tarefas e de consentimento',
-  (select count(*) = 8 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-   where n.nspname = 'public' and p.proname in ('registrar_captura','completar_captura','gravar_aprofundamento','pegar_tarefas','concluir_tarefa','consumir_limite','limpar_expirados','elegivel')
+  (select count(*) = 9 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname in ('registrar_avaliacao','registrar_captura','completar_captura','gravar_aprofundamento','pegar_tarefas','concluir_tarefa','consumir_limite','limpar_expirados','elegivel')
      and has_function_privilege('service_role', p.oid, 'EXECUTE')));
 select teste.afirmar('toda tabela nova do schema public tem RLS ligado',
   (select bool_and(c.relrowsecurity) from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r'));
@@ -128,6 +128,7 @@ select teste.negar($q$select count(*) from public.relatorios$q$);
 select teste.negar($q$select count(*) from public.tarefas$q$);
 select teste.negar($q$select count(*) from public.consentimentos$q$);
 select teste.negar($q$select count(*) from public.aprofundamentos$q$);
+select teste.negar($q$select public.registrar_avaliacao('{}'::jsonb)$q$);
 select teste.negar($q$select public.registrar_captura('{}'::jsonb)$q$);
 select teste.negar($q$select public.completar_captura('{}'::jsonb)$q$);
 select teste.negar($q$select public.gravar_aprofundamento('{}'::jsonb)$q$);
@@ -198,6 +199,18 @@ select teste.afirmar('registrar: a nota e as versões ficam gravadas, com canal 
   (select a.canal = 'funcao' and a.versao = '2' and a.versao_metodo = '1' and a.versao_analise = '2' and (a.resultado ->> 'indice') = '34'
      and l.canal = 'funcao' and l.chave_hash = repeat('1', 64) and l.status = 'novo' and l.empresa is null
    from public.avaliacoes a join public.leads l on l.avaliacao_id = a.id where l.id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1'));
+
+\echo '--- avaliação sozinha (quem concluiu e ainda não deixou contato)'
+select (:'reg'::jsonb -> 'avaliacao' || jsonb_build_object('id', 'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3', 'codigo', 'v=2&m=1&n=2&e=empresa&id=a3'))::text as aval \gset
+select jsonb_set(:'aval'::jsonb, '{codigo}', '"v=2&m=1&n=2&e=vendas&id=a3"')::text as aval_outro_codigo \gset
+set role service_role;
+select teste.afirmar('avaliação: primeira vez devolve registrado', (public.registrar_avaliacao(:'aval'::jsonb) ->> 'status') = 'registrado');
+select teste.afirmar('avaliação: repetir é idempotente', (public.registrar_avaliacao(:'aval'::jsonb) ->> 'status') = 'ja-registrado');
+select teste.afirmar('avaliação: outro código com o mesmo id é conflito', (public.registrar_avaliacao(:'aval_outro_codigo'::jsonb) ->> 'status') = 'conflito');
+reset role;
+select teste.afirmar('avaliação: uma linha, canal função, sem lead nenhum',
+  (select count(*) from public.avaliacoes where id = 'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3' and canal = 'funcao' and versao_metodo = '1') = 1
+  and (select count(*) from public.leads where avaliacao_id = 'a3a3a3a3-a3a3-4a3a-8a3a-a3a3a3a3a3a3') = 0);
 
 \echo '--- atomicidade: se qualquer parte falha, nada fica gravado'
 set role service_role;

@@ -9,6 +9,7 @@ import { Botao, BotaoAcao } from "@/components/ui/botao";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Linhas } from "@/components/ui/linhas";
 import { Section } from "@/components/ui/section";
+import { SinalDePronto } from "@/components/ui/sinal-de-pronto";
 import {
   dimensoes,
   exemplo as textosExemplo,
@@ -17,6 +18,7 @@ import {
   relatorio as impresso,
   resultadoTextos as t,
 } from "@/content/ai-score-questionario";
+import { acompanharEmail, retomarFila } from "@/lib/ai-score/captura";
 import { calcular, formatarNota } from "@/lib/ai-score/calcular";
 import { completas, lerLink } from "@/lib/ai-score/codificar";
 import type { Devolutiva, OrigemDoLink } from "@/lib/ai-score/devolutiva";
@@ -141,7 +143,16 @@ function CoberturaDaNota({ cobertura }: { cobertura: Devolutiva["cobertura"] }) 
  * hash da URL. `cartoes`: os cinco cards de solução, renderizados no servidor. `exemplo`: o caso fixo da página
  * de exemplo, com tudo aberto (renderizado já no servidor).
  */
-export function Resultado({ cartoes, exemplo }: { cartoes: Record<string, ReactNode>; exemplo?: Exemplo }) {
+export function Resultado(props: { cartoes: Record<string, ReactNode>; exemplo?: Exemplo }) {
+  return (
+    <>
+      <SinalDePronto />
+      <ResultadoInterno {...props} />
+    </>
+  );
+}
+
+function ResultadoInterno({ cartoes, exemplo }: { cartoes: Record<string, ReactNode>; exemplo?: Exemplo }) {
   const hash = useSyncExternalStore(assinarHash, lerHash, () => null);
   const admin = useSyncExternalStore(
     assinarArmazenamento,
@@ -152,7 +163,9 @@ export function Resultado({ cartoes, exemplo }: { cartoes: Record<string, ReactN
   const link = useMemo(() => (texto === null ? undefined : lerLink(texto)), [texto]);
 
   useEffect(() => {
-    if (!exemplo) void reenviarPendentes();
+    if (exemplo) return;
+    void reenviarPendentes();
+    void retomarFila();
   }, [exemplo]);
 
   if (link === undefined) return <SemResultado estado="carregando" />;
@@ -230,6 +243,14 @@ function Pronto({
       vivo = false;
     };
   }, [conferirLink, leadDoLink, r.id, chave]);
+  // Voltou à página com o e-mail ainda "pendente" ou "nova tentativa": volta a perguntar ao servidor o estado real.
+  const pendente = liberacao?.emailEstado === "pendente" || liberacao?.emailEstado === "nova-tentativa";
+  const leadParaEmail = liberacao?.leadId;
+  const chaveParaEmail = liberacao?.chave;
+  useEffect(() => {
+    if (modo.tipo === "publico" && pendente && leadParaEmail && chaveParaEmail)
+      void acompanharEmail(chave, leadParaEmail, chaveParaEmail);
+  }, [modo.tipo, pendente, leadParaEmail, chaveParaEmail, chave]);
   const [copiado, setCopiado] = useState(false);
   const h1 = useRef<HTMLHeadingElement>(null);
 
@@ -343,6 +364,15 @@ function Pronto({
           </div>
         </div>
       </Section>
+
+      {modo.tipo === "publico" && (liberacao?.contato === "pendente" || liberacao?.contato === "recusado") ? (
+        <div data-nao-imprimir data-contato={liberacao.contato} className="gutter border-line bg-painel border-b py-4">
+          <div className="container-site max-w-[900px] text-[14px] leading-[1.6]">
+            <p className="font-semibold">{t.contatoAviso[liberacao.contato].titulo}</p>
+            <p className="text-fg-2">{t.contatoAviso[liberacao.contato].texto}</p>
+          </div>
+        </div>
+      ) : null}
 
       <Section tom="escuro">
         <div className="container-site">
@@ -469,7 +499,12 @@ function Pronto({
             avaliacaoId={r.id}
             leadId={liberacao?.leadId}
             buscarDicas={modo.tipo === "publico" && supabase.ativo}
-            emailEnviadoPara={liberacao?.emailEnviado ? liberacao.email : undefined}
+            chave={liberacao?.chave}
+            email={
+              liberacao?.email && (liberacao.emailEstado || liberacao.emailEnviado)
+                ? { estado: liberacao.emailEstado ?? "aceito", endereco: liberacao.email }
+                : undefined
+            }
           />
         ) : (
           <FormularioLead

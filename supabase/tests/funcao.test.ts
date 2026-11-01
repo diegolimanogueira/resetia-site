@@ -296,6 +296,7 @@ function zerar() {
   banco.elegiveis.clear();
   for (const l of banco.leads) l.relatorio_enviado_em = null;
   banco.resend = { status: 200, corpo: { id: "re_123" }, atrasoMs: 0 };
+  rpcHandlers.registrar_avaliacao = () => ({ status: "registrado" });
   rpcHandlers.registrar_captura = () => ({ status: "registrado" });
   rpcHandlers.completar_captura = () => ({ status: "completado" });
   rpcHandlers.gravar_aprofundamento = (a) => ({ status: "gravado", revisao: a.p && (a.p as Linha).revisao });
@@ -850,3 +851,51 @@ Deno.test("lead antigo: se o provedor não responde, o relatório não fica marc
   assert.equal(banco.emails.at(-1)?.provedor_id, "re_123");
   banco.leads[0].relatorio_enviado_em = null;
 });
+
+const conclusao = (extra: Linha = {}) => ({
+  acao: "concluir",
+  avaliacao_id: AVALIACAO,
+  codigo: CODIGO_V2,
+  ambiente: "dev",
+  origem: { utm_source: "linkedin" },
+  ...extra,
+});
+
+Deno.test("concluir: grava só a avaliação, com a nota recalculada aqui e o código canônico", opcoes, async () => {
+  zerar();
+  const r = await chamar(conclusao({ indice: 100, nivel: "avancada", codigo: `${CODIGO_V2}&k=${"t".repeat(43)}` }));
+  assert.deepEqual([r.status, r.dados.status, r.dados.nota], [200, "registrado", 28]);
+  const { p } = ultima("registrar_avaliacao") as { p: Linha };
+  assert.equal(p.indice, 28);
+  assert.equal(p.nivel, "explorando");
+  assert.equal(p.codigo, CODIGO_V2);
+  assert.equal(p.versao_metodo, "1");
+  assert.equal(chamadas("registrar_captura").length, 0, "nenhum lead é criado");
+  assert.equal(JSON.stringify(banco.rpcs).includes("lead_id"), false);
+});
+
+Deno.test(
+  "concluir: campos inválidos não chegam ao banco; conflito é 409; limite é 429; banco fora é 502",
+  opcoes,
+  async () => {
+    for (const [nome, extra, esperado] of [
+      ["avaliacao_id inválido", { avaliacao_id: "x" }, 400],
+      ["ambiente inventado", { ambiente: "prod" }, 400],
+      ["código de outra avaliação", { avaliacao_id: "00000000-0000-4000-8000-000000000001" }, 422],
+      ["código adulterado", { codigo: CODIGO_V2.replace("e=empresa", "e=governo") }, 422],
+      ["código grande demais", { codigo: `${CODIGO_V2}&${"x".repeat(400)}` }, 413],
+    ] as Array<[string, Linha, number]>) {
+      zerar();
+      assert.equal((await chamar(conclusao(extra))).status, esperado, nome);
+      assert.equal(chamadas("registrar_avaliacao").length, 0, nome);
+    }
+    zerar();
+    rpcHandlers.registrar_avaliacao = () => ({ status: "conflito", motivo: "avaliacao" });
+    assert.deepEqual(await chamar(conclusao()), { status: 409, dados: { erro: "conflito", motivo: "avaliacao" } });
+    rpcHandlers.registrar_avaliacao = () => json({ message: "fora" }, 503);
+    assert.deepEqual(await chamar(conclusao()), { status: 502, dados: { erro: "banco" } });
+    zerar();
+    banco.contadores.set("concluir:global", 1200);
+    assert.deepEqual(await chamar(conclusao()), { status: 429, dados: { erro: "limite" } });
+  },
+);

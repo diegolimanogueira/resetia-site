@@ -43,6 +43,35 @@ create policy "admin le aprofundamentos" on public.aprofundamentos for select to
 
 -- Funções de captura (só service_role) ------------------------------------------------------------------------------
 
+-- A avaliação sozinha, quando a pessoa termina o questionário e ainda não deixou contato: mede quem concluiu sem
+-- deixar nome e e-mail, sem criar lead. O mesmo código repetido é idempotente; outro código com o mesmo id é conflito.
+create function public.registrar_avaliacao(p jsonb) returns jsonb
+language plpgsql security definer set search_path = '' as $$
+declare
+  v_av uuid := (p ->> 'id')::uuid;
+  codigo_atual text;
+  ja_existia boolean := false;
+begin
+  select codigo into codigo_atual from public.avaliacoes where id = v_av;
+  if found then
+    if codigo_atual <> p ->> 'codigo' then
+      return jsonb_build_object('status', 'conflito', 'motivo', 'avaliacao');
+    end if;
+    ja_existia := true;
+  end if;
+  insert into public.avaliacoes (
+    id, escopo, papel, porte, segmento, respostas, desafios, horizonte, indice, nivel, parcial, dimensoes, areas,
+    codigo, versao, versao_metodo, versao_analise, canal, resultado, origem, ambiente
+  ) values (
+    v_av, p ->> 'escopo', p ->> 'papel', p ->> 'porte', p ->> 'segmento', p -> 'respostas',
+    array(select jsonb_array_elements_text(p -> 'desafios')), p ->> 'horizonte',
+    (p ->> 'indice')::smallint, p ->> 'nivel', (p ->> 'parcial')::boolean, p -> 'dimensoes', p -> 'areas',
+    p ->> 'codigo', p ->> 'versao', p ->> 'versao_metodo', p ->> 'versao_analise', 'funcao', p -> 'resultado',
+    coalesce(p -> 'origem', '{}'::jsonb), p ->> 'ambiente'
+  ) on conflict (id) do nothing;
+  return jsonb_build_object('status', case when ja_existia then 'ja-registrado' else 'registrado' end);
+end $$;
+
 create function public.registrar_captura(p jsonb) returns jsonb
 language plpgsql security definer set search_path = '' as $$
 declare
@@ -176,6 +205,7 @@ begin
 end $$;
 
 revoke execute on function
+  public.registrar_avaliacao(jsonb),
   public.registrar_captura(jsonb),
   public.completar_captura(jsonb),
   public.gravar_aprofundamento(jsonb)

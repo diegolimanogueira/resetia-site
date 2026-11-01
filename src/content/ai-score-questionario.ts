@@ -619,6 +619,19 @@ export const resultadoTextos = {
     maisNova:
       "Este link foi gerado por uma versão mais nova do RESET AI Score. A nota está correta, mas a leitura abaixo pode ser diferente da que foi gerada. Atualize a página para ver a versão mais recente.",
   },
+  /** Situação real do registro do contato (etapa 1): o resultado abre de qualquer jeito, mas sem dizer o que não foi confirmado. */
+  contatoAviso: {
+    pendente: {
+      titulo: "Ainda não confirmamos o registro do seu contato",
+      texto:
+        "Seu resultado está liberado, mas a Reset ainda não recebeu seu nome e e-mail. Vamos tentar de novo quando a conexão voltar. Se você fechar esta página antes, o contato pode não chegar.",
+    },
+    recusado: {
+      titulo: "Não conseguimos registrar o seu contato",
+      texto:
+        "Seu resultado continua disponível, mas a Reset não recebeu seus dados. Você pode refazer o AI Score para tentar de novo.",
+    },
+  },
   alertas: {
     titulo: "O que o resultado revela",
     outros: (n: number) => (n === 1 ? "Ver mais 1 alerta" : `Ver mais ${n} alertas`),
@@ -820,6 +833,17 @@ export const relatorio = {
       misto:
         "Escritas por um agente de IA e conferidas por um agente revisor; onde a revisão descartou dicas, entram as da biblioteca da Reset.",
     },
+  },
+  /** Estado REAL do envio por e-mail, como o servidor informa. "Aceito" é o provedor ter aceitado, não a mensagem ter chegado. */
+  email: {
+    pendente: (e: string) => `Estamos preparando uma cópia deste relatório para ${e}.`,
+    aceito: (e: string) =>
+      `O provedor de e-mail aceitou o envio de uma cópia para ${e}. Se ela não aparecer, confira a caixa de spam.`,
+    "nova-tentativa": (e: string) => `O envio para ${e} ainda não saiu. Vamos tentar de novo automaticamente.`,
+    falhou: (e: string) => `Não conseguimos enviar a cópia para ${e}. O PDF abaixo continua disponível.`,
+    "nao-configurado": () => "O envio por e-mail não está ativo neste ambiente.",
+    cancelada: () => "O envio por e-mail foi cancelado porque não há consentimento registrado para ele.",
+    limite: (e: string) => `O limite de envios para ${e} foi atingido hoje. O PDF abaixo continua disponível.`,
   },
   enviado: (email: string) => `Uma cópia deste relatório foi enviada para ${email}.`,
   assinatura: {

@@ -1,4 +1,5 @@
 // Função do RESET AI Score (Supabase Edge Function, Deno). Ações, por POST JSON {acao, ...}:
+//   concluir    {avaliacao_id, codigo, ambiente, origem}                  -> terminou o questionário: grava só a avaliação (nota recalculada aqui).
 //   registrar   {avaliacao_id, lead_id, chave, codigo, nome, email, ...} -> etapa 1: cria avaliação e lead (nota recalculada aqui).
 //   completar   {avaliacao_id, lead_id, chave, empresa, ...}              -> etapa 2: completa o lead e enfileira o relatório por e-mail.
 //   aprofundar  {lead_id, chave, aprofundamento}                          -> grava o aprofundamento de uma dor (camada 1 ou 2).
@@ -33,7 +34,7 @@ import {
   SUPABASE_URL,
   UUID,
 } from "./base.ts";
-import { aprofundar, completar, registrar, status } from "./captura.ts";
+import { aprofundar, completar, concluir, registrar, status } from "./captura.ts";
 // @ts-types="./nucleo.d.ts"
 import * as nucleo from "./nucleo.js";
 import { CHAVE, sha256hex } from "./seguranca.ts";
@@ -311,6 +312,7 @@ Deno.serve(async (req) => {
 
   try {
     // Ações novas: autorizadas pela chave do lead, não pelo id.
+    if (corpo.acao === "concluir") return await concluir(req, corpo);
     if (corpo.acao === "registrar") return await registrar(req, corpo);
     if (corpo.acao === "completar") return await completar(corpo, () => processar(5, dependencias));
     if (corpo.acao === "aprofundar") return await aprofundar(corpo);

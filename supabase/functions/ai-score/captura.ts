@@ -40,6 +40,84 @@ function origemSegura(bruto: unknown) {
 const erroDoBanco = (r: { estado: string }) =>
   r.estado === "indisponivel" ? resposta({ erro: "banco" }, 502) : resposta({ erro: "dados" }, 422);
 
+/**
+ * A avaliação a partir do código do link: a nota é recalculada AQUI (o que o navegador diz sobre ela não entra), no
+ * método e na análise do próprio código, e o código gravado é o canônico (sem token nem `&lead=`).
+ */
+async function montarAvaliacao(corpo: Corpo, avaliacaoId: string, ambiente: string) {
+  const link = nucleo.lerLink(texto(corpo, "codigo"));
+  if (link.tipo !== "ok" || !nucleo.completas(link.respostas) || link.respostas.id !== avaliacaoId)
+    return { erro: resposta({ erro: "avaliacao" }, 422) };
+
+  const devolutiva = nucleo.montarDevolutiva(link.respostas, link);
+  const { resultado, cobertura, versoes } = devolutiva;
+  const resumo = {
+    indice: resultado.indice,
+    nivel: resultado.nivel,
+    parcial: resultado.parcial,
+    respondidas: resultado.respondidas,
+    situacao: cobertura.situacao,
+    validas: cobertura.validas,
+    total: cobertura.total,
+    metodo: versoes.metodo,
+  };
+  const r = link.respostas;
+  const avaliacao = {
+    id: avaliacaoId,
+    escopo: r.escopo,
+    papel: r.papel,
+    porte: r.porte,
+    segmento: r.segmento,
+    respostas: { centrais: r.centrais, areas: r.porArea },
+    desafios: r.desafios,
+    horizonte: r.horizonte,
+    indice: resultado.indice,
+    nivel: resultado.nivel,
+    parcial: resultado.parcial,
+    dimensoes: resultado.dimensoes,
+    areas: resultado.areas,
+    codigo: nucleo.codigoCanonico(link),
+    versao: link.formato,
+    versao_metodo: versoes.metodo,
+    versao_analise: link.analise,
+    resultado: resumo,
+    origem: origemSegura(corpo.origem),
+    ambiente,
+  };
+  // Impressão digital do relatório entregue (o mesmo repetido não vira duas linhas) e limite de tamanho do banco.
+  const hash = await sha256hex(JSON.stringify({ resumo, devolutiva }));
+  if (JSON.stringify(devolutiva).length > 60_000) {
+    console.error("avaliação: devolutiva grande demais para o banco");
+    return { erro: resposta({ erro: "interno" }, 500) };
+  }
+  return { link, devolutiva, resumo, avaliacao, hash };
+}
+
+/**
+ * Terminou o questionário e ainda não deixou contato: grava só a avaliação (sem lead), para medir quem concluiu sem
+ * deixar nome e e-mail. Idempotente; se a pessoa deixar o contato depois, `registrar` encontra esta avaliação.
+ */
+export async function concluir(req: Request, corpo: Corpo) {
+  const avaliacaoId = texto(corpo, "avaliacao_id");
+  const ambiente = texto(corpo, "ambiente");
+  if (!UUID.test(avaliacaoId) || !AMBIENTES.includes(ambiente)) return resposta({ erro: "campos" }, 400);
+  if (texto(corpo, "codigo").length > 400) return resposta({ erro: "campos", campo: "codigo" }, 413);
+  const ip = await sha256hex(ipDoPedido(req));
+  if (
+    !(await dentroDoLimite(`concluir:ip:${ip}`, 3600, REGISTROS_POR_IP_HORA * 2)) ||
+    !(await dentroDoLimite("concluir:global", 3600, REGISTROS_POR_HORA * 2))
+  ) {
+    console.warn("concluir: limite atingido");
+    return resposta({ erro: "limite" }, 429);
+  }
+  const calculo = await montarAvaliacao(corpo, avaliacaoId, ambiente);
+  if (calculo.erro) return calculo.erro;
+  const sql = await rpc<{ status: string; motivo?: string }>("registrar_avaliacao", { p: calculo.avaliacao });
+  if (sql.estado !== "ok" || !sql.dados) return erroDoBanco(sql);
+  if (sql.dados.status === "conflito") return resposta({ erro: "conflito", motivo: sql.dados.motivo }, 409);
+  return resposta({ status: sql.dados.status, nota: calculo.devolutiva.resultado.indice });
+}
+
 /** Etapa 1: nome e e-mail abrem o resultado e criam o lead, junto com a avaliação e o relatório entregue. */
 export async function registrar(req: Request, corpo: Corpo) {
   const avaliacaoId = texto(corpo, "avaliacao_id");
@@ -64,28 +142,10 @@ export async function registrar(req: Request, corpo: Corpo) {
     return resposta({ erro: "limite" }, 429);
   }
 
-  const link = nucleo.lerLink(codigo);
-  if (link.tipo !== "ok" || !nucleo.completas(link.respostas) || link.respostas.id !== avaliacaoId)
-    return resposta({ erro: "avaliacao" }, 422);
-
-  // A nota é da função: nada do que o navegador diga sobre ela entra aqui.
-  const devolutiva = nucleo.montarDevolutiva(link.respostas, link);
-  const { resultado, cobertura, versoes } = devolutiva;
-  const resumo = {
-    indice: resultado.indice,
-    nivel: resultado.nivel,
-    parcial: resultado.parcial,
-    respondidas: resultado.respondidas,
-    situacao: cobertura.situacao,
-    validas: cobertura.validas,
-    total: cobertura.total,
-    metodo: versoes.metodo,
-  };
-  const hash = await sha256hex(JSON.stringify({ resumo, devolutiva }));
-  if (JSON.stringify(devolutiva).length > 60_000) {
-    console.error("registrar: devolutiva grande demais para o banco");
-    return resposta({ erro: "interno" }, 500);
-  }
+  const calculo = await montarAvaliacao(corpo, avaliacaoId, ambiente);
+  if (calculo.erro) return calculo.erro;
+  const { link, devolutiva, resumo, hash, avaliacao } = calculo;
+  const { resultado, versoes } = devolutiva;
 
   const marketing = booleano(corpo, "marketing");
   const consentimentos = marketing
@@ -100,31 +160,9 @@ export async function registrar(req: Request, corpo: Corpo) {
         },
       ]
     : [];
-  const r = link.respostas;
   const sql = await rpc<{ status: string; motivo?: string }>("registrar_captura", {
     p: {
-      avaliacao: {
-        id: avaliacaoId,
-        escopo: r.escopo,
-        papel: r.papel,
-        porte: r.porte,
-        segmento: r.segmento,
-        respostas: { centrais: r.centrais, areas: r.porArea },
-        desafios: r.desafios,
-        horizonte: r.horizonte,
-        indice: resultado.indice,
-        nivel: resultado.nivel,
-        parcial: resultado.parcial,
-        dimensoes: resultado.dimensoes,
-        areas: resultado.areas,
-        codigo: nucleo.codigoCanonico(link),
-        versao: link.formato,
-        versao_metodo: versoes.metodo,
-        versao_analise: link.analise,
-        resultado: resumo,
-        origem: origemSegura(corpo.origem),
-        ambiente,
-      },
+      avaliacao,
       lead: {
         id: leadId,
         nome,

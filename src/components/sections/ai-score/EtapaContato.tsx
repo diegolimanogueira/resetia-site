@@ -8,17 +8,21 @@ import { Eyebrow } from "@/components/ui/eyebrow";
 import { Linhas } from "@/components/ui/linhas";
 import { Section } from "@/components/ui/section";
 import { contato as c, formulario } from "@/content/ai-score-questionario";
+import { registrarContato, type Situacao } from "@/lib/ai-score/captura";
 import { codificar } from "@/lib/ai-score/codificar";
-import { emailPessoal, emailValido } from "@/lib/ai-score/contato";
-import { novoId, relatorio } from "@/lib/ai-score/navegador";
-import { linhaAvaliacao, linhaLead } from "@/lib/ai-score/registro";
+import { emailValido, LIMITES_CONTATO } from "@/lib/ai-score/contato";
+import { novaChave, novoId, relatorio } from "@/lib/ai-score/navegador";
 import type { RespostasCompletas, Resultado } from "@/lib/ai-score/tipos";
 import { track } from "@/lib/analytics";
-import { enviar } from "@/lib/supabase";
+
+/** Quanto esperar a resposta do servidor antes de abrir o resultado: a pessoa não fica presa a uma rede ruim. */
+const ESPERA_MAXIMA_MS = 8000;
 
 /**
  * Etapa 1 da captura: nome e e-mail abrem o resultado. Fica depois do questionário (a pessoa já investiu os
- * cinco minutos), com dois campos só. Grava a avaliação e o lead sem empresa; a etapa 2 completa o mesmo lead.
+ * cinco minutos), com dois campos só. A função registra a avaliação e o lead (recalculando a nota) numa transação só;
+ * a etapa 2 completa o mesmo lead com a chave que o navegador gerou aqui. O resultado abre de qualquer jeito, mas a
+ * tela só diz que o contato foi registrado quando o servidor confirmou.
  */
 export function EtapaContato({
   respostas,
@@ -53,29 +57,32 @@ export function EtapaContato({
     const final = { ...respostas, id };
     const codigoFinal = respostas.id ? codigo : codificar(final);
     const leadId = novoId();
-    // Só grava com a armadilha vazia: robôs preenchem todos os campos. Para eles, abre sem gravar nada.
+    const chave = novaChave();
+    // Só registra com a armadilha vazia: robôs preenchem todos os campos. Para eles, abre sem registrar nada.
+    let situacao: Situacao = "desligado";
     if (!site) {
-      await enviar("avaliacoes", linhaAvaliacao(final, resultado, codigoFinal));
-      await enviar(
-        "leads",
-        linhaLead(leadId, id, {
+      situacao = await Promise.race([
+        registrarContato({
+          avaliacaoId: id,
+          leadId,
+          chave,
+          codigo: codigoFinal,
           nome: nome.trim(),
           email: email.trim().toLowerCase(),
-          empresa: null,
-          whatsapp: null,
-          emailPessoal: emailPessoal(email),
-          pediuContato: false,
           marketing,
         }),
-      );
-      track("ai_score_contato", { nivel: resultado.nivel ?? "parcial", marketing });
+        new Promise<Situacao>((ok) => setTimeout(() => ok("pendente"), ESPERA_MAXIMA_MS)),
+      ]);
+      if (situacao === "aceito") track("ai_score_contato", { nivel: resultado.nivel ?? "parcial", marketing });
     }
     relatorio.liberar(id, {
       leadId,
+      chave,
       nome: nome.trim(),
       email: email.trim().toLowerCase(),
       data: new Date().toLocaleDateString("pt-BR"),
       completo: false,
+      contato: situacao,
     });
     if (!respostas.id) window.location.replace(`#${codigoFinal}`);
     aoLiberar();
@@ -115,6 +122,7 @@ export function EtapaContato({
             rotulo={c.campos.nome}
             autoComplete="name"
             required
+            maxLength={LIMITES_CONTATO.nome}
             value={nome}
             onChange={(e) => setNome(e.target.value)}
             erro={erros.nome}
@@ -126,6 +134,7 @@ export function EtapaContato({
             inputMode="email"
             autoComplete="email"
             required
+            maxLength={LIMITES_CONTATO.email}
             apoio={c.campos.emailApoio}
             value={email}
             onChange={(e) => setEmail(e.target.value)}

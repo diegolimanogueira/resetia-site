@@ -2,6 +2,9 @@
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
+/** Tamanhos máximos dos campos do contato: os mesmos que o banco aceita (supabase/migrations/0001, um teste confere). */
+export const LIMITES_CONTATO = { nome: 120, email: 200, empresa: 160 } as const;
+
 /** Provedores gratuitos: o e-mail é aceito, mas o lead fica sinalizado como e-mail pessoal. */
 const PESSOAIS = new Set([
   "gmail.com",
@@ -32,7 +35,10 @@ const PESSOAIS = new Set([
   "gmx.com",
 ]);
 
-export const emailValido = (email: string) => EMAIL.test(email.trim());
+export const emailValido = (email: string) => {
+  const e = email.trim();
+  return e.length <= LIMITES_CONTATO.email && EMAIL.test(e);
+};
 
 export const emailPessoal = (email: string) => PESSOAIS.has(email.trim().split("@").pop()?.toLowerCase() ?? "");
 

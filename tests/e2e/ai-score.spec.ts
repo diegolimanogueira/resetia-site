@@ -55,16 +55,40 @@ const DICAS_IA = {
   ],
 };
 
-/** Intercepta a função ai-score (dicas e e-mail do relatório) e guarda os pedidos. Nunca chega à função real. */
-async function interceptarFuncao(page: Page) {
+type Resposta = { status?: number; json?: unknown } | "abortar";
+type Comportamentos = Record<string, (n: number, corpo: Record<string, unknown>) => Resposta>;
+const PADRAO: Comportamentos = {
+  concluir: () => ({ json: { status: "registrado" } }),
+  registrar: () => ({ json: { status: "registrado" } }),
+  completar: () => ({ json: { status: "completado" } }),
+  aprofundar: () => ({ json: { status: "gravado" } }),
+  status: () => ({ json: { relatorio_email: { estado: "aceito" } } }),
+  dicas: () => ({ json: DICAS_IA }),
+  "enviar-relatorio": () => ({ json: { status: "enviado" } }),
+};
+
+/**
+ * Intercepta a função ai-score, responde por ação (o teste troca o que quiser, inclusive derrubar a rede) e guarda os
+ * pedidos. Nunca chega à função real. Sem comportamento próprio, a ação responde como o servidor responderia com sucesso.
+ */
+async function interceptarFuncao(page: Page, personalizados: Comportamentos = {}) {
   const pedidos: Array<Record<string, unknown>> = [];
+  const contagem = new Map<string, number>();
   await page.route("**/functions/v1/**", async (rota) => {
     const corpo = (rota.request().postDataJSON() ?? {}) as Record<string, unknown>;
     pedidos.push(corpo);
-    await rota.fulfill({ json: corpo.acao === "dicas" ? DICAS_IA : { status: "enviado" } });
+    const acao = String(corpo.acao);
+    const n = (contagem.get(acao) ?? 0) + 1;
+    contagem.set(acao, n);
+    const r = (personalizados[acao] ?? PADRAO[acao] ?? (() => ({ status: 400, json: { erro: "acao" } })))(n, corpo);
+    if (r === "abortar") return rota.abort("failed");
+    await rota.fulfill({ status: r.status ?? 200, json: r.json ?? {} });
   });
   return pedidos;
 }
+
+/** Espera o React assumir a página: o sinal de hidratação, em vez de uma espera fixa. */
+const aguardarPronto = (page: Page) => expect(page.locator("[data-pronto='sim']").first()).toBeAttached();
 
 /** Intercepta a REST do Supabase (o CI builda com uma URL fictícia) e guarda o que o site gravou. */
 async function interceptarSupabase(page: Page) {
@@ -234,48 +258,67 @@ test.describe("RESET AI Score", () => {
     if (modo === "producao") {
       await expect(rel.locator("[data-fonte-dicas='ia']")).toHaveText(relatorio.dicas.fonte.ia);
       await expect(rel.getByText(DICAS_IA.dimensoes[0].dicas[0])).toBeVisible();
-      await expect(page.getByText(relatorio.enviado("maria@empresa.com.br"))).toBeVisible();
+      // O estado do e-mail é o que o servidor informa: aceito pelo provedor (nunca "entregue" nem "enviado").
+      await expect(page.locator("[data-email-estado='aceito']")).toHaveText(
+        relatorio.email.aceito("maria@empresa.com.br"),
+        {
+          timeout: 15_000,
+        },
+      );
     } else {
       await expect(rel.locator("[data-fonte-dicas='biblioteca']")).toHaveText(relatorio.dicas.fonte.biblioteca);
       expect(funcao).toEqual([]);
     }
     await semViolacoes(page);
 
+    // O navegador nunca mais grava direto no banco: tudo passa pela função, que recalcula a nota.
+    expect(gravados).toEqual([]);
     if (modo === "producao") {
-      // Avaliação ao concluir, de novo (idempotente) na etapa 1 com o lead sem empresa, e a etapa 2 completando o lead.
-      expect(gravados.map((g) => g.tabela)).toEqual(["avaliacoes", "avaliacoes", "leads", "completar_lead"]);
-      const [avaliacao, , lead, completar] = gravados.map((g) => g.corpo);
-      expect(avaliacao).toMatchObject({
-        escopo: "empresa",
-        papel: "ceo",
-        indice: 34,
-        nivel: "explorando",
-        parcial: false,
-      });
-      expect(JSON.stringify(avaliacao)).not.toContain("maria");
-      expect(lead).toMatchObject({
-        avaliacao_id: avaliacao.id,
+      const por = (acao: string) => funcao.filter((p) => p.acao === acao);
+      // Ao concluir o questionário: só a avaliação, sem nota nenhuma vinda do navegador.
+      const [concluir] = por("concluir");
+      expect(concluir).toMatchObject({ acao: "concluir", ambiente: expect.stringMatching(/^(dev|staging|producao)$/) });
+      expect(String(concluir.codigo)).toMatch(/^v=2&m=1&n=2&e=empresa&p=ceo&/);
+      // Etapa 1: o contato com a chave que o navegador gerou (43 caracteres), sem nota, nível ou dimensões.
+      const [registrar] = por("registrar");
+      expect(registrar).toMatchObject({
+        acao: "registrar",
+        avaliacao_id: concluir.avaliacao_id,
+        codigo: concluir.codigo,
         nome: "Maria Teste",
         email: "maria@empresa.com.br",
-        empresa: null,
-        whatsapp: null,
-        email_pessoal: false,
-        pediu_contato: false,
+        marketing: false,
       });
+      expect(String(registrar.chave)).toMatch(/^[A-Za-z0-9_-]{43}$/);
+      for (const proibida of ["indice", "nivel", "parcial", "dimensoes", "areas", "respostas"])
+        expect(Object.keys(registrar)).not.toContain(proibida);
+      // Etapa 2: empresa e pedidos, com a mesma chave. O e-mail agora é tarefa do servidor: nenhum pedido de "enviar-relatorio".
+      const [completar] = por("completar");
       expect(completar).toEqual({
-        p_id: lead.id,
-        p_empresa: "Empresa Teste",
-        p_whatsapp: "5585999990000",
-        p_pediu_contato: true,
-        p_marketing: false,
+        acao: "completar",
+        avaliacao_id: concluir.avaliacao_id,
+        lead_id: registrar.lead_id,
+        chave: registrar.chave,
+        empresa: "Empresa Teste",
+        whatsapp: "5585999990000",
+        pediu_contato: true,
+        marketing: false,
       });
-      // Depois da etapa 2: o relatório vai por e-mail e as dicas são pedidas à função, sempre com o par certo.
-      const par = { avaliacao_id: avaliacao.id, lead_id: lead.id };
-      expect(funcao).toContainEqual({ acao: "enviar-relatorio", ...par });
-      expect(funcao).toContainEqual({ acao: "dicas", ...par });
-      for (const pedido of funcao) expect(JSON.stringify(pedido)).not.toMatch(/maria|Empresa Teste/i);
+      expect(por("enviar-relatorio")).toEqual([]);
+      // As dicas e o estado do e-mail são pedidos com a chave; nada pessoal vai nas dicas.
+      expect(por("dicas")[0]).toEqual({
+        acao: "dicas",
+        avaliacao_id: concluir.avaliacao_id,
+        lead_id: registrar.lead_id,
+        chave: registrar.chave,
+      });
+      expect(por("status")[0]).toEqual({ acao: "status", lead_id: registrar.lead_id, chave: registrar.chave });
+      // Contato confirmado pelo servidor: nenhum aviso de "não confirmado".
+      await expect(page.locator("[data-contato]")).toHaveCount(0);
+      // A chave nunca aparece na página.
+      expect(await page.content()).not.toContain(String(registrar.chave));
     } else {
-      expect(gravados).toEqual([]);
+      expect(funcao).toEqual([]);
       await expect(page.getByText(formulario.demo)).toBeVisible();
     }
 
@@ -288,6 +331,72 @@ test.describe("RESET AI Score", () => {
     await expect(page.locator("body > header")).toBeHidden();
     await expect(page.getByText(/Preparado para Maria Teste, Empresa Teste, em /)).toBeVisible();
     await expect(page.getByRole("button", { name: relatorio.baixar })).toBeHidden();
+  });
+
+  /** Questionário da visão empresa (respostas do exemplo) até a etapa de contato, e só roda com Supabase configurado. */
+  async function ateOContato(page: Page) {
+    await page.goto("/ai-score/");
+    test.skip((await page.locator("main").getAttribute("data-ai-score-modo")) !== "producao", "só com Supabase");
+    await page.goto("/ai-score/avaliacao/");
+    await aguardarPronto(page);
+    await segmentar(page, /^Empresa como um todo/);
+    await responderCentrais(page);
+    await page.getByRole("checkbox", { name: "Vendas" }).check();
+    await continuar(page);
+    await responderArea(page, "vendas", [4, 3, 2, 3]);
+    await fechar(page);
+    await expect(page).toHaveURL(/\/ai-score\/resultado\//);
+    await aguardarPronto(page);
+  }
+
+  const fila = (page: Page) =>
+    page.evaluate(
+      () => JSON.parse(localStorage.getItem("resetia.ai-score.fila.v2") ?? "[]") as Array<{ tipo: string }>,
+    );
+
+  test("rede cai ao deixar o contato: resultado abre com aviso de pendente, sobrevive ao recarregar e a fila reenvia", async ({
+    page,
+  }) => {
+    const funcao = await interceptarFuncao(page, {
+      registrar: (n) => (n === 1 ? "abortar" : { json: { status: "registrado" } }),
+    });
+    await ateOContato(page);
+    await abrirResultado(page);
+
+    // Sem confirmação do servidor, a tela não diz que o contato foi registrado.
+    const aviso = page.locator("[data-contato='pendente']");
+    await expect(aviso).toContainText(resultadoTextos.contatoAviso.pendente.titulo);
+    await expect(page.locator("[data-nota]")).toHaveText("34");
+    expect((await fila(page)).map((i) => i.tipo)).toContain("registrar");
+
+    // Recarregar mantém o resultado liberado, o aviso e o item na fila.
+    await page.reload();
+    await aguardarPronto(page);
+    await expect(page.locator("[data-nota]")).toHaveText("34");
+    await expect(page.locator("[data-contato='pendente']")).toBeVisible();
+    expect((await fila(page)).map((i) => i.tipo)).toContain("registrar");
+
+    // Passada a espera da fila (5 s, com variação), o mesmo pedido é reenviado e o servidor o aceita.
+    await expect(page.locator("[data-contato]")).toHaveCount(0, { timeout: 30_000 });
+    expect((await fila(page)).map((i) => i.tipo)).not.toContain("registrar");
+    const registros = funcao.filter((p) => p.acao === "registrar");
+    expect(registros.length).toBeGreaterThanOrEqual(2);
+    // Idempotente: toda tentativa leva os mesmos ids e a mesma chave.
+    for (const r of registros.slice(1)) {
+      expect(r.lead_id).toBe(registros[0].lead_id);
+      expect(r.avaliacao_id).toBe(registros[0].avaliacao_id);
+      expect(r.chave).toBe(registros[0].chave);
+    }
+  });
+
+  test("o servidor recusa o contato de vez: aviso de recusado, nada é reenviado e a fila é limpa", async ({ page }) => {
+    const funcao = await interceptarFuncao(page, { registrar: () => ({ status: 422, json: { erro: "invalido" } }) });
+    await ateOContato(page);
+    await abrirResultado(page);
+    await expect(page.locator("[data-contato='recusado']")).toContainText(resultadoTextos.contatoAviso.recusado.titulo);
+    await expect(page.locator("[data-nota]")).toHaveText("34");
+    expect(await fila(page)).toEqual([]);
+    expect(funcao.filter((p) => p.acao === "registrar")).toHaveLength(1);
   });
 
   test("visão por área: perguntas sobre a área, módulo da própria área e índice separado", async ({ page }) => {
