@@ -77,7 +77,7 @@ export const linkRelatorio = (site: string, codigo: string, leadId: string | nul
 /** WhatsApp da Análise Estratégica com a nota e as duas maiores lacunas, como na tela de resultado. */
 export function whatsappDoResultado(r: RespostasCompletas) {
   const resultado = calcular(r);
-  const rec = recomendar(resultado, r.desafios);
+  const rec = recomendar(resultado, r.desafios, r.centrais);
   return waUrl(
     resultadoTextos.mensagem({
       indice: resultado.indice,

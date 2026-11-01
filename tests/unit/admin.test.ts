@@ -87,7 +87,8 @@ describe("admin: visão dos leads", () => {
     expect(maria.avaliacao.indice).toBe(46);
     expect(maria.resultado?.indice).toBe(34);
     expect(maria.resultado?.areas).toEqual({ vendas: 70 });
-    expect(maria.solucoes).toEqual(["governance", "ai-champions"]);
+    // "Não sabemos por onde começar" não soma pontos: Estratégia está em 70 e o desafio é contradito pelas respostas.
+    expect(maria.solucoes).toEqual(["governance", "processos-com-ia"]);
     // CEO 25 + imediato 25 + 50-199 15 + empresa 5 + desafio 5 + e-mail corporativo 5 + WhatsApp 5
     // + relatório completo 5 + pediu contato 10
     expect(maria.leadScore).toBe(100);
@@ -132,7 +133,7 @@ describe("admin: visão dos leads", () => {
     expect(cabecalho.split(";")).toContain("Estratégia e Liderança");
     expect(primeira).toContain("Maria Teste;maria@empresa.com.br;não;Empresa Ágil;5585999990000;Empresário ou CEO");
     expect(primeira).toContain(";34;Explorando;70;40;27,5;40;15;27,5;Vendas 70;");
-    expect(primeira).toContain("GOVERNANCE | AI-CHAMPIONS;100;Novo;sim;não;;;;producao;linkedin");
+    expect(primeira).toContain("GOVERNANCE | PROCESSOS-COM-IA;100;Novo;sim;não;;;;producao;linkedin");
   });
 
   it("CSV leva responsável, próximo contato e envio do relatório", () => {

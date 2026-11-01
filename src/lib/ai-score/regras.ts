@@ -16,6 +16,14 @@ export const regras = {
   prioridades: { critica: 20, alta: 40, media: 70 },
   /** Ponto forte só quando a maior dimensão chega a 50 e fica acima da menor. */
   forteMinimo: 50,
+  /** Lacuna de maturidade: dimensão abaixo disto (o início da faixa "consolidada"). Tudo acima não é lacuna. */
+  lacunaAbaixoDe: 70,
+  /**
+   * Ordem de dependência das dimensões, usada só como ÚLTIMO critério de desempate, nunca como ordem do array:
+   * direção e responsáveis primeiro, depois as regras e os controles, os dados, os processos que os usam, as
+   * pessoas que executam e, por fim, os resultados, que medem o que as demais produzem.
+   */
+  ordemDependencia: ["estrategia", "governanca", "dados", "processos", "pessoas", "resultados"] satisfies DimensaoId[],
 
   /** Simulação de evolução: as dimensões abaixo do primeiro alvo sobem até ele (40, depois 70). */
   alvosSimulacao: [40, 70],
@@ -25,8 +33,6 @@ export const regras = {
     desequilibrio: 50,
   },
 
-  /** Soluções na ordem de desempate (a mesma do portfólio). */
-  ordemSolucoes: ["ai-champions", "processos-com-ia", "agent-factory", "governance", "performance"],
   dimensaoSolucao: {
     estrategia: "ai-champions",
     pessoas: "ai-champions",
@@ -45,18 +51,35 @@ export const regras = {
     governanca: ["governance"],
     medir: ["performance"],
   } satisfies Record<DesafioId, string[]>,
-  /** Pontos para a solução da menor, da segunda e da terceira menor dimensão. */
+  /** Pontos para a solução da menor, da segunda e da terceira posição entre as lacunas (empatadas dividem a posição). */
   pesosLacunas: [3, 2, 1],
-  /** Pontos por desafio informado. */
+  /** Pontos por desafio informado, e só quando as respostas da dimensão do desafio não o contradizem. */
   pesoDesafio: 2,
   maxSolucoes: 2,
-  /** Abaixo disso (nível Inicial) a indicação é fixa: capacitação e mapeamento de oportunidades. */
-  inicialAbaixoDe: 20,
-  inicialSolucoes: ["ai-champions", "processos-com-ia"],
-  /** Performance só faz sentido com iniciativas em andamento. */
-  minimoPerformance: 40,
-  /** Agent Factory só a partir de alguma maturidade, ou quando a pessoa já quer criar agentes. */
-  minimoAgentFactory: 40,
+  /**
+   * O que conta como evidência DIRETA para uma solução. Sem ela, a solução fica como "a investigar", nunca como
+   * indicada: uma dimensão fraca em Estratégia, por exemplo, não prova que falte capacitação, e um pedido de agentes
+   * não prova que existam dados, processos e controles para eles.
+   */
+  evidenciaDireta: {
+    "ai-champions": { dimensoes: ["pessoas"], desafios: ["capacitar", "pouco-uso", "comecar"] },
+    "processos-com-ia": { dimensoes: ["processos", "dados"], desafios: ["repetitivas"] },
+    "agent-factory": { dimensoes: [], desafios: ["agentes", "custo-ferramentas", "repetitivas"] },
+    governance: { dimensoes: ["governanca"], desafios: ["governanca"] },
+    performance: { dimensoes: ["resultados"], desafios: ["medir"] },
+  } satisfies Record<string, { dimensoes: DimensaoId[]; desafios: DesafioId[] }>,
+  /**
+   * Condições para a solução poder ser indicada (resposta mínima por pergunta). Resposta abaixo do mínimo é pendência;
+   * "Não sei" é "sem resposta". Enquanto houver pendência, a solução sai como "a investigar".
+   */
+  prontidao: {
+    "agent-factory": [
+      { ref: "p5", minimo: 2 },
+      { ref: "p7", minimo: 2 },
+      { ref: "p9", minimo: 2 },
+    ],
+    performance: [{ ref: "p3", minimo: 1 }],
+  } satisfies Record<string, Array<{ ref: string; minimo: number }>>,
 
   /**
    * Lead score (0 a 100), separado do AI Score: aderência ao público, papel, intenção e interesse no contato.

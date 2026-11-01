@@ -74,7 +74,7 @@ function analisarLead(lead: { avaliacao: { id: string; codigo: string } | null }
   const respostas = { ...l.respostas, id: lead.avaliacao.id };
   // A nota usa o método da própria avaliação (um link do formato 1 continua no método 1).
   const d = nucleo.montarDevolutiva(respostas, l);
-  return { respostas, resultado: d.resultado, rec: d.recomendacao, analise: d.analise };
+  return { respostas, resultado: d.resultado, rec: d.recomendacao, analise: d.analise, sintese: d.sintese };
 }
 
 // Dicas -------------------------------------------------------------------------------------------------------
@@ -353,7 +353,7 @@ Deno.serve(async (req) => {
         nome: lead.nome,
         quem: nucleo.quemDoResumo(a.respostas, lead.empresa),
         resultado: a.resultado,
-        recomendacao: a.rec,
+        sintese: a.sintese,
         analise: a.analise,
         dicas,
         link: nucleo.linkRelatorio(SITE, lead.avaliacao!.codigo, lead.id),

@@ -26,6 +26,7 @@ export interface AnaliseDoLead {
   resultado: any;
   rec: any;
   analise: any;
+  sintese: any;
 }
 
 export interface Dependencias {
@@ -123,7 +124,7 @@ async function tarefaDeEmail(t: Tarefa, deps: Dependencias) {
     nome: lead.nome,
     quem: nucleo.quemDoResumo(a.respostas, lead.empresa),
     resultado: a.resultado,
-    recomendacao: a.rec,
+    sintese: a.sintese,
     analise: a.analise,
     dicas,
     // Só o lead antigo (sem chave) leva o id no link; o novo não (o id não autoriza nada).

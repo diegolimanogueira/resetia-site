@@ -5,6 +5,7 @@ import { coberturaDe, type Cobertura } from "./cobertura";
 import { leituras, type LeituraDaDimensao } from "./leituras";
 import { metodoAtual, metodoDe } from "./metodo";
 import { recomendar } from "./recomendar";
+import { montarSintese, type Sintese } from "./sintese";
 import type { Recomendacao, RespostasCompletas, Resultado } from "./tipos";
 import { ANALISE_ATUAL, METODO_ATUAL } from "./versoes";
 
@@ -40,6 +41,8 @@ export interface Devolutiva {
   analise: Analise;
   /** Leitura das seis dimensões, a partir das duas respostas de cada uma. */
   leituras: Record<DimensaoId, LeituraDaDimensao>;
+  /** Resumo executivo, oportunidades, indicações com evidência e o roteiro de 90 dias, já em texto. */
+  sintese: Sintese;
 }
 
 /** O que `lerLink` sabe sobre o link de onde vêm as respostas. */
@@ -61,7 +64,10 @@ export const origemAtual: OrigemDoLink = {
 export function montarDevolutiva(r: RespostasCompletas, origem: OrigemDoLink = origemAtual): Devolutiva {
   const metodo = metodoDe(origem.metodo) ?? metodoAtual;
   const resultado = calcular(r, metodo);
-  const recomendacao = recomendar(resultado, r.desafios);
+  const recomendacao = recomendar(resultado, r.desafios, r.centrais);
+  const cobertura = coberturaDe(r.centrais, resultado, metodo);
+  const analise = analisar(r, resultado, recomendacao, metodo);
+  const leiturasDaAvaliacao = leituras(r.centrais, r.escopo === "empresa" ? "empresa" : "area", metodo);
   return {
     versoes: {
       formato: origem.formato,
@@ -72,9 +78,10 @@ export function montarDevolutiva(r: RespostasCompletas, origem: OrigemDoLink = o
       analiseMaisNova: origem.analiseMaisNova,
     },
     resultado,
-    cobertura: coberturaDe(r.centrais, resultado, metodo),
+    cobertura,
     recomendacao,
-    analise: analisar(r, resultado, recomendacao, metodo),
-    leituras: leituras(r.centrais, r.escopo === "empresa" ? "empresa" : "area", metodo),
+    analise,
+    leituras: leiturasDaAvaliacao,
+    sintese: montarSintese(r, resultado, cobertura, recomendacao, analise, leiturasDaAvaliacao),
   };
 }

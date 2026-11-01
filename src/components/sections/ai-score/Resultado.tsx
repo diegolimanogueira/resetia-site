@@ -5,6 +5,7 @@ import { EtapaContato } from "@/components/sections/ai-score/EtapaContato";
 import { FormularioLead } from "@/components/sections/ai-score/FormularioLead";
 import { Barra, BarrasDimensoes, Nota, Regua } from "@/components/sections/ai-score/Placar";
 import { Relatorio } from "@/components/sections/ai-score/Relatorio";
+import { ResumoExecutivo } from "@/components/sections/ai-score/ResumoExecutivo";
 import { Botao, BotaoAcao } from "@/components/ui/botao";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Linhas } from "@/components/ui/linhas";
@@ -275,7 +276,6 @@ function Pronto({
 
   const { resultado, recomendacao: rec, analise, cobertura, versoes } = devolutiva;
   const nivel = niveis.find((n) => n.id === resultado.nivel);
-  const lacuna = rec.lacunas[0] ? dimensao(rec.lacunas[0]) : null;
   const mensagem = t.mensagem({
     indice: resultado.indice,
     nivel: nivel?.nome ?? null,
@@ -376,39 +376,7 @@ function Pronto({
 
       <Section tom="escuro">
         <div className="container-site">
-          <div className="grid gap-3 lg:grid-cols-3">
-            <div className="border-line bg-painel break-inside-avoid border p-[26px] md:p-[32px]">
-              <h2 className="eyebrow text-fg-2 mb-5 text-[11px]">{t.forte}</h2>
-              {rec.forte ? (
-                <>
-                  <p className="text-verde mb-2 text-[14px] font-semibold">{dimensao(rec.forte).nome}</p>
-                  <p className="text-[19px] leading-[1.45] font-semibold">{dimensao(rec.forte).forte}</p>
-                </>
-              ) : (
-                <p className="text-[19px] leading-[1.45] font-semibold">{t.semForte}</p>
-              )}
-            </div>
-            <div className="border-verde/40 break-inside-avoid border bg-[radial-gradient(circle_at_100%_0%,rgba(0,230,118,0.1)_0%,rgba(0,230,118,0)_60%)] p-[26px] md:p-[32px]">
-              <h2 className="eyebrow text-fg-2 mb-5 text-[11px]">{t.lacuna}</h2>
-              {lacuna ? (
-                <>
-                  <p className="text-verde mb-2 text-[14px] font-semibold">{lacuna.nome}</p>
-                  <p className="text-[19px] leading-[1.45] font-semibold">{lacuna.lacuna}</p>
-                </>
-              ) : null}
-            </div>
-            <div className="border-line bg-painel break-inside-avoid border p-[26px] md:p-[32px]">
-              <h2 className="eyebrow text-fg-2 mb-5 text-[11px]">{t.passos}</h2>
-              <ol className="grid gap-4">
-                {rec.passos.map((p, i) => (
-                  <li key={p} className="grid grid-cols-[28px_1fr] gap-2 text-[15px] leading-[1.55]">
-                    <span className="text-verde font-bold tabular-nums">{String(i + 1).padStart(2, "0")}</span>
-                    {p}
-                  </li>
-                ))}
-              </ol>
-            </div>
-          </div>
+          <ResumoExecutivo resumo={devolutiva.sintese.resumo} quem={quem} />
 
           {analise.alertas.length ? (
             <div className="mt-14">
@@ -488,12 +456,11 @@ function Pronto({
           <Relatorio
             respostas={r}
             resultado={resultado}
-            recomendacao={rec}
             analise={analise}
             leituras={devolutiva.leituras}
             cobertura={cobertura}
+            sintese={devolutiva.sintese}
             cartoes={cartoes}
-            quem={quem}
             focar={foco === "relatorio"}
             demo={modo.tipo === "publico" && !supabase.ativo}
             avaliacaoId={r.id}

@@ -70,6 +70,7 @@ export interface Devolutiva {
   recomendacao: any;
   analise: any;
   leituras: any;
+  sintese: any;
 }
 
 export type ResultadoValidacao = { ok: true; valor: any } | { ok: false; erros: Record<string, string> };

@@ -4,6 +4,7 @@ import { semMarcas } from "@/components/ui/linhas";
 import { aiScore } from "@/content/ai-score";
 import { alertas } from "@/content/ai-score-analise";
 import { aprofundar as aprof } from "@/content/ai-score-aprofundamento";
+import { plano as planoTextos } from "@/content/ai-score-sintese";
 import {
   aprofundar,
   contato,
@@ -231,24 +232,39 @@ test.describe("RESET AI Score", () => {
 
     await expect(page.getByRole("heading", { name: relatorio.titulo })).toBeFocused();
     const rel = page.locator("#relatorio");
-    await expect(
-      rel.getByText("Empresa Teste está no nível Explorando, com AI Score 34 de 100.", { exact: false }),
-    ).toBeVisible();
+    // O resumo executivo (primeira parte do resultado) passa a nomear a empresa e responde às seis perguntas.
+    const resumo = page.locator("[data-resumo-executivo]");
+    await expect(resumo.locator("[data-item='cenario']")).toContainText(
+      "Empresa Teste está no nível Explorando, com AI Score 34 de 100.",
+    );
+    await expect(resumo.locator("[data-item]")).toHaveCount(6);
+    await expect(resumo.locator("[data-item='atencao']")).toContainText(
+      "Governança e Segurança é a dimensão mais frágil",
+    );
     await expect(rel.getByText(relatorio.simulacao.texto(40, 34, 44, "Em desenvolvimento"))).toBeVisible();
     for (const titulo of [
       relatorio.prioridades.titulo,
       relatorio.leitura,
       relatorio.pontosCegos.titulo,
-      relatorio.plano.titulo,
+      planoTextos.titulo,
     ])
       await expect(rel.getByRole("heading", { name: titulo })).toBeVisible();
     await expect(rel.getByText(relatorio.pontosCegos.nenhum)).toBeVisible();
     await expect(rel.getByText(perguntasCentrais[0].alternativas[4]).first()).toBeVisible();
     await expect(rel.locator("a[href='/solucoes/governance/']")).toBeVisible();
-    // Governança é a menor dimensão; o desafio "por onde começar" empata AI Champions com Processos com IA,
-    // e o desempate segue a ordem do portfólio.
-    await expect(rel.locator("a[href='/solucoes/ai-champions/']")).toBeVisible();
+    // Governança é a menor dimensão. "Não sabemos por onde começar" não soma pontos, porque Estratégia está em 70:
+    // o desafio fica como oportunidade a validar, e AI Champions não é indicada só por ele.
+    await expect(rel.locator("a[href='/solucoes/processos-com-ia/']")).toBeVisible();
+    await expect(rel.locator("a[href='/solucoes/ai-champions/']")).toHaveCount(0);
     await expect(rel.locator("a[href^='/solucoes/']")).toHaveCount(2);
+    await expect(rel.locator("[data-oportunidade='comecar']")).toHaveAttribute("data-situacao", "contradiz");
+    await expect(rel.locator("[data-indicacao='governance']")).toHaveAttribute("data-forca", "indicada");
+    // O roteiro tem a linha de base antes do piloto e cada etapa diz de que depende.
+    const etapas = rel.locator("[data-etapa]");
+    const ordem = await etapas.evaluateAll((els) => els.map((e) => e.getAttribute("data-etapa")));
+    expect(ordem.indexOf("linha-de-base")).toBeLessThan(ordem.indexOf("piloto"));
+    expect(ordem.indexOf("controles")).toBeLessThan(ordem.indexOf("piloto"));
+    await expect(rel.locator("[data-etapa='piloto']")).toContainText(planoTextos.rotulos.depende);
     await expect(rel.getByText(modulosArea[1].perguntas[0].texto)).toBeVisible();
 
     // Dicas para evoluir nas dimensões de nota baixa e a assinatura do squad multiagente no fim.
@@ -700,17 +716,14 @@ test.describe("RESET AI Score", () => {
 
   test("relatório de exemplo: tudo aberto, já no HTML do servidor, sem formulários", async ({ page, request }) => {
     const html = await (await request.get("/ai-score/exemplo/")).text();
-    expect(html).toContain(relatorio.plano.titulo);
+    expect(html).toContain(planoTextos.titulo);
     await page.goto("/ai-score/exemplo/");
     await expect(page.getByText(exemplo.aviso)).toBeVisible();
     await expect(page.locator("[data-nota]")).toHaveText("28");
     const rel = page.locator("#relatorio");
-    await expect(
-      rel.getByText(
-        "Empresa Exemplo está no nível Explorando, com AI Score 28 de 100 (nota estimada: 10 de 12 respostas).",
-        { exact: false },
-      ),
-    ).toBeVisible();
+    await expect(page.locator("[data-resumo-executivo] [data-item='cenario']")).toContainText(
+      "Empresa Exemplo está no nível Explorando, com AI Score 28 de 100. Nota estimada: 10 de 12 respostas válidas",
+    );
     // O exemplo tem duas respostas "Não sei": a nota é estimativa e a tela diz quais dimensões usam uma resposta só.
     const aviso = page.locator("[data-cobertura='estimativa']");
     await expect(aviso).toContainText(resultadoTextos.cobertura.estimativa.texto(10, 12));

@@ -638,10 +638,6 @@ export const resultadoTextos = {
   },
   dimensoes: "Seu resultado por dimensão",
   semResposta: "Sem resposta",
-  forte: "Ponto forte identificado",
-  semForte: "Nenhuma dimensão se destaca ainda. É um bom momento para escolher por onde começar.",
-  lacuna: "Principal oportunidade de evolução",
-  passos: "Seus próximos passos recomendados",
   areas: {
     titulo: "Índice de Aplicação de IA na Área",
     nota: "Mede o uso de IA nas atividades da área. É um indicador separado e não altera o AI Score.",
@@ -684,7 +680,7 @@ export const resultadoTextos = {
   mensagem: (r: { indice: number | null; nivel: string | null; lacunas: string[] }) =>
     r.indice === null
       ? "Olá! Fiz o RESET AI Score (resultado parcial) e quero conversar com um especialista sobre a Análise Estratégica RESET."
-      : `Olá! Fiz o RESET AI Score: ${r.indice}/100, nível ${r.nivel}. Principais oportunidades: ${r.lacunas.join(" e ")}. Quero conversar com um especialista sobre a Análise Estratégica RESET.`,
+      : `Olá! Fiz o RESET AI Score: ${r.indice}/100, nível ${r.nivel}.${r.lacunas.length ? ` Principais lacunas: ${r.lacunas.join(" e ")}.` : ""} Quero conversar com um especialista sobre a Análise Estratégica RESET.`,
 };
 
 /**
@@ -700,7 +696,7 @@ export const contato = {
   itens: [
     "Nota de 0 a 100 e o nível de maturidade em IA.",
     "Resultado em cada uma das seis dimensões.",
-    "Ponto forte, principal oportunidade e próximos passos.",
+    "Resumo executivo: cenário, o que merece atenção e a primeira ação.",
     "Alertas sobre riscos e lacunas que merecem atenção.",
   ],
   campos: {
@@ -719,14 +715,14 @@ export const formulario = {
   kicker: "Relatório completo",
   titulo: ["Quer o diagnóstico completo", "*da sua empresa?*"],
   texto:
-    "A análise de cada resposta, dicas para evoluir, o plano de 90 dias, a simulação de evolução, os pontos cegos e as soluções indicadas, em PDF e no seu e-mail. Gratuito.",
+    "A análise de cada resposta, dicas para evoluir, o roteiro de 90 dias, a simulação de evolução, os pontos cegos e as soluções a considerar, em PDF e no seu e-mail. Gratuito.",
   incluido: "O relatório completo traz",
   itens: [
     "Resumo executivo para compartilhar com a liderança.",
     "Cada resposta com o estágio de hoje e o próximo estágio.",
-    "Prioridades por dimensão, pontos cegos e dicas para evoluir.",
+    "Lacunas de maturidade, oportunidades a investigar e dicas para evoluir.",
     "Simulação: quanto o AI Score sobe ao fechar as lacunas.",
-    "Plano de 90 dias e as soluções indicadas, com o porquê.",
+    "Roteiro de 90 dias e as soluções a considerar, com as evidências e o que falta confirmar.",
   ],
   campos: {
     nome: "Nome",
@@ -762,27 +758,6 @@ export const regua = {
 export const relatorio = {
   titulo: "Seu relatório completo",
   resumo: {
-    titulo: "Resumo executivo",
-    texto: (r: {
-      quem: string;
-      indice: number | null;
-      nivel: string | null;
-      forte: string | null;
-      lacuna: string | null;
-      alerta: string | null;
-      /** Respostas válidas e total; com "Não sei" a nota é dita estimativa. */
-      cobertura?: { validas: number; total: number };
-    }) =>
-      [
-        r.indice === null
-          ? `${r.quem} tem um resultado parcial: faltaram respostas para uma nota consolidada.`
-          : `${r.quem} está no nível ${r.nivel}, com AI Score ${r.indice} de 100${r.cobertura && r.cobertura.validas < r.cobertura.total ? ` (nota estimada: ${r.cobertura.validas} de ${r.cobertura.total} respostas)` : ""}.`,
-        r.forte ? `A maior força está em ${r.forte}.` : "Nenhuma dimensão se destaca ainda.",
-        r.lacuna ? `A principal lacuna está em ${r.lacuna}.` : "",
-        r.alerta ? `Ponto de atenção: ${r.alerta.charAt(0).toLowerCase()}${r.alerta.slice(1)}.` : "",
-      ]
-        .filter(Boolean)
-        .join(" "),
     suaEmpresa: "Sua empresa",
     suaArea: "Sua área",
   },
@@ -795,9 +770,9 @@ export const relatorio = {
     sobem: (alvo: number) => `Dimensões que sobem até ${alvo}:`,
   },
   prioridades: {
-    titulo: "Prioridades por dimensão",
-    nota: "Da menor para a maior nota. Os desafios que você apontou aparecem marcados.",
-    rotulos: { critica: "Crítica", alta: "Alta", media: "Média", baixa: "Baixa" },
+    titulo: "Lacunas de maturidade",
+    nota: "Só as dimensões abaixo de 70, da mais frágil para a menos. Os desafios que você apontou aparecem marcados.",
+    rotulos: { critica: "Crítica", alta: "Alta", media: "Média" },
     desafio: "Você apontou como desafio",
   },
   leitura: "Análise por dimensão",
@@ -811,21 +786,11 @@ export const relatorio = {
     nota: "Perguntas respondidas com Não sei. Elas ficam fora da nota, mas mostram onde falta visibilidade.",
     nenhum: "Nenhum: todas as perguntas foram respondidas.",
   },
-  plano: {
-    titulo: "Plano de 90 dias",
-    nota: "Sequência sugerida a partir das prioridades e dos desafios informados.",
-    fases: [
-      { periodo: "Dias 1 a 30", nome: "Organizar a base" },
-      { periodo: "Dias 31 a 60", nome: "Executar" },
-      { periodo: "Dias 61 a 90", nome: "Medir e escalar" },
-    ],
-    reavaliar: "Refazer o AI Score para medir a evolução.",
-  },
   dicas: {
     titulo: "Dicas para evoluir",
     nota: "Para cada dimensão de nota baixa, ações concretas para chegar ao próximo estágio, a partir das suas respostas.",
     carregando: "Os agentes de IA estão escrevendo e revisando as suas dicas…",
-    nenhuma: "Nenhuma dimensão ficou com nota baixa. O plano de 90 dias mostra como seguir evoluindo.",
+    nenhuma: "Nenhuma dimensão ficou com nota baixa. O roteiro de 90 dias mostra como seguir evoluindo.",
     fonte: {
       ia: "Escritas por um agente de IA a partir das suas respostas e conferidas por um agente revisor.",
       biblioteca:
@@ -853,13 +818,6 @@ export const relatorio = {
       "A nota não é gerada por IA: as mesmas respostas dão sempre o mesmo resultado, pela metodologia própria da Reset.",
       "Por ser uma autoavaliação, e por envolver IA, o resultado deve ser conferido: valide as conclusões com a sua equipe antes de decidir. Ele não substitui a análise de um especialista nem é certificação.",
     ],
-  },
-  solucoes: "Onde a Reset entra",
-  solucoesNota: "Indicação baseada nas dimensões com menor nota e nos desafios informados.",
-  porque: {
-    dimensao: (nome: string, nota: string) => `${nome} está em ${nota}.`,
-    desafio: (label: string) => `Você apontou: ${label.charAt(0).toLowerCase()}${label.slice(1)}`,
-    inicio: "Indicada para quem está começando a jornada de IA.",
   },
   areas: "Aplicação de IA por atividade",
   baixar: "Baixar relatório (salvar como PDF)",

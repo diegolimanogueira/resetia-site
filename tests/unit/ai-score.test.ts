@@ -1,17 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { aiScore } from "@/content/ai-score";
-import { desafios, dimensoes, niveis, perguntasCentrais } from "@/content/ai-score-questionario";
+import { dimensoes, niveis, perguntasCentrais } from "@/content/ai-score-questionario";
 import { solucaoPorSlug } from "@/content/solucoes";
 import { analisar } from "@/lib/ai-score/analisar";
 import { calcular, faixaDe, formatarNota, indiceDe, nivelDe, notaDe, numeroDoNivel } from "@/lib/ai-score/calcular";
 import { codificar, completas, decodificar, respostasVazias } from "@/lib/ai-score/codificar";
 import { emailPessoal, emailValido, normalizarWhatsapp } from "@/lib/ai-score/contato";
 import { leadScore } from "@/lib/ai-score/lead-score";
-import { recomendar } from "@/lib/ai-score/recomendar";
+import { condicoesDe, ordenarLacunas, recomendar } from "@/lib/ai-score/recomendar";
 import { metodoAtual } from "@/lib/ai-score/metodo";
 import { metodo1 } from "@/lib/ai-score/metodo/metodo-1";
 import { regras } from "@/lib/ai-score/regras";
 import type { Respostas, Slot } from "@/lib/ai-score/tipos";
+import type { DesafioId, DimensaoId } from "@/content/types";
 
 /** 12 respostas centrais a partir de um texto como "3322 2122 1121" (x = não sei, - = sem resposta). */
 const centrais = (t: string): Slot[] =>
@@ -129,64 +130,148 @@ describe("cálculo do AI Score", () => {
 });
 
 describe("recomendações", () => {
-  it("exemplo do documento: forte em Estratégia, oportunidade em Governança e os três passos do documento", () => {
-    const r = recomendar(calcular(base(EXEMPLO)), []);
+  const rec = (t: string, d: DesafioId[] = [], extra: Partial<Respostas> = {}) => {
+    const r = base(t, { desafios: d, ...extra });
+    return recomendar(calcular(r), d, r.centrais);
+  };
+
+  it("exemplo do documento: forte em Estratégia, só as dimensões abaixo de 70 são lacunas, Governança primeiro", () => {
+    const r = rec(EXEMPLO);
     expect(r.forte).toBe("estrategia");
-    expect(r.lacunas[0]).toBe("governanca");
-    // Empate entre Processos e Resultados (37,5): fica a ordem das dimensões.
-    expect(r.lacunas.slice(0, 3)).toEqual(["governanca", "processos", "resultados"]);
-    expect(r.passos).toEqual([
-      dimensoes[4].passos.estruturar,
-      dimensoes[2].passos.estruturar,
-      dimensoes[5].passos.estruturar,
+    expect(r.fortes).toEqual(["estrategia"]);
+    // Estratégia (70) não é lacuna. Processos e Resultados empatam em 27,5 e Dados e Pessoas em 40: o critério fica registrado.
+    expect(r.lacunas).toEqual(["governanca", "processos", "resultados", "dados", "pessoas"]);
+    expect(r.desempate).toMatchObject({ processos: "dependencia", resultados: "dependencia", dados: "dependencia" });
+    expect(r.indicacoes.map((i) => [i.slug, i.forca])).toEqual([
+      ["governance", "indicada"],
+      ["processos-com-ia", "indicada"],
     ]);
     expect(r.solucoes).toEqual(["governance", "processos-com-ia"]);
   });
 
-  it("o desafio principal entra como terceiro passo quando é de outro tema", () => {
-    const r = recomendar(calcular(base(EXEMPLO)), ["capacitar"]);
-    expect(r.passos[2]).toMatch(/trilha de capacitação/);
-    // Desafio do mesmo tema de uma das duas menores dimensões: segue a terceira menor.
-    const mesmo = recomendar(calcular(base(EXEMPLO)), ["governanca"]);
-    expect(mesmo.passos[2]).toBe(dimensoes[5].passos.estruturar);
+  it("um desafio que as respostas contradizem não soma pontos: pede validação", () => {
+    // "Não sabemos por onde começar" com Estratégia em 70: a direção declarada contradiz o desafio.
+    const r = rec(EXEMPLO, ["comecar"]);
+    expect(r.desafios).toEqual([{ id: "comecar", dimensao: "estrategia", nota: 70, situacao: "contradiz" }]);
+    expect(r.solucoes).not.toContain("ai-champions");
+    // Já um desafio de uma dimensão baixa é sustentado e soma pontos, com evidência direta.
+    const sustentado = rec("22 00 22 22 22 22", ["capacitar"]);
+    expect(sustentado.desafios[0]).toMatchObject({ id: "capacitar", situacao: "sustentado" });
+    const champions = sustentado.indicacoes.find((i) => i.slug === "ai-champions");
+    expect(champions?.apoios).toContainEqual({ tipo: "desafio", id: "capacitar" });
+    expect(champions).toMatchObject({ direta: true, forca: "indicada" });
   });
 
-  it("nunca mais de duas soluções, sempre slugs que existem", () => {
+  it("nunca mais de duas soluções, sempre slugs que existem; pode não haver nenhuma", () => {
     for (const t of [EXEMPLO, "00 00 00 00 00 00", "44 44 44 44 44 44", "22 33 11 44 22 13"]) {
-      const r = recomendar(calcular(base(t)), ["agentes", "medir"]);
+      const r = rec(t, ["agentes", "medir"]);
       expect(r.solucoes.length).toBeLessThanOrEqual(regras.maxSolucoes);
       for (const s of r.solucoes) expect(solucaoPorSlug(s), s).toBeDefined();
     }
+    const topo = rec("44 44 44 44 44 44");
+    expect(topo.lacunas).toEqual([]);
+    expect(topo.indicacoes).toEqual([]);
+    expect(topo.solucoes).toEqual([]);
   });
 
-  it("nível Inicial recebe capacitação e mapeamento, nunca Performance ou Agent Factory", () => {
-    const r = recomendar(calcular(base("10 00 01 00 00 00")), ["medir", "agentes"]);
-    expect(r.solucoes).toEqual(["ai-champions", "processos-com-ia"]);
+  it("tudo no máximo não vira lacuna, nem com um desafio declarado: o desafio é que exige validação", () => {
+    const r = rec("44 44 44 44 44 44", ["agentes", "medir"]);
+    expect(r.lacunas).toEqual([]);
+    expect(r.solucoes).toEqual([]);
+    expect(r.desafios.map((d) => d.situacao)).toEqual(["contradiz", "contradiz"]);
   });
 
-  it("Performance e Agent Factory ficam travadas abaixo de 40, salvo quando a pessoa quer agentes", () => {
-    // AI Score 36 (Explorando), Resultados é a menor dimensão.
-    const explorando = calcular(base("22 22 22 22 22 21"));
-    expect(explorando.media).toBe(36);
-    expect(recomendar(explorando, ["medir", "custo-ferramentas"]).solucoes).not.toContain("performance");
-    expect(recomendar(explorando, ["custo-ferramentas"]).solucoes).not.toContain("agent-factory");
-    expect(recomendar(explorando, ["agentes"]).solucoes).toContain("agent-factory");
-  });
-
-  it("empresa madura com ferramentas sobrepostas e tarefas repetitivas recebe Agent Factory", () => {
-    const r = recomendar(calcular(base("33 33 32 32 33 33")), ["custo-ferramentas", "repetitivas"]);
-    expect(r.solucoes).toEqual(["processos-com-ia", "agent-factory"]);
-  });
-
-  it("sem ponto forte quando nada se destaca ou tudo está baixo", () => {
-    expect(recomendar(calcular(base("22 22 22 22 22 22")), []).forte).toBeNull();
-    expect(recomendar(calcular(base("11 11 11 11 11 00")), []).forte).toBeNull();
-  });
-
-  it("na faixa alta, o passo é de evolução", () => {
-    const r = recomendar(calcular(base("44 44 44 44 33 44")), []);
+  it("nível Inicial não tem indicação fixa: a Governança, quando é a mais fraca, não some", () => {
+    const r = rec("11 11 11 11 00 11");
     expect(r.lacunas[0]).toBe("governanca");
-    expect(r.passos[0]).toBe(dimensoes[4].passos.evoluir);
+    expect(r.solucoes[0]).toBe("governance");
+    expect(r.indicacoes[0]).toMatchObject({ slug: "governance", forca: "indicada" });
+  });
+
+  it("um pedido de agentes não prova prontidão: sem processo mapeado, fica a investigar, com a pendência dita", () => {
+    // Pedido de agentes e de revisão de ferramentas, mas processos ainda no segundo estágio (p5 = 1): nunca "indicada".
+    const sem = rec("22 22 11 22 22 22", ["agentes", "custo-ferramentas"]);
+    expect(sem.indicacoes.find((i) => i.slug === "agent-factory")?.forca ?? "investigar").toBe("investigar");
+    const centraisSem = base("22 22 11 22 22 22").centrais;
+    expect(condicoesDe("agent-factory", centraisSem).find((c) => c.ref === "p5")).toEqual({
+      ref: "p5",
+      minimo: 2,
+      situacao: "pendente",
+    });
+    // Com processo mapeado, dados organizados e regras, as condições estão atendidas e a solução é indicada.
+    const pronto = rec("33 33 32 32 33 33", ["custo-ferramentas", "repetitivas"]);
+    expect(pronto.indicacoes.map((i) => [i.slug, i.forca])).toEqual([
+      ["processos-com-ia", "indicada"],
+      ["agent-factory", "indicada"],
+    ]);
+    expect(regras.prontidao["agent-factory"].map((c) => c.ref)).toEqual(["p5", "p7", "p9"]);
+    // "Não sei" numa condição é "sem resposta", não "atendida".
+    expect(condicoesDe("agent-factory", base("22 22 x2 22 22 22").centrais)[0].situacao).toBe("sem-resposta");
+  });
+
+  it("Performance só vira indicação com algo em uso para medir; sem isso fica a investigar", () => {
+    // Resultados é a menor dimensão, mas a IA não é usada pelas equipes (p3 = 0).
+    const r = rec("32 02 33 33 33 10", ["medir"]);
+    const performance = r.indicacoes.find((i) => i.slug === "performance");
+    expect(performance?.forca).toBe("investigar");
+    expect(performance?.condicoes).toEqual([{ ref: "p3", minimo: 1, situacao: "pendente" }]);
+  });
+
+  it("falta de liderança (Estratégia baixa) não indica sozinha uma capacitação: AI Champions fica a investigar", () => {
+    const r = rec("00 44 44 44 44 44");
+    expect(r.lacunas).toEqual(["estrategia"]);
+    expect(r.indicacoes).toEqual([
+      expect.objectContaining({ slug: "ai-champions", forca: "investigar", direta: false }),
+    ]);
+  });
+
+  it("empate decidido por critério substantivo, registrado, e nunca pela ordem das dimensões", () => {
+    // Todas em 40: o desafio declarado põe Governança na frente; sem desafio, vale a ordem de dependência.
+    const r = rec("22 22 22 22 22 22", ["governanca"]);
+    expect(r.lacunas[0]).toBe("governanca");
+    expect(r.desempate.governanca).toBe("desafio");
+    const sem = rec("22 22 22 22 22 22");
+    expect(sem.lacunas).toEqual(regras.ordemDependencia);
+    expect(Object.values(sem.desempate).every((c) => c === "dependencia")).toBe(true);
+    // A menor resposta decide quando nota e desafio empatam.
+    const medidas = (id: DimensaoId) => ({
+      nota: 40,
+      desafio: 1 as const,
+      resposta: id === "dados" ? 1 : 2,
+      dependencia: 9,
+    });
+    const o = ordenarLacunas(["pessoas", "dados"], medidas);
+    expect(o.ordem).toEqual(["dados", "pessoas"]);
+    expect(o.desempate).toEqual({ dados: "resposta-mais-baixa", pessoas: "resposta-mais-baixa" });
+  });
+
+  it("a ordem das lacunas não depende da ordem em que as dimensões chegam", () => {
+    const ids = dimensoes.map((d) => d.id);
+    const medidas = (id: DimensaoId) => ({
+      nota: id === "dados" || id === "pessoas" ? 40 : 55,
+      desafio: id === "pessoas" ? (0 as const) : (1 as const),
+      resposta: id === "dados" ? 1 : 2,
+      dependencia: regras.ordemDependencia.indexOf(id),
+    });
+    const esperado = ordenarLacunas(ids, medidas).ordem;
+    for (const embaralhado of [[...ids].reverse(), [ids[3], ids[0], ids[5], ids[1], ids[4], ids[2]]])
+      expect(ordenarLacunas(embaralhado, medidas).ordem).toEqual(esperado);
+    // Nota igual: desafio, depois a menor resposta, depois a dependência.
+    expect(esperado.slice(0, 2)).toEqual(["pessoas", "dados"]);
+  });
+
+  it("sem ponto forte quando nada se destaca ou tudo está baixo; com empate no topo, todas contam", () => {
+    expect(rec("22 22 22 22 22 22").forte).toBeNull();
+    expect(rec("11 11 11 11 11 00").forte).toBeNull();
+    expect(rec("33 33 22 22 22 22").fortes).toEqual(["estrategia", "pessoas"]);
+    // Em 70: Estratégia, Pessoas e Processos. A ordem de dependência só organiza a lista, não escolhe uma.
+    expect(rec("33 33 33 22 22 22").fortes).toEqual(["estrategia", "processos", "pessoas"]);
+  });
+
+  it("lacuna só abaixo de 70: com uma dimensão em 70 ou mais, ela fica de fora", () => {
+    const r = rec("44 44 44 44 33 44");
+    expect(r.lacunas).toEqual([]);
+    expect(rec("44 44 44 44 22 44").lacunas).toEqual(["governanca"]);
   });
 });
 
@@ -317,7 +402,7 @@ describe("análise do relatório completo", () => {
   const rec = recomendar(resultado, r.desafios);
   const a = analisar(r, resultado, rec);
 
-  it("próximo nível, prioridades e o desafio marcado na dimensão", () => {
+  it("próximo nível e as lacunas (só abaixo de 70) com o desafio marcado na dimensão", () => {
     expect(a.proximoNivel).toEqual({ nivel: "desenvolvimento", faltam: 12 });
     expect(a.prioridades.map((p) => [p.dimensao, p.prioridade, p.desafio])).toEqual([
       ["governanca", "critica", true],
@@ -361,20 +446,5 @@ describe("análise do relatório completo", () => {
     });
     const topo = calcular(base("44 44 44 44 44 44"));
     expect(analisar(base("44 44 44 44 44 44"), topo, recomendar(topo, [])).simulacao).toBeNull();
-  });
-
-  it("plano de 90 dias: dimensão mais fraca, o desafio principal e as demais, sem repetir tema", () => {
-    expect(a.plano.map((f) => f.length)).toEqual([2, 2, 1]);
-    expect(a.plano[0]).toEqual([dimensoes[4].passos.estruturar, desafios.find((d) => d.id === "repetitivas")!.passo]);
-    expect(a.plano.flat()).not.toContain(dimensoes[2].passos.estruturar);
-  });
-
-  it("o porquê de cada solução: dimensão fraca e desafio que levaram a ela", () => {
-    expect(rec.solucoes).toEqual(["governance", "processos-com-ia"]);
-    expect(a.porque.governance).toEqual({ dimensoes: [{ id: "governanca", nota: 15 }], desafios: ["governanca"] });
-    expect(a.porque["processos-com-ia"]).toEqual({
-      dimensoes: [{ id: "processos", nota: 27.5 }],
-      desafios: ["repetitivas"],
-    });
   });
 });

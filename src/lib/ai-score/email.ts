@@ -4,7 +4,9 @@ import type { DimensaoId } from "@/content/types";
 import type { Analise } from "./analisar";
 import { formatarNota } from "./calcular";
 import type { Dicas } from "./dicas";
-import type { Recomendacao, Resultado } from "./tipos";
+import { comQuem } from "./quem";
+import type { Sintese } from "./sintese";
+import type { Resultado } from "./tipos";
 
 /**
  * HTML dos e-mails (tabelas e estilos inline, fundo branco, verde só em traços e botões). Todo dado digitado
@@ -43,7 +45,8 @@ export interface DadosEmailRelatorio {
   nome: string;
   quem: string;
   resultado: Resultado;
-  recomendacao: Recomendacao;
+  /** Resumo, indicações e roteiro: a mesma síntese da tela e do PDF. */
+  sintese: Sintese;
   analise: Analise;
   dicas: Dicas;
   link: string;
@@ -53,20 +56,19 @@ export interface DadosEmailRelatorio {
 }
 
 export function montarEmailRelatorio(d: DadosEmailRelatorio) {
-  const { resultado: res, recomendacao: rec, analise: a } = d;
+  const { resultado: res, sintese, analise: a } = d;
   const nivel = niveis.find((n) => n.id === res.nivel)?.nome ?? null;
-  const resumo = relatorio.resumo.texto({
-    quem: d.quem,
-    indice: res.indice,
-    nivel,
-    forte: rec.forte ? nomeDimensao(rec.forte) : null,
-    lacuna: rec.lacunas[0] ? nomeDimensao(rec.lacunas[0]) : null,
-    alerta: a.alertas[0]?.titulo ?? null,
-  });
-  const fases = relatorio.plano.fases.map((f, i) => ({
-    ...f,
-    acoes: i === relatorio.plano.fases.length - 1 ? [...a.plano[i], relatorio.plano.reavaliar] : a.plano[i],
+  const itensDoResumo = sintese.resumo.itens.map((i) => ({
+    rotulo: i.rotulo,
+    texto: comQuem(i.texto, d.quem),
+    lista: i.lista ?? [],
   }));
+  const fases = ([1, 2, 3] as const)
+    .map((fase) => ({
+      fase,
+      etapas: sintese.plano.etapas.filter((e) => e.fase === fase),
+    }))
+    .filter((f) => f.etapas.length);
   const assunto = er.assunto(res.indice, nivel);
 
   const html = [
@@ -76,7 +78,16 @@ export function montarEmailRelatorio(d: DadosEmailRelatorio) {
       ? `<p style="margin:20px 0 4px;${FONTE}font-size:48px;font-weight:800;line-height:1;color:${COR.texto};">${res.indice}<span style="font-size:18px;color:${COR.apoio};">/100</span></p>
 <p style="margin:0 0 16px;font-size:16px;font-weight:700;">${escapar(nivel ?? "")}</p>`
       : "",
-    `<div style="border:1px solid ${COR.linha};border-left:4px solid ${COR.verde};padding:16px 18px;margin:0 0 16px;font-size:15px;font-weight:600;">${escapar(resumo)}</div>`,
+    `<div style="border:1px solid ${COR.linha};border-left:4px solid ${COR.verde};padding:16px 18px;margin:0 0 16px;">${itensDoResumo
+      .map(
+        (i) =>
+          `<p style="margin:0 0 2px;font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:${COR.apoio};">${escapar(i.rotulo)}</p>` +
+          (i.texto ? `<p style="margin:0 0 12px;font-size:15px;">${escapar(i.texto)}</p>` : "") +
+          (i.lista.length
+            ? `<ul style="margin:0 0 12px;padding-left:20px;">${i.lista.map((t) => `<li style="margin:0 0 4px;">${escapar(t)}</li>`).join("")}</ul>`
+            : ""),
+      )
+      .join("")}</div>`,
     botao(er.botao, d.link),
     h2(er.titulos.dimensoes),
     dimensoes
@@ -104,23 +115,36 @@ export function montarEmailRelatorio(d: DadosEmailRelatorio) {
           )
           .join("")
       : "",
-    h2(er.titulos.plano) +
+    h2(sintese.plano.titulo) +
+      p(sintese.plano.nota, `color:${COR.apoio};font-size:13px;`) +
       fases
         .map(
           (f) =>
-            p(`${f.periodo} · ${f.nome}`, "font-weight:700;margin:14px 0 6px;") +
-            `<ul style="margin:0 0 8px;padding-left:20px;">${f.acoes.map((t) => `<li style="margin:0 0 6px;">${escapar(t)}</li>`).join("")}</ul>`,
+            p(`${f.etapas[0].periodo} · ${f.etapas[0].nomeDaFase}`, "font-weight:700;margin:14px 0 6px;") +
+            `<ul style="margin:0 0 8px;padding-left:20px;">${f.etapas
+              .map(
+                (e) =>
+                  `<li style="margin:0 0 10px;"><strong>${escapar(e.titulo)}.</strong> ${escapar(e.acao)}<br><span style="color:${COR.apoio};font-size:13px;">${escapar(sintese.plano.rotulos.entrega)}: ${escapar(e.entrega)}. ${escapar(sintese.plano.rotulos.depende)}: ${escapar(e.dependeDe)}.</span></li>`,
+              )
+              .join("")}</ul>`,
         )
         .join(""),
-    rec.solucoes.length
-      ? h2(er.titulos.solucoes) +
-        `<ul style="margin:0 0 8px;padding-left:20px;">${rec.solucoes
+    sintese.indicacoes.itens.length
+      ? h2(sintese.indicacoes.titulo) +
+        sintese.indicacoes.itens
           .map(
-            (s) =>
-              `<li style="margin:0 0 6px;"><a href="${escapar(`${d.site}/solucoes/${s}/`)}" style="color:${COR.texto};font-weight:700;">${escapar(d.nomesSolucoes[s] ?? s)}</a></li>`,
+            (i) =>
+              `<p style="margin:14px 0 4px;"><a href="${escapar(`${d.site}/solucoes/${i.slug}/`)}" style="color:${COR.texto};font-weight:700;">${escapar(d.nomesSolucoes[i.slug] ?? i.slug)}</a> <span style="color:${COR.apoio};font-size:13px;">· ${escapar(i.rotuloForca)}</span></p>` +
+              `<ul style="margin:0 0 8px;padding-left:20px;">${[
+                ...i.porque,
+                ...i.condicoes.filter((c) => c.situacao !== "atendida").map((c) => `${c.texto}: ${c.rotulo}`),
+                ...(i.ressalva ? [i.ressalva] : []),
+              ]
+                .map((t) => `<li style="margin:0 0 4px;">${escapar(t)}</li>`)
+                .join("")}</ul>`,
           )
-          .join("")}</ul>`
-      : "",
+          .join("")
+      : h2(sintese.indicacoes.titulo) + p(sintese.indicacoes.semIndicacao ?? ""),
     h2(er.conversa.titulo),
     p(er.conversa.texto),
     botao(er.conversa.botao, d.whatsapp),
@@ -132,7 +156,7 @@ export function montarEmailRelatorio(d: DadosEmailRelatorio) {
     er.saudacao(d.nome),
     er.intro,
     res.indice !== null ? `AI Score: ${res.indice}/100 (${nivel})` : "",
-    resumo,
+    ...itensDoResumo.flatMap((i) => [i.rotulo, i.texto, ...i.lista.map((t) => `- ${t}`)].filter(Boolean)),
     `${er.botao}: ${d.link}`,
     "",
     er.titulos.dimensoes.toUpperCase(),
@@ -143,8 +167,16 @@ export function montarEmailRelatorio(d: DadosEmailRelatorio) {
     er.titulos.dicas.toUpperCase(),
     ...d.dicas.dimensoes.flatMap((x) => [nomeDimensao(x.id), ...x.dicas.map((t) => `- ${t}`)]),
     "",
-    er.titulos.plano.toUpperCase(),
-    ...fases.flatMap((f) => [`${f.periodo} · ${f.nome}`, ...f.acoes.map((t) => `- ${t}`)]),
+    sintese.plano.titulo.toUpperCase(),
+    ...fases.flatMap((f) => [
+      `${f.etapas[0].periodo} · ${f.etapas[0].nomeDaFase}`,
+      ...f.etapas.map((e) => `- ${e.titulo}. ${e.acao} (${sintese.plano.rotulos.depende}: ${e.dependeDe})`),
+    ]),
+    "",
+    sintese.indicacoes.titulo.toUpperCase(),
+    ...(sintese.indicacoes.itens.length
+      ? sintese.indicacoes.itens.map((i) => `- ${d.nomesSolucoes[i.slug] ?? i.slug} (${i.rotuloForca})`)
+      : [sintese.indicacoes.semIndicacao ?? ""]),
     "",
     `${er.conversa.titulo} ${d.whatsapp}`,
     "",

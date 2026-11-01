@@ -27,7 +27,8 @@ export function montarLeads(avaliacoes: AvaliacaoLinha[]): LeadVisao[] {
   return avaliacoes.flatMap((a) => {
     const respostas = decodificar(a.codigo);
     const resultado = respostas ? calcular(respostas) : null;
-    const solucoes = respostas && resultado ? recomendar(resultado, respostas.desafios).solucoes : [];
+    const solucoes =
+      respostas && resultado ? recomendar(resultado, respostas.desafios, respostas.centrais).solucoes : [];
     return (a.leads ?? []).map((lead) => ({
       lead,
       avaliacao: a,
