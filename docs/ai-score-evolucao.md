@@ -15,7 +15,7 @@ Legenda de evidência: **L** = simulado ou testado localmente; **P** = confirmad
 | 0    | Branch, documento de progresso                               | feita                                                     |
 | 1    | Medir a base, protótipo do PDF, consultas de produção        | feita (PDF passa para a Fase 4, ver registro)             |
 | 2    | Fidelidade, método, cobertura, versões, corte de peso        | feita (forte, lacuna, passos e plano ficam para a Fase 4) |
-| 3    | Dados, captura confiável, aprofundamento                     | pendente                                                  |
+| 3    | Dados, captura confiável, aprofundamento                     | feita (L; produção: nada aplicado, ver registro)          |
 | 4    | Prioridades, devolutiva, PDF, e-mail                         | pendente                                                  |
 | 5    | Painel, preferências, métricas, trava de publicação          | pendente                                                  |
 | 6    | Home, celular, jornadas, serviços, agentes                   | pendente                                                  |
@@ -199,3 +199,31 @@ where routine_schema = 'public' and grantee in ('anon', 'authenticated', 'PUBLIC
 - Fase 3: gravar `versao_metodo`, `versao_analise` e a devolutiva; migração 0005 amplia o CHECK de `versao` e **precisa ir antes do site** (o site grava `versao: "2"`).
 - Fase 4: ponto forte, oportunidade, próximos passos e plano ainda saem por dimensão (um "já mapeamos" ainda pode ser seguido de um passo "mapear processos"); resumo executivo; PDF; e-mail a partir da devolutiva.
 - Prints de referência da landing `/ai-score/` (texto da metodologia mudou) em regeneração.
+
+### Fase 3 (01/11) — feita
+
+**Banco (migrações 0005 a 0008, aditivas, só no Postgres local de teste):** versões do método e da análise, canal de entrada, `relatorios` (histórico append-only), `tarefas` com lease e `limites` atômicos, `consentimentos` append-only por finalidade e canal (com backfill dos leads antigos), `aprofundamentos` com revisão monotônica, `registrar_captura`/`completar_captura`/`registrar_avaliacao` (só `service_role`, numa transação). O INSERT anônimo ficou restrito às colunas que o site antigo enviava e o gatilho zera as colunas do CRM; `completar_lead` só preenche vazio, só para leads sem chave, em 7 dias. `scripts/testar-banco.sh` roda a cadeia 0001 a 0008 e o inventário de privilégios (109 asserções).
+
+**Função `ai-score` (Deno, testada com mocks):** ações `concluir`, `registrar`, `completar`, `aprofundar`, `status` e `processar`, além das legadas. A nota é recalculada no servidor a partir do código (a do navegador é ignorada); a escrita no lead exige a `chave` (32 bytes aleatórios gerados no navegador; só o sha256 vai ao banco); ids públicos não autorizam nada. E-mail pelo Resend com `Idempotency-Key`, estados reais (pendente, aceito pelo provedor, nova tentativa, falhou) e classificação de falha transitória × definitiva. 32 testes, com mutação nos pontos de segurança e de classificação.
+
+**Navegador:** a captura passa pela função (`captura.ts`, `fila.ts`): o pedido entra na fila antes da rede, sai ao ser aceito ou recusado de vez, vence em 7 dias, espera 5 s·3^n com variação até 1 h, deduplica por tipo e lead, respeita a dependência (completar só depois do registro) e mescla em vez de sobrescrever. A tela só diz "registrado" quando o servidor aceitou; sem confirmação mostra o aviso de contato pendente, e com recusa definitiva mostra que o contato não foi registrado. O estado do e-mail vem da ação `status`. `registro.ts` (gravação direta no banco) foi removido.
+
+**Aprofundamento opcional (`Aprofundamento.tsx`, `aprofundamento-form.ts`):** aparece depois do relatório liberado. Camada 1: rotina da área, volume com unidade e período, consequência. Camada 2 (opcional): tempo por ocorrência, ferramentas, dados, indicador, papel na decisão. Dá para pular, voltar, corrigir e responder "Não sei"; o rascunho fica na sessão (sem dado pessoal: e-mail e telefone digitados são recusados), a revisão só cresce e o que foi salvo vai à função com a chave. Esforço = ocorrências × minutos ÷ 60, com entradas e premissas na tela e **nunca em dinheiro**; sem volume ou tempo a tela diz o que falta. Carrega sob demanda (`import()` no relatório).
+
+**Testes novos:** `captura.test.ts` (20), `aprofundamento.test.ts`, `aprofundamento-form.test.ts` (12); `funcao.test.ts` (32); `captura.sql` e `seguranca.sql`; 11 E2E novos ou reescritos (fluxo completo com os pedidos à função, queda de rede com recarregar e reenvio idempotente, recusa definitiva, aprofundamento: camadas 1 e 2, 200 × 15 ÷ 60 = 50 h, validação, rascunho, pendente e recusado). **Resultados (L):** unidade 205, banco OK, função 32, E2E 178 passando e 2 pulados (Chromium desktop + WebKit celular), lint, tipos e knip limpos.
+
+**Peso:** `/ai-score/resultado/` e exemplo 223,9 kB (teto 225), avaliação 217,7, painel 226,4 (teto 240); chunk sob demanda do aprofundamento 8,6 kB (teto 30). JS total 272,3 → 295,7 kB, teto 290 → 300 kB: o `import()` do aprofundamento faz o Turbopack criar mais uma cópia do conteúdo do questionário (mesmo fenômeno da Fase 2, medido com e sem o `import()`); cada visitante baixa uma cópia só. O `next/dynamic` custava 1,5 kB a mais na rota do que o `import()` direto, por isso o relatório usa o `import()` direto.
+
+**Decisões e desvios:**
+
+- O `Relatorio` sob demanda só na rota de resultado foi testado e **descartado**: piorou o peso total e do exemplo.
+- A tela do relatório usa o `import()` direto e um elemento devolvido pelo módulo sob demanda (a regra de lint `static-components` não aceita componente vindo de um hook).
+- "Não sei" no aprofundamento é um campo próprio (`naoSei`), nunca um valor zero; unidade e período são parte do volume.
+- Nada do aprofundamento vai ao link do resultado, à IA ou ao analytics.
+
+**Pendências desta fase:**
+
+- Produção (P, nenhum item feito): aplicar as migrações 0005 a 0008 antes do site, publicar a função, definir `PROCESSADOR_SEGREDO`, habilitar pg_cron/pg_net/Vault e o agendamento, testar o envio real pelo Resend (aceito não é entregue).
+- Prints de referência da landing `/ai-score/` ainda a regenerar no Docker (a memória da VM estava ocupada por outras pilhas do Supabase; tentar de novo com `--workers=1`).
+- Eventos de analytics do aprofundamento ficam para a Fase 5.
+- Textos novos a revisar com o Diego: `ai-score-aprofundamento.ts` (perguntas, opções, premissas do esforço), avisos de contato e de e-mail em `ai-score-questionario.ts`.
