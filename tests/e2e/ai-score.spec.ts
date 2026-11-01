@@ -780,6 +780,70 @@ test.describe("RESET AI Score", () => {
     await expect(page.getByRole("button", { name: contato.enviar })).toBeVisible();
   });
 
+  test("link do e-mail com token: libera, tira o token da barra, não o guarda e recusa token de outra avaliação", async ({
+    page,
+  }) => {
+    await page.goto("/ai-score/");
+    test.skip((await page.locator("main").getAttribute("data-ai-score-modo")) !== "producao", "só com Supabase");
+    const avaliacao = /id=([^&]+)/.exec(aiScore.exemplo.codigo)![1];
+    const token = "t".repeat(43);
+    const consultas: unknown[] = [];
+    let devolve: string | null = avaliacao;
+    await page.route("**/rest/v1/rpc/ler_relatorio", async (rota) => {
+      const corpo = rota.request().postDataJSON() as { p_token: string };
+      consultas.push(corpo);
+      await rota.fulfill({
+        json:
+          corpo.p_token === token && devolve
+            ? { nome: "Maria Teste", empresa: "Empresa Teste", avaliacao: devolve }
+            : null,
+      });
+    });
+    await interceptarFuncao(page);
+    await page.addInitScript(() =>
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: {
+          writeText: async (texto: string) => {
+            (window as unknown as { copiado?: string }).copiado = texto;
+          },
+        },
+      }),
+    );
+
+    await page.goto(`/ai-score/resultado/#${aiScore.exemplo.codigo}&k=${token}`);
+    await expect(page.getByRole("heading", { name: relatorio.titulo })).toBeVisible();
+    await expect(page.getByRole("button", { name: contato.enviar })).toHaveCount(0);
+    await expect(page.getByText(resultadoTextos.ola("Maria Teste"))).toBeVisible();
+    expect(consultas).toEqual([{ p_token: token }]);
+    // O token sai do endereço assim que é lido e nunca é guardado no navegador.
+    expect(page.url()).not.toContain("k=");
+    expect(page.url()).toContain("/ai-score/resultado/#v=2&m=1&n=2");
+    expect(
+      await page.evaluate(() => JSON.stringify([...Object.entries(localStorage), ...Object.entries(sessionStorage)])),
+    ).not.toContain(token);
+    // Recarregar mantém a liberação (que não precisa mais do token).
+    await page.reload();
+    await expect(page.getByRole("heading", { name: relatorio.titulo })).toBeVisible();
+    expect(consultas).toHaveLength(1);
+    await page.getByRole("button", { name: resultadoTextos.compartilhar }).click();
+    const copiado = await page.evaluate(() => (window as unknown as { copiado?: string }).copiado);
+    expect(copiado).not.toMatch(/k=|lead=/);
+
+    // Token que não existe, ou que pertence a outra avaliação: volta para a etapa 1, sem liberar nada.
+    for (const [rotulo, enviado, resposta] of [
+      ["token errado", "x".repeat(43), avaliacao],
+      ["outra avaliação", token, "11111111-1111-4111-8111-111111111111"],
+    ] as const) {
+      devolve = resposta;
+      await page.evaluate(() => localStorage.clear());
+      await page.goto("/ai-score/");
+      await page.goto(`/ai-score/resultado/#${aiScore.exemplo.codigo}&k=${enviado}`);
+      await expect(page.getByRole("button", { name: contato.enviar }), rotulo).toBeVisible();
+      await expect(page.getByRole("heading", { name: relatorio.titulo }), rotulo).toHaveCount(0);
+    }
+  });
+
   test("a mesma nota de 100 com uma resposta baixa trocada por 'Não sei': a tela mostra que é estimativa", async ({
     page,
   }) => {

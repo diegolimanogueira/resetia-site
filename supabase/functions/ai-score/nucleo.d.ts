@@ -98,6 +98,7 @@ export function montarDicas(...args: any[]): any;
 export function montarEmailRelatorio(dados: any): { assunto: string; html: string; texto: string };
 export function montarEmailReset(dados: any): { assunto: string; html: string; texto: string };
 export function quemDoResumo(r: RespostasCompletas, empresa: string | null): string;
-export function linkRelatorio(site: string, codigo: string, leadId: string | null): string;
+export function linkRelatorio(site: string, codigo: string, leadId: string | null, token?: string | null): string;
+export function linkPreferencias(site: string, token: string): string;
 export function whatsappDoResultado(r: RespostasCompletas): string;
 export function waUrl(mensagem?: string, numero?: string): string;

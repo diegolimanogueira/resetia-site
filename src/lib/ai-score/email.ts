@@ -50,6 +50,8 @@ export interface DadosEmailRelatorio {
   analise: Analise;
   dicas: Dicas;
   link: string;
+  /** Página de preferências de contato (token próprio); opcional nos e-mails do caminho antigo. */
+  preferencias?: string;
   whatsapp: string;
   site: string;
   nomesSolucoes: Record<string, string>;
@@ -185,7 +187,11 @@ export function montarEmailRelatorio(d: DadosEmailRelatorio) {
     .filter((l, i, arr) => l !== "" || arr[i - 1] !== "")
     .join("\n");
 
-  const rodape = `${escapar(er.rodape)} <a href="${escapar(`${d.site}/privacidade/`)}" style="color:${COR.apoio};">${escapar(er.privacidade)}</a>.`;
+  const rodape = `${escapar(er.rodape)} <a href="${escapar(`${d.site}/privacidade/`)}" style="color:${COR.apoio};">${escapar(er.privacidade)}</a>.${
+    d.preferencias
+      ? ` <a href="${escapar(d.preferencias)}" style="color:${COR.apoio};">${escapar(er.preferencias)}</a>.`
+      : ""
+  }`;
   return { assunto, html: casca(html, er.previa, d.site, rodape), texto };
 }
 

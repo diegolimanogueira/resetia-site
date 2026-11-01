@@ -25,6 +25,7 @@ export const emailRelatorio = {
   rodape:
     "Você recebeu este e-mail porque pediu o relatório completo do RESET AI Score em resetia.com.br. Se não foi você, ignore esta mensagem.",
   privacidade: "Política de privacidade",
+  preferencias: "Gerenciar preferências de contato",
 };
 
 /** E-mail sobre a Reset IA que o admin envia ao lead, com assunto e texto editáveis antes do envio. */

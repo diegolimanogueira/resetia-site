@@ -40,10 +40,21 @@ import { waUrl } from "@/lib/whatsapp";
 
 const AVALIACAO = "/ai-score/avaliacao/";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-/** O link do e-mail traz `&lead=<id>` no hash; ele libera o relatório, mas não vai junto quando a pessoa compartilha. */
-const leadDoHash = (hash: string | null) => {
-  const id = new URLSearchParams((hash ?? "").replace(/^#/, "")).get("lead");
-  return id && UUID.test(id) ? id : null;
+/**
+ * O link do e-mail traz `&k=<token>` (e-mails novos) ou `&lead=<id>` (antigos) no hash: libera o relatório, mas não
+ * vai junto quando a pessoa compartilha, e sai da barra de endereço assim que é lido.
+ */
+const acessoDoHash = (hash: string | null) => {
+  const p = new URLSearchParams((hash ?? "").replace(/^#/, ""));
+  const token = p.get("k");
+  const lead = p.get("lead");
+  return token && /^[A-Za-z0-9_-]{20,200}$/.test(token) ? { token } : lead && UUID.test(lead) ? { lead } : null;
+};
+const tirarAcessoDoEndereco = () => {
+  const p = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  p.delete("k");
+  p.delete("lead");
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${p}`);
 };
 const dimensao = (id: string) => dimensoes.find((d) => d.id === id)!;
 
@@ -162,6 +173,7 @@ function ResultadoInterno({ cartoes, exemplo }: { cartoes: Record<string, ReactN
   );
   const texto = exemplo ? exemplo.codigo : hash;
   const link = useMemo(() => (texto === null ? undefined : lerLink(texto)), [texto]);
+  const acesso = useMemo(() => acessoDoHash(hash), [hash]);
 
   useEffect(() => {
     if (exemplo) return;
@@ -182,7 +194,7 @@ function ResultadoInterno({ cartoes, exemplo }: { cartoes: Record<string, ReactN
       codigo={texto!}
       cartoes={cartoes}
       modo={modo}
-      leadDoLink={leadDoHash(hash)}
+      acessoDoLink={acesso}
       previa={exemplo?.devolutiva}
     />
   );
@@ -194,7 +206,7 @@ function Pronto({
   codigo,
   cartoes,
   modo,
-  leadDoLink,
+  acessoDoLink,
   previa,
 }: {
   respostas: RespostasCompletas;
@@ -202,7 +214,7 @@ function Pronto({
   codigo: string;
   cartoes: Record<string, ReactNode>;
   modo: Modo;
-  leadDoLink: string | null;
+  acessoDoLink: { lead: string } | { token: string } | null;
   /** Devolutiva já calculada no servidor (só a página de exemplo). */
   previa?: Devolutiva;
 }) {
@@ -222,17 +234,18 @@ function Pronto({
   );
   const liberacao = useMemo(() => lerLiberacao(liberadoTexto), [liberadoTexto]);
   const [foco, setFoco] = useState<"" | "resultado" | "relatorio">("");
-  // Link do e-mail em outro aparelho: confere o par (lead, avaliação) e libera o relatório completo.
-  const conferirLink = modo.tipo === "publico" && leadDoLink !== null && r.id !== undefined;
+  // Link do e-mail em outro aparelho: confere o acesso (token ou par de ids) e libera o relatório completo.
+  const conferirLink = modo.tipo === "publico" && acessoDoLink !== null && r.id !== undefined;
   const [conferindo, setConferindo] = useState(conferirLink);
   useEffect(() => {
     if (!conferirLink || !r.id) return;
     let vivo = true;
-    void consultarLiberacao(leadDoLink!, r.id).then((lead) => {
+    void consultarLiberacao(acessoDoLink!, r.id).then((lead) => {
       if (!vivo) return;
+      tirarAcessoDoEndereco();
       if (lead && !lerLiberacao(relatorio.ler(chave))?.completo)
         relatorio.liberar(chave, {
-          leadId: leadDoLink!,
+          ...("lead" in acessoDoLink! ? { leadId: acessoDoLink.lead } : {}),
           nome: lead.nome,
           empresa: lead.empresa,
           data: new Date().toLocaleDateString("pt-BR"),
@@ -243,7 +256,7 @@ function Pronto({
     return () => {
       vivo = false;
     };
-  }, [conferirLink, leadDoLink, r.id, chave]);
+  }, [conferirLink, acessoDoLink, r.id, chave]);
   // Voltou à página com o e-mail ainda "pendente" ou "nova tentativa": volta a perguntar ao servidor o estado real.
   const pendente = liberacao?.emailEstado === "pendente" || liberacao?.emailEstado === "nova-tentativa";
   const leadParaEmail = liberacao?.leadId;
@@ -290,7 +303,7 @@ function Pronto({
   async function copiar() {
     try {
       // Sem o `lead` do link do e-mail: quem recebe o link compartilhado passa pelas etapas.
-      await navigator.clipboard.writeText(window.location.href.replace(/&lead=[^&]*/, ""));
+      await navigator.clipboard.writeText(window.location.href.replace(/&(lead|k)=[^&]*/g, ""));
       setCopiado(true);
     } catch {
       setCopiado(false);

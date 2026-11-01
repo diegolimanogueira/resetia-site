@@ -71,8 +71,11 @@ export const nomeDaDimensao = (id: string) => dimensoes.find((d) => d.id === id)
  * leads antigos (criados pelo navegador, sem chave) levam o `&lead=` que libera o relatório em qualquer aparelho; os
  * novos não levam o id do lead no link, porque ele não autoriza nada.
  */
-export const linkRelatorio = (site: string, codigo: string, leadId: string | null) =>
-  `${site}/ai-score/resultado/#${codigo}${leadId ? `&lead=${leadId}` : ""}`;
+export const linkRelatorio = (site: string, codigo: string, leadId: string | null, token: string | null = null) =>
+  `${site}/ai-score/resultado/#${codigo}${token ? `&k=${token}` : leadId ? `&lead=${leadId}` : ""}`;
+
+/** Página de preferências de contato, aberta só com o token de finalidade `preferencias`. */
+export const linkPreferencias = (site: string, token: string) => `${site}/ai-score/preferencias/#k=${token}`;
 
 /** WhatsApp da Análise Estratégica com a nota e as duas maiores lacunas, como na tela de resultado. */
 export function whatsappDoResultado(r: RespostasCompletas) {

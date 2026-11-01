@@ -146,16 +146,21 @@ export async function enviarChamada(funcao: string, args: Record<string, unknown
   return guardarSe(await chamar(funcao, args), { tipo: "rpc", funcao, args });
 }
 
-/** Link do e-mail do relatório: confere o par (lead, avaliação) e devolve nome e empresa para liberar o relatório. */
-export async function consultarLiberacao(leadId: string, avaliacaoId: string) {
+/**
+ * Link do e-mail do relatório: confere o acesso e devolve nome e empresa para liberar o relatório. O token (e-mails
+ * novos) vale só para a avaliação a que pertence; o par de ids (`lead`) é o caminho dos e-mails antigos.
+ */
+export async function consultarLiberacao(acesso: { lead: string } | { token: string }, avaliacaoId: string) {
   if (!supabase.ativo) return null;
+  const token = "token" in acesso;
   try {
-    const r = await fetch(`${supabase.url}/rest/v1/rpc/lead_liberado`, {
+    const r = await fetch(`${supabase.url}/rest/v1/rpc/${token ? "ler_relatorio" : "lead_liberado"}`, {
       method: "POST",
       headers: cabecalhos(),
-      body: JSON.stringify({ p_lead: leadId, p_avaliacao: avaliacaoId }),
+      body: JSON.stringify(token ? { p_token: acesso.token } : { p_lead: acesso.lead, p_avaliacao: avaliacaoId }),
     });
-    const d = r.ok ? ((await r.json()) as { nome?: unknown; empresa?: unknown } | null) : null;
+    const d = r.ok ? ((await r.json()) as { nome?: unknown; empresa?: unknown; avaliacao?: unknown } | null) : null;
+    if (token && d?.avaliacao !== avaliacaoId) return null;
     return d && typeof d.nome === "string" && typeof d.empresa === "string"
       ? { nome: d.nome, empresa: d.empresa }
       : null;

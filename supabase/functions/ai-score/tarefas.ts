@@ -93,6 +93,26 @@ async function registrarTentativa(t: Tarefa, assunto: string, envio: Envio, prov
   }
 }
 
+/** Token aleatório de 32 bytes (43 caracteres): só o hash vai ao banco, e o token só existe no e-mail enviado. */
+function tokenAleatorio() {
+  const b = crypto.getRandomValues(new Uint8Array(32));
+  return btoa(String.fromCharCode(...b))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+}
+
+async function criarToken(leadId: string, finalidade: "ler-relatorio" | "preferencias", dias: number) {
+  const token = tokenAleatorio();
+  const r = await rpc("criar_token", {
+    p_lead: leadId,
+    p_finalidade: finalidade,
+    p_hash: await sha256hex(token),
+    p_dias: dias,
+  });
+  return r.estado === "ok" ? token : null;
+}
+
 async function tarefaDeEmail(t: Tarefa, deps: Dependencias) {
   const lead = await deps.carregarLead(t.lead_id);
   if (!lead?.empresa || !lead.avaliacao) return concluir(t, "cancelada", { erro: "lead sem empresa" });
@@ -120,6 +140,10 @@ async function tarefaDeEmail(t: Tarefa, deps: Dependencias) {
   }
 
   const dicas = await deps.obterDicas(lead.avaliacao.id, a);
+  // Acesso ao relatório: um token de finalidade restrita (180 dias) e outro só para as preferências de contato (365).
+  const leitura = await criarToken(lead.id, "ler-relatorio", 180);
+  const preferencias = await criarToken(lead.id, "preferencias", 365);
+  if (!leitura || !preferencias) return concluir(t, "nova-tentativa", { erro: "banco indisponível" });
   const email = nucleo.montarEmailRelatorio({
     nome: lead.nome,
     quem: nucleo.quemDoResumo(a.respostas, lead.empresa),
@@ -127,8 +151,9 @@ async function tarefaDeEmail(t: Tarefa, deps: Dependencias) {
     sintese: a.sintese,
     analise: a.analise,
     dicas,
-    // Só o lead antigo (sem chave) leva o id no link; o novo não (o id não autoriza nada).
-    link: nucleo.linkRelatorio(SITE, lead.avaliacao.codigo, lead.canal === "legado" ? lead.id : null),
+    // O id do lead nunca vai no link: o que abre o relatório é o token, que expira e pode ser revogado.
+    link: nucleo.linkRelatorio(SITE, lead.avaliacao.codigo, null, leitura),
+    preferencias: nucleo.linkPreferencias(SITE, preferencias),
     whatsapp: nucleo.whatsappDoResultado(a.respostas),
     site: SITE,
     nomesSolucoes: nucleo.nomesSolucoes,

@@ -1,8 +1,8 @@
--- Teste da cadeia completa de migrações (0001 a 0008) num Postgres local, com asserções que FALHAM com exceção
+-- Teste da cadeia completa de migrações (0001 a 0009) num Postgres local, com asserções que FALHAM com exceção
 -- (nada de comparar texto de saída). Rodar com: npm run test:banco. Cobre o que as migrações novas prometem:
 -- inventário de privilégios do anônimo e do logado, o caminho antigo ainda funcionando e mais apertado, as funções de
 -- captura (idempotência, conflito, atomicidade, chave errada, revisão fora de ordem), as tarefas do servidor, os
--- consentimentos por finalidade e canal e o preenchimento retroativo.
+-- consentimentos por finalidade e canal, os tokens de acesso (finalidade, expiração, revogação) e o preenchimento retroativo.
 \i supabase/tests/preparo.sql
 
 create schema teste;
@@ -52,6 +52,7 @@ insert into public.leads (id, avaliacao_id, nome, email, empresa, whatsapp, pedi
 
 \i supabase/migrations/0007_consentimentos.sql
 \i supabase/migrations/0008_captura.sql
+\i supabase/migrations/0009_tokens.sql
 
 \echo '--- retroativo: só o que foi marcado'
 select teste.afirmar('retroativo: quem só viu o resultado não ganha consentimento',
@@ -87,22 +88,22 @@ select teste.afirmar('anon: insere em leads só as 10 colunas que o site antigo 
    where a.attrelid = 'public.leads'::regclass and a.attnum > 0 and not a.attisdropped
      and has_column_privilege('anon', 'public.leads', a.attname, 'INSERT'))
   = (select array_agg(x order by x) from unnest(array['id','avaliacao_id','nome','email','email_pessoal','empresa','whatsapp','pediu_contato','consentimento_marketing','ambiente']) x));
-select teste.afirmar('anon: executa só ping, completar_lead e lead_liberado',
+select teste.afirmar('anon: executa só ping, completar_lead, lead_liberado e ler_relatorio',
   (select string_agg(p.proname, ',' order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
    where n.nspname = 'public' and p.prokind = 'f' and has_function_privilege('anon', p.oid, 'EXECUTE'))
-  = 'completar_lead,lead_liberado,ping');
-select teste.afirmar('logado: executa só eh_admin, ping, completar_lead e lead_liberado',
+  = 'completar_lead,lead_liberado,ler_relatorio,ping');
+select teste.afirmar('logado: executa só eh_admin, ping, completar_lead, lead_liberado, ler_relatorio e revogar_tokens',
   (select string_agg(p.proname, ',' order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
    where n.nspname = 'public' and p.prokind = 'f' and has_function_privilege('authenticated', p.oid, 'EXECUTE'))
-  = 'completar_lead,eh_admin,lead_liberado,ping');
+  = 'completar_lead,eh_admin,lead_liberado,ler_relatorio,ping,revogar_tokens');
 select teste.afirmar('logado: tabelas só para leitura (e atividades para registrar); alteração só por coluna',
   (select string_agg(c.relname || ':' || p, ',' order by c.relname, p) from pg_class c cross join unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE']) p
    join pg_namespace n on n.oid = c.relnamespace
    where n.nspname = 'public' and c.relkind = 'r' and has_table_privilege('authenticated', c.oid, p))
   = 'aprofundamentos:SELECT,atividades:INSERT,atividades:SELECT,avaliacoes:SELECT,consentimentos:SELECT,dicas:SELECT,emails:SELECT,leads:SELECT,relatorios:SELECT,tarefas:SELECT');
-select teste.afirmar('service_role executa as funções de captura, de tarefas e de consentimento',
-  (select count(*) = 9 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-   where n.nspname = 'public' and p.proname in ('registrar_avaliacao','registrar_captura','completar_captura','gravar_aprofundamento','pegar_tarefas','concluir_tarefa','consumir_limite','limpar_expirados','elegivel')
+select teste.afirmar('service_role executa as funções de captura, de tarefas, de consentimento e de token',
+  (select count(*) = 10 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname in ('registrar_avaliacao','registrar_captura','completar_captura','gravar_aprofundamento','pegar_tarefas','concluir_tarefa','consumir_limite','limpar_expirados','elegivel','criar_token')
      and has_function_privilege('service_role', p.oid, 'EXECUTE')));
 select teste.afirmar('toda tabela nova do schema public tem RLS ligado',
   (select bool_and(c.relrowsecurity) from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r'));
@@ -345,10 +346,69 @@ select teste.afirmar('emails: o estado aceito existe e o enviado antigo continua
   (select count(*) from public.emails where status = 'aceito') = 1);
 select teste.negar($q$insert into public.emails (lead_id, tipo, assunto, status) select id, 'relatorio', 'x', 'entregue' from public.leads limit 1$q$, '23514');
 
+\echo '--- tokens: finalidade restrita, expiração, revogação; o link antigo só vale para o que já existia'
+select encode(sha256(convert_to('token-de-leitura-0123456789abcdef', 'UTF8')), 'hex') as hash_leitura \gset
+select encode(sha256(convert_to('token-de-preferencias-0123456789', 'UTF8')), 'hex') as hash_pref \gset
+set role anon;
+select teste.negar(format('select public.criar_token(%L, %L, %L, 180)', 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'ler-relatorio', :'hash_leitura'));
+select teste.negar($q$select count(*) from public.tokens$q$);
+reset role;
+set role service_role;
+select public.criar_token('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'ler-relatorio', :'hash_leitura', 180);
+select public.criar_token('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'preferencias', :'hash_pref', 365);
+select teste.negar(format('select public.criar_token(%L, %L, %L, 0)', 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'ler-relatorio', repeat('a', 64)), '22023');
+select teste.negar(format('select public.criar_token(%L, %L, %L, 180)', 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'inventada', repeat('b', 64)), '23514');
+select teste.negar(format('select public.criar_token(%L, %L, %L, 180)', 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'ler-relatorio', 'curto'), '23514');
+reset role;
+select teste.afirmar('token: só o hash fica no banco, nunca o token',
+  (select count(*) = 2 and bool_and(token_hash ~ '^[0-9a-f]{64}$') from public.tokens));
+create temp table antes as select nome, empresa, status, atualizado_em from public.leads where id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1';
+set role anon;
+select teste.afirmar('ler_relatorio: o token de leitura devolve nome, empresa e a avaliação a que pertence',
+  (public.ler_relatorio('token-de-leitura-0123456789abcdef') ->> 'avaliacao') = 'a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1'
+  and (public.ler_relatorio('token-de-leitura-0123456789abcdef') ->> 'nome') = 'Maria Funcao');
+select teste.afirmar('ler_relatorio: token errado, curto ou nulo devolve nulo',
+  public.ler_relatorio('token-que-nao-existe-0123456789') is null and public.ler_relatorio('curto') is null and public.ler_relatorio(null) is null);
+select teste.afirmar('ler_relatorio: o token de preferências não abre o relatório (finalidade restrita)',
+  public.ler_relatorio('token-de-preferencias-0123456789') is null);
+reset role;
+select teste.afirmar('ler_relatorio: conta os usos e não altera o lead',
+  (select usos = 2 and ultimo_uso_em is not null from public.tokens where token_hash = :'hash_leitura')
+  and (select (a.nome, a.empresa, a.status, a.atualizado_em) is not distinct from (l.nome, l.empresa, l.status, l.atualizado_em)
+       from antes a, public.leads l where l.id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1'));
+update public.tokens set criado_em = now() - interval '200 days', expira_em = now() - interval '1 day' where token_hash = :'hash_leitura';
+set role anon;
+select teste.afirmar('ler_relatorio: token expirado devolve nulo', public.ler_relatorio('token-de-leitura-0123456789abcdef') is null);
+reset role;
+update public.tokens set criado_em = now(), expira_em = now() + interval '180 days' where token_hash = :'hash_leitura';
+set role anon;
+select teste.afirmar('ler_relatorio: com o prazo renovado volta a abrir', public.ler_relatorio('token-de-leitura-0123456789abcdef') is not null);
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
+select teste.negar($q$select public.revogar_tokens('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1')$q$);
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+select teste.afirmar('revogar_tokens: o admin revoga todos os tokens do lead', public.revogar_tokens('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1') = 2);
+select teste.afirmar('revogar_tokens: revogar de novo não encontra nada', public.revogar_tokens('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1') = 0);
+reset role;
+select teste.afirmar('revogar_tokens: guarda quem revogou e quando',
+  (select count(*) = 2 and bool_and(revogado_em is not null and revogado_por = '11111111-1111-4111-8111-111111111111') from public.tokens));
+set role anon;
+select teste.afirmar('ler_relatorio: token revogado devolve nulo', public.ler_relatorio('token-de-leitura-0123456789abcdef') is null);
+reset role;
+select teste.afirmar('lead_liberado: o lead novo (com chave) não abre pelo par de ids, mesmo com empresa',
+  (select public.lead_liberado(id, avaliacao_id) is null from public.leads where id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1'));
+update public.leads set criado_em = now() - interval '10 days' where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+select teste.afirmar('lead_liberado: o lead antigo (sem chave) continua abrindo pelo par, nos primeiros 180 dias',
+  (select (public.lead_liberado(id, avaliacao_id) ->> 'empresa') = 'Empresa Um' from public.leads where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'));
+update public.leads set criado_em = now() - interval '181 days' where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+select teste.afirmar('lead_liberado: depois de 180 dias o link antigo deixa de abrir',
+  (select public.lead_liberado(id, avaliacao_id) is null from public.leads where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'));
+
 \echo '--- apagar um lead leva tudo junto'
 delete from public.leads where id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1';
-select teste.afirmar('cascata: relatórios, consentimentos, tarefas e aprofundamento do lead apagado se vão com ele',
-  (select count(*) from public.relatorios) + (select count(*) from public.tarefas) + (select count(*) from public.aprofundamentos)
+select teste.afirmar('cascata: relatórios, consentimentos, tarefas, tokens e aprofundamento do lead apagado se vão com ele',
+  (select count(*) from public.relatorios) + (select count(*) from public.tarefas) + (select count(*) from public.aprofundamentos) + (select count(*) from public.tokens)
   + (select count(*) from public.consentimentos where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1') = 0);
 
 \echo 'CAPTURA_OK'

@@ -59,6 +59,7 @@ const rpcHandlers: Record<string, (a: Linha) => unknown> = {
   elegivel: (a) => banco.elegiveis.has(`${a.p_lead}|${a.p_finalidade}|${a.p_canal}`),
   pegar_tarefas: () => [],
   concluir_tarefa: (a) => String(a.p_status),
+  criar_token: () => null,
 };
 
 const json = (d: unknown, status = 200) =>
@@ -286,6 +287,11 @@ const CODIGO_V2 = CODIGO.replace("v=1&", "v=2&m=1&n=2&");
 const SEGREDO = { "x-processador": "segredo-do-agendador-teste" };
 const chamadas = (nome: string) => banco.rpcs.filter((r) => r.nome === nome);
 const ultima = (nome: string) => chamadas(nome).at(-1)!.args as Linha & { p: Linha };
+
+async function hashDe(texto: string) {
+  const h = new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto)));
+  return [...h].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
 function zerar() {
   banco.rpcs.length = 0;
@@ -679,6 +685,21 @@ Deno.test(
     const html = String(banco.envios[0].corpo.html);
     assert.equal(html.includes("lead="), false, "lead novo: o id não vai no link");
     assert.equal(html.includes(LEAD_NOVO), false);
+    // O acesso é um token por finalidade: só o hash vai ao banco, com a validade de cada um.
+    const [, tokenLeitura] = html.match(/resultado\/#[^"]*?&amp;k=([A-Za-z0-9_-]{43})"/) ?? [];
+    const [, tokenPreferencias] = html.match(/preferencias\/#k=([A-Za-z0-9_-]{43})"/) ?? [];
+    assert.ok(
+      tokenLeitura && tokenPreferencias && tokenLeitura !== tokenPreferencias,
+      "dois tokens distintos no e-mail",
+    );
+    assert.deepEqual(
+      chamadas("criar_token").map((c) => [c.args.p_finalidade, c.args.p_dias, c.args.p_hash, c.args.p_lead]),
+      [
+        ["ler-relatorio", 180, await hashDe(tokenLeitura), LEAD_NOVO],
+        ["preferencias", 365, await hashDe(tokenPreferencias), LEAD_NOVO],
+      ],
+    );
+    for (const c of chamadas("criar_token")) assert.equal(JSON.stringify(c.args).includes(tokenLeitura), false);
     assert.deepEqual(
       [concluida().p_status, concluida().p_provedor_id, concluida().p_id],
       ["aceito", "re_123", "tarefa-1"],
@@ -698,12 +719,30 @@ Deno.test(
   },
 );
 
-Deno.test("tarefa de e-mail: o lead antigo ainda leva o id no link (transição)", opcoes, async () => {
+Deno.test("tarefa de e-mail: nem o lead antigo leva o id no link; o token não amplia a exposição", opcoes, async () => {
   prepararEmail({ ...TAREFA, lead_id: LEAD });
   banco.elegiveis.add(`${LEAD}|relatorio-email|email`);
   await chamar({ acao: "processar" }, SEGREDO);
-  assert.equal(String(banco.envios[0].corpo.html).includes(`lead=${LEAD}`), true);
+  const html = String(banco.envios[0].corpo.html);
+  assert.equal(html.includes("lead="), false);
+  assert.match(html, /&amp;k=[A-Za-z0-9_-]{43}"/);
 });
+
+Deno.test(
+  "tarefa de e-mail: sem conseguir criar o token, nada é enviado e a tarefa tenta de novo",
+  opcoes,
+  async () => {
+    prepararEmail();
+    rpcHandlers.criar_token = () => json({ message: "fora do ar" }, 503);
+    try {
+      await chamar({ acao: "processar" }, SEGREDO);
+    } finally {
+      rpcHandlers.criar_token = () => null;
+    }
+    assert.equal(banco.envios.length, 0);
+    assert.deepEqual([concluida().p_status, concluida().p_erro], ["nova-tentativa", "banco indisponível"]);
+  },
+);
 
 Deno.test(
   "tarefa de e-mail: falha transitória tenta de novo, definitiva para, e nada é marcado como enviado",
