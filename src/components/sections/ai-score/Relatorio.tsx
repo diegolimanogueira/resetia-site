@@ -29,6 +29,25 @@ import { track } from "@/lib/analytics";
 import { chamarFuncao } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
+/**
+ * O aprofundamento é opcional e vem depois do relatório: o código só é baixado quando ele vai aparecer, fora do peso
+ * da página de resultado. (Um `import()` direto pesa menos que `next/dynamic` nesta rota, que está no limite.)
+ */
+function useAprofundamento(ativo: boolean) {
+  const [modulo, setModulo] = useState<typeof import("@/components/sections/ai-score/Aprofundamento") | null>(null);
+  useEffect(() => {
+    if (!ativo) return;
+    let vivo = true;
+    void import("@/components/sections/ai-score/Aprofundamento").then((m) => {
+      if (vivo) setModulo(m);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [ativo]);
+  return modulo?.aprofundamento ?? null;
+}
+
 const dimensao = (id: DimensaoId) => dimensoes.find((d) => d.id === id)!;
 const nomeNivel = (id: string | null) => niveis.find((n) => n.id === id)?.nome ?? null;
 
@@ -107,6 +126,8 @@ export function Relatorio({
   email?: { estado: EmailEstado; endereco: string };
 }) {
   const titulo = useRef<HTMLHeadingElement>(null);
+  const podeAprofundar = !demo && Boolean(avaliacaoId && leadId && chave);
+  const aprofundamento = useAprofundamento(podeAprofundar);
   useEffect(() => {
     if (focar) titulo.current?.focus();
   }, [focar]);
@@ -492,6 +513,10 @@ export function Relatorio({
           </div>
         </Bloco>
       ) : null}
+
+      {aprofundamento && avaliacaoId && leadId && chave
+        ? aprofundamento({ avaliacaoId, leadId, chave, areasEscolhidas: r.areas })
+        : null}
 
       <div className="border-line mt-16 break-inside-avoid border p-[22px] md:p-[30px]" data-assinatura>
         <p className="eyebrow text-verde mb-3 text-[11px]">{t.assinatura.titulo}</p>

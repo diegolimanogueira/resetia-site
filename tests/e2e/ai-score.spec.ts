@@ -3,6 +3,7 @@ import { expect, test, type Page } from "@playwright/test";
 import { semMarcas } from "@/components/ui/linhas";
 import { aiScore } from "@/content/ai-score";
 import { alertas } from "@/content/ai-score-analise";
+import { aprofundar as aprof } from "@/content/ai-score-aprofundamento";
 import {
   aprofundar,
   contato,
@@ -397,6 +398,242 @@ test.describe("RESET AI Score", () => {
     await expect(page.locator("[data-nota]")).toHaveText("34");
     expect(await fila(page)).toEqual([]);
     expect(funcao.filter((p) => p.acao === "registrar")).toHaveLength(1);
+  });
+
+  /** Etapa 2: a empresa libera o relatório completo (e com ele o convite ao aprofundamento). */
+  async function liberarRelatorio(page: Page) {
+    await page.getByLabel(formulario.campos.empresa, { exact: true }).fill("Empresa Teste");
+    await page.getByLabel(formulario.campos.whatsapp, { exact: true }).fill("(85) 99999-0000");
+    await page.getByRole("button", { name: formulario.enviar }).click();
+    await expect(page.getByRole("heading", { name: relatorio.titulo })).toBeVisible();
+  }
+
+  /** Chega ao convite do aprofundamento com o contato aceito (visão empresa, só Vendas: a área é conhecida). */
+  async function ateOAprofundamento(page: Page, comportamentos: Comportamentos = {}) {
+    const funcao = await interceptarFuncao(page, comportamentos);
+    await ateOContato(page);
+    await abrirResultado(page);
+    await liberarRelatorio(page);
+    const caixa = page.locator("[data-aprofundamento]");
+    await expect(caixa).toHaveAttribute("data-aprofundamento", "convite");
+    return { funcao, caixa, aprofundamentos: () => funcao.filter((p) => p.acao === "aprofundar") };
+  }
+
+  const opcao = (caixa: ReturnType<Page["locator"]>, nome: string | RegExp) =>
+    caixa.getByRole("radio", { name: nome, exact: typeof nome === "string" });
+  const seguinte = (caixa: ReturnType<Page["locator"]>) => caixa.getByRole("button", { name: aprof.proxima });
+  const salvar = (caixa: ReturnType<Page["locator"]>) => caixa.getByRole("button", { name: aprof.salvar });
+
+  /** Camada 1 inteira: propostas, 200 por mês, retrabalho. Termina no resumo do que foi salvo. */
+  async function responderCamada1(caixa: ReturnType<Page["locator"]>) {
+    await caixa.getByRole("button", { name: aprof.comecar }).click();
+    await opcao(caixa, "Elaboração de propostas").check();
+    await seguinte(caixa).click();
+    // A unidade da rotina escolhida já vem sugerida, e a pessoa pode trocá-la.
+    await expect(caixa.getByLabel(aprof.volume.unidade)).toHaveValue("propostas");
+    await caixa.getByLabel(aprof.volume.quantidade).fill("200");
+    await opcao(caixa, "por mês").check();
+    await seguinte(caixa).click();
+    await opcao(caixa, "Retrabalho").check();
+    await salvar(caixa).click();
+    await expect(caixa).toHaveAttribute("data-aprofundamento", "salvo");
+  }
+
+  test("aprofundamento: perguntas curtas, voltar, recarregar, salvar e corrigir; só o necessário vai à função", async ({
+    page,
+  }) => {
+    const { caixa, aprofundamentos } = await ateOAprofundamento(page);
+    const lead = (await page.evaluate(() => localStorage.getItem("resetia.ai-score.fila.v2"))) ?? "[]";
+    expect(JSON.parse(lead)).toEqual([]);
+
+    await caixa.getByRole("button", { name: aprof.comecar }).click();
+    await expect(caixa.getByText(aprof.passo(1, 3))).toBeVisible();
+    await expect(caixa.getByRole("heading", { name: aprof.rotina.pergunta })).toBeFocused();
+    await opcao(caixa, "Elaboração de propostas").check();
+    await seguinte(caixa).click();
+    await caixa.getByLabel(aprof.volume.quantidade).fill("200");
+    await opcao(caixa, "por mês").check();
+
+    // Recarregar mantém o relatório liberado e o rascunho, na mesma pergunta.
+    await page.reload();
+    await aguardarPronto(page);
+    await expect(caixa).toHaveAttribute("data-aprofundamento", "perguntas");
+    await expect(caixa.getByLabel(aprof.volume.quantidade)).toHaveValue("200");
+    await expect(opcao(caixa, "por mês")).toBeChecked();
+
+    // Voltar mantém o que foi respondido.
+    await caixa.getByRole("button", { name: aprof.voltar }).click();
+    await expect(opcao(caixa, "Elaboração de propostas")).toBeChecked();
+    await seguinte(caixa).click();
+    await seguinte(caixa).click();
+    await opcao(caixa, "Retrabalho").check();
+    expect(aprofundamentos()).toHaveLength(0);
+    await salvar(caixa).click();
+
+    await expect(caixa).toHaveAttribute("data-aprofundamento", "salvo");
+    await expect(caixa.locator("[data-salvo-estado='aceito']")).toHaveText(aprof.salvo.titulo);
+    await expect(caixa).toContainText(aprof.volume.resumo("200", "propostas", "mês"));
+    await expect(caixa).toContainText("Retrabalho");
+    await expect(caixa.locator("[data-esforco]")).toHaveCount(0);
+    expect(aprofundamentos()).toHaveLength(1);
+    const [enviado] = aprofundamentos();
+    // Só o aprofundamento, o lead e a chave: nada de nome, e-mail, empresa ou nota.
+    expect(Object.keys(enviado).sort()).toEqual(["acao", "aprofundamento", "chave", "lead_id"]);
+    expect(enviado.aprofundamento).toEqual({
+      area: "vendas",
+      camada: 1,
+      revisao: 1,
+      rotina: "propostas",
+      volume: 200,
+      unidade: "propostas",
+      periodo: "mes",
+      consequencia: "retrabalho",
+      ferramentas: [],
+      naoSei: [],
+    });
+    expect(JSON.stringify(enviado)).not.toMatch(/maria|Empresa Teste/i);
+
+    // Corrigir: a consequência vira "Não sei" e a revisão sobe (uma gravação atrasada nunca vence a nova).
+    await caixa.getByRole("button", { name: aprof.editar }).click();
+    await expect(opcao(caixa, "Elaboração de propostas")).toBeChecked();
+    await seguinte(caixa).click();
+    await seguinte(caixa).click();
+    await opcao(caixa, aprof.naoSei).check();
+    await salvar(caixa).click();
+    await expect(caixa).toHaveAttribute("data-aprofundamento", "salvo");
+    await expect(caixa.getByText(aprof.resumo.naoSei, { exact: true })).toBeVisible();
+    expect(aprofundamentos()).toHaveLength(2);
+    expect(aprofundamentos()[1].aprofundamento).toMatchObject({ revisao: 2, naoSei: ["consequencia"] });
+    expect(aprofundamentos()[1].aprofundamento).not.toHaveProperty("consequencia");
+
+    // O resumo continua depois de recarregar.
+    await page.reload();
+    await aguardarPronto(page);
+    await expect(caixa).toHaveAttribute("data-aprofundamento", "salvo");
+    await semViolacoes(page);
+  });
+
+  test("aprofundamento camada 2: 200 por mês × 15 min ÷ 60 = 50 h; sem o tempo, diz o que falta", async ({ page }) => {
+    const { caixa, aprofundamentos } = await ateOAprofundamento(page);
+    await responderCamada1(caixa);
+    await caixa.getByRole("button", { name: aprof.aprofundarMais }).click();
+    await expect(caixa.getByRole("heading", { name: aprof.camada2.minutos.pergunta })).toBeFocused();
+
+    await caixa.getByLabel(aprof.camada2.minutos.rotulo).fill("15");
+    const previa = caixa.locator("[data-esforco-conta]");
+    await expect(previa).toHaveText(aprof.esforco.formula("200", "propostas", "mês", "15", "50"));
+    await seguinte(caixa).click();
+    await caixa.getByLabel(aprof.camada2.ferramentas.rotulo).fill("CRM, planilha; crm");
+    await seguinte(caixa).click();
+    await opcao(caixa, "Temos parte, em lugares diferentes").check();
+    await seguinte(caixa).click();
+    await caixa.getByLabel(aprof.camada2.indicador.rotulo).fill("tempo de resposta");
+    await seguinte(caixa).click();
+    await opcao(caixa, "Eu decido").check();
+    await salvar(caixa).click();
+
+    await expect(caixa).toHaveAttribute("data-aprofundamento", "salvo");
+    const calculado = caixa.locator("[data-esforco='calculado']");
+    await expect(calculado.locator("[data-esforco-conta]")).toHaveText(
+      aprof.esforco.formula("200", "propostas", "mês", "15", "50"),
+    );
+    // Premissas visíveis e nenhuma conversão em dinheiro.
+    for (const premissa of aprof.esforco.premissas) await expect(calculado).toContainText(premissa);
+    await expect(caixa).not.toContainText(/R\$|economia de|reais/i);
+    expect(aprofundamentos().at(-1)?.aprofundamento).toMatchObject({
+      camada: 2,
+      minutos: 15,
+      ferramentas: ["CRM", "planilha"],
+      dados: "parcial",
+      indicador: "tempo de resposta",
+      papelDecisor: "decido",
+    });
+
+    // Corrigir e marcar "Não sei" no tempo: o esforço deixa de ser calculado e a tela diz o que falta.
+    await caixa.getByRole("button", { name: aprof.editar }).click();
+    for (let i = 0; i < 3; i++) await seguinte(caixa).click();
+    await caixa.getByRole("checkbox", { name: aprof.naoSei }).check();
+    for (let i = 0; i < 4; i++) await seguinte(caixa).click();
+    await salvar(caixa).click();
+    const incompleto = caixa.locator("[data-esforco='incompleto']");
+    await expect(incompleto).toContainText(aprof.esforco.falta.titulo);
+    await expect(incompleto).toContainText(aprof.esforco.falta.minutos);
+    await expect(incompleto).not.toContainText(aprof.esforco.falta.volume);
+    expect(aprofundamentos().at(-1)?.aprofundamento).toMatchObject({ revisao: 3, naoSei: ["minutos"] });
+  });
+
+  test("aprofundamento: números e textos inválidos param na pergunta, com a mensagem, e nada é enviado", async ({
+    page,
+  }) => {
+    const { caixa, aprofundamentos } = await ateOAprofundamento(page);
+    await caixa.getByRole("button", { name: aprof.comecar }).click();
+    await opcao(caixa, aprof.rotina.outra).check();
+    await caixa.getByLabel(aprof.rotina.outraRotulo).fill("ligar para ana@empresa.com");
+    await seguinte(caixa).click();
+    await expect(caixa.getByText("Não coloque e-mail nem telefone aqui.")).toBeVisible();
+    await expect(caixa).toHaveAttribute("data-aprofundamento", "perguntas");
+    await caixa.getByLabel(aprof.rotina.outraRotulo).fill("Triagem de pedidos");
+    await seguinte(caixa).click();
+
+    const volume = caixa.getByLabel(aprof.volume.quantidade);
+    for (const [valor, mensagem] of [
+      ["abc", "Informe um número maior que zero."],
+      ["0", "Informe um número maior que zero."],
+      ["100001", `Use um número de até ${(100_000).toLocaleString("pt-BR")}.`],
+      ["1,234", "Use no máximo duas casas decimais."],
+    ] as const) {
+      await volume.fill(valor);
+      await opcao(caixa, "por mês").check();
+      await seguinte(caixa).click();
+      await expect(caixa.getByText(mensagem), valor).toBeVisible();
+    }
+    // O volume pede unidade e período: sem eles, a pergunta não avança.
+    await volume.fill("1.500");
+    await caixa.getByLabel(aprof.volume.unidade).fill("pedidos");
+    await page
+      .locator("input[name='aprofundamento-periodo']")
+      .first()
+      .evaluate((el: HTMLInputElement) => (el.checked = false));
+    await seguinte(caixa).click();
+    expect(aprofundamentos()).toHaveLength(0);
+  });
+
+  test("aprofundamento: agora não, retomar, e em branco não grava", async ({ page }) => {
+    const { caixa, aprofundamentos } = await ateOAprofundamento(page);
+    await caixa.getByRole("button", { name: aprof.pular }).click();
+    await expect(caixa).toHaveAttribute("data-aprofundamento", "adiado");
+    await expect(caixa.getByText(aprof.adiado)).toBeVisible();
+    await caixa.getByRole("button", { name: aprof.retomar }).click();
+    await expect(caixa).toHaveAttribute("data-aprofundamento", "perguntas");
+    // Pular as três perguntas (deixar em branco) e tentar salvar: pede ao menos uma resposta.
+    await seguinte(caixa).click();
+    await seguinte(caixa).click();
+    await salvar(caixa).click();
+    await expect(caixa.getByRole("alert")).toBeVisible();
+    expect(aprofundamentos()).toHaveLength(0);
+  });
+
+  test("aprofundamento: função fora do ar ao salvar vira pendente e a fila reenvia com a mesma revisão", async ({
+    page,
+  }) => {
+    const { caixa, aprofundamentos } = await ateOAprofundamento(page, {
+      aprofundar: (n) => (n === 1 ? { status: 503, json: {} } : { json: { status: "gravado" } }),
+    });
+    await responderCamada1(caixa);
+    await expect(caixa.locator("[data-salvo-estado='pendente']")).toBeVisible();
+    await expect(caixa).toContainText(aprof.salvo.pendente);
+    await expect(caixa.locator("[data-salvo-estado='aceito']")).toBeVisible({ timeout: 30_000 });
+    expect(aprofundamentos().length).toBeGreaterThanOrEqual(2);
+    for (const p of aprofundamentos()) expect(p.aprofundamento).toMatchObject({ revisao: 1, volume: 200 });
+  });
+
+  test("aprofundamento: recusa do servidor mostra a mensagem e deixa corrigir", async ({ page }) => {
+    const { caixa } = await ateOAprofundamento(page, { aprofundar: () => ({ status: 422, json: { erro: "campos" } }) });
+    await responderCamada1(caixa);
+    await expect(caixa.locator("[data-salvo-estado='recusado']")).toBeVisible();
+    await expect(caixa).toContainText(aprof.salvo.recusado);
+    await caixa.getByRole("button", { name: aprof.editar }).click();
+    await expect(caixa).toHaveAttribute("data-aprofundamento", "perguntas");
   });
 
   test("visão por área: perguntas sobre a área, módulo da própria área e índice separado", async ({ page }) => {

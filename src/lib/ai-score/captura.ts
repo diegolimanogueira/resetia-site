@@ -9,7 +9,7 @@ import {
   type TipoItem,
   type Veredito,
 } from "./fila";
-import { atualizarLiberacao, lerOrigem, novoId, type EmailEstado } from "./navegador";
+import { atualizarLiberacao, lerOrigem, novoId, resolverAprofundamento, type EmailEstado } from "./navegador";
 
 /**
  * Captura do navegador para a função ai-score: avaliação, contato (etapas 1 e 2) e aprofundamento. Cada pedido é
@@ -38,6 +38,7 @@ function aplicar(item: Item, v: Veredito) {
   if (item.tipo === "registrar")
     atualizarLiberacao(item.avaliacaoId, { contato: v === "aceito" ? "aceito" : "recusado" });
   if (item.tipo === "completar" && v === "recusado") atualizarLiberacao(item.avaliacaoId, { contato: "recusado" });
+  if (item.tipo === "aprofundar") resolverAprofundamento(item.avaliacaoId, item.revisao, v);
   if (item.tipo === "completar" && v === "aceito") {
     atualizarLiberacao(item.avaliacaoId, { emailEstado: "pendente" });
     const { lead_id: leadId, chave } = item.corpo as { lead_id?: string; chave?: string };

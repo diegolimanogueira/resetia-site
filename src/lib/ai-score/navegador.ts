@@ -9,6 +9,8 @@ const CHAVES = {
   relatorio: (id: string) => `resetia.ai-score.relatorio.${id}`,
   pendentes: "resetia.ai-score.pendentes",
   fila: "resetia.ai-score.fila.v2",
+  aprofundamento: (id: string) => `resetia.ai-score.aprofundamento.${id}`,
+  aprofundamentoRascunho: (id: string) => `resetia.ai-score.aprofundamento-rascunho.${id}`,
   verComoAdmin: "resetia.ai-score.ver-como-admin",
   origem: "resetia.origem",
 };
@@ -175,6 +177,46 @@ export const filaDeCaptura = {
     }
   },
   gravar: (itens: unknown[]) => gravar(CHAVES.fila, itens.length ? JSON.stringify(itens) : null),
+};
+
+/**
+ * Aprofundamento: o que já foi salvo (com a revisão, que só cresce, para o servidor ignorar gravação atrasada) e,
+ * na sessão, o rascunho em andamento. As respostas ficam só neste navegador e na Reset: nunca no link do resultado.
+ */
+export interface AprofundamentoSalvo {
+  revisao: number;
+  situacao: Exclude<SituacaoDoContato, "desligado">;
+  /** O aprofundamento validado, como foi enviado. */
+  valor: Record<string, unknown>;
+}
+
+export const aprofundamentoSalvo = {
+  ler: (id: string) => ler(CHAVES.aprofundamento(id)),
+  gravar: (id: string, dados: AprofundamentoSalvo) => gravar(CHAVES.aprofundamento(id), JSON.stringify(dados)),
+};
+
+export function lerAprofundamentoSalvo(texto: string | null): AprofundamentoSalvo | null {
+  if (!texto) return null;
+  try {
+    const a = JSON.parse(texto) as Partial<AprofundamentoSalvo>;
+    const valor = a.valor && typeof a.valor === "object" && !Array.isArray(a.valor) ? a.valor : null;
+    if (!valor || typeof a.revisao !== "number" || !Number.isInteger(a.revisao) || a.revisao < 1) return null;
+    const situacao = a.situacao === "aceito" || a.situacao === "recusado" ? a.situacao : "pendente";
+    return { revisao: a.revisao, situacao, valor };
+  } catch {
+    return null;
+  }
+}
+
+/** Quando a fila resolve um aprofundamento, só vale se ainda for a revisão salva (uma mais nova segue como está). */
+export function resolverAprofundamento(id: string, revisao: number | undefined, situacao: "aceito" | "recusado") {
+  const atual = lerAprofundamentoSalvo(ler(CHAVES.aprofundamento(id)));
+  if (atual && atual.revisao === revisao) aprofundamentoSalvo.gravar(id, { ...atual, situacao });
+}
+
+export const aprofundamentoRascunho = {
+  ler: (id: string) => ler(CHAVES.aprofundamentoRascunho(id), "sessao"),
+  gravar: (id: string, texto: string | null) => gravar(CHAVES.aprofundamentoRascunho(id), texto, "sessao"),
 };
 
 /** Origem da visita (UTM, referrer, página de entrada), gravada na primeira página da sessão. */
