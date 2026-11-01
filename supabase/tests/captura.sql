@@ -566,6 +566,31 @@ delete from public.leads where id = 'e1000000-0000-4000-8000-000000000002';
 select teste.afirmar('cascata: os marcos e as atividades do lead apagado se vão com ele',
   (select count(*) from public.marcos where lead_id = 'e1000000-0000-4000-8000-000000000002') = 0);
 
+\echo '--- atualização dos consentimentos de leads criados pelo caminho antigo depois da 0007 (supabase/pendentes/atualizar_consentimentos_legado.sql)'
+insert into public.avaliacoes (id, escopo, papel, porte, segmento, respostas, desafios, horizonte, indice, nivel, parcial, dimensoes, codigo, versao)
+values ('e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', 'empresa', 'ceo', '50-199', 'tecnologia', '{}', array['comecar'], '3-meses', 34, 'explorando', false, '{}', 'v=1&e=empresa&atualizacao', '1');
+insert into public.leads (id, avaliacao_id, nome, email, email_pessoal, empresa, whatsapp, pediu_contato, consentimento_marketing) values
+  ('e6e6e6e6-e6e6-4e6e-8e6e-e6e6e6e6e6e6', 'e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', 'Legado Depois', 'legado@empresa.com.br', false, 'Empresa', '5511988887777', true, false),
+  ('e7e7e7e7-e7e7-4e7e-8e7e-e7e7e7e7e7e7', 'e5e5e5e5-e5e5-4e5e-8e5e-e5e5e5e5e5e5', 'So Viu', 'soviu@empresa.com.br', false, null, null, false, false);
+select teste.afirmar('atualização: o lead do caminho antigo criado depois da 0007 está sem consentimento',
+  (select count(*) = 0 from public.consentimentos where lead_id = 'e6e6e6e6-e6e6-4e6e-8e6e-e6e6e6e6e6e6'));
+\i supabase/pendentes/atualizar_consentimentos_legado.sql
+select teste.afirmar('atualização: reflete só o que foi marcado (relatório; contato por e-mail, WhatsApp e ligação; sem marketing)',
+  (select array_agg(finalidade || '/' || canal order by finalidade, canal) from public.consentimentos
+   where lead_id = 'e6e6e6e6-e6e6-4e6e-8e6e-e6e6e6e6e6e6')
+  = array['contato-analise/email', 'contato-analise/ligacao', 'contato-analise/whatsapp', 'relatorio-email/email']);
+select teste.afirmar('atualização: quem só viu o resultado continua sem registro',
+  (select count(*) = 0 from public.consentimentos where lead_id = 'e7e7e7e7-e7e7-4e7e-8e7e-e7e7e7e7e7e7'));
+create temp table total_consentimentos as select count(*) as n from public.consentimentos;
+\i supabase/pendentes/atualizar_consentimentos_legado.sql
+select teste.afirmar('atualização: rodar de novo não insere nada', (select count(*) = (select n from total_consentimentos) from public.consentimentos));
+
+\echo '--- verificação geral (supabase/verificar_migracoes.sql) no estado 0001 a 0010, o de produção antes das pendentes'
+\set grade `cat supabase/verificar_migracoes.sql`
+create temp table grade_resultado as :grade
+select teste.afirmar('verificação geral: nenhuma linha DIFERENTE (' || coalesce(string_agg(item, '; '), '') || ')', count(*) = 0)
+from grade_resultado where bate = 'DIFERENTE';
+
 \echo '--- pendentes: 0011 (o admin não lê whatsapp nem chave direto) e 0012 (fecha o caminho antigo)'
 set role authenticated;
 set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';

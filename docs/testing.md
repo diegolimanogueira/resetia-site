@@ -20,7 +20,7 @@ O site tem um objetivo: levar ao RESET AI Score e, dali, à conversa no WhatsApp
 
 ## Evolução do AI Score: o que os testes novos garantem
 
-Medido em 01/11/2026, na branch `feat/ai-score-evolucao`: unidade **282** (21 arquivos), banco **179** asserções, função **37** testes, E2E **294** execuções nos dois projetos (286 passando, 8 puladas de propósito), lint, tipos (`next typegen && tsc -p tsconfig.test.json`) e knip limpos.
+Medido em 01/11/2026, na branch `feat/ai-score-evolucao`: unidade **282** (21 arquivos), banco **184** asserções, função **37** testes, E2E **294** execuções nos dois projetos (286 passando, 8 puladas de propósito), lint, tipos (`next typegen && tsc -p tsconfig.test.json`) e knip limpos.
 
 | Risco                                    | Onde                                                           | O que o teste prova                                                                                                                                                                                                                                                                   |
 | ---------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

@@ -140,7 +140,9 @@ Rode as consultas Q1 em diante de `docs/ai-score-evolucao.md` ("Consultas de pro
 
 ### 1. Migrações `0005` a `0010`
 
-No SQL Editor do projeto `site_resetia`, cole **um arquivo por vez**, na ordem, e confira o resultado antes do seguinte. Se algum falhar, **pare**: não rode o próximo, guarde a mensagem de erro e confira o estado com a consulta abaixo. Todas só acrescentam colunas, tabelas e funções (o cabeçalho de cada arquivo diz a reversão).
+No SQL Editor do projeto `site_resetia`, cole **um arquivo por vez**, na ordem, e confira o resultado antes do seguinte. Se algum falhar, **pare**: não rode o próximo e guarde a mensagem de erro. Um script que falha no SQL Editor é desfeito inteiro (visto em produção em 01/11/2026: a 0009 falhou por falta da 0005 e não deixou nem a tabela), então o estado fica como estava. Todas só acrescentam colunas, tabelas e funções (o cabeçalho de cada arquivo diz a reversão).
+
+**Dependências:** a `0009` usa colunas da `0005` (`chave_hash`, `canal`) e a `0010` usa a tabela `tokens` da `0009`; as `0006` a `0008` não dependem da `0005` para serem criadas, mas só funcionam depois dela. Na dúvida, aplique na ordem numérica. O SQL Editor não registra o que roda em `supabase_migrations.schema_migrations`: confira o estado pelas consultas, não por essa tabela (e, se um dia usar `supabase db push`, registre antes com `supabase migration repair`).
 
 | Arquivo                            | O que acrescenta                                                                        |
 | ---------------------------------- | --------------------------------------------------------------------------------------- |
@@ -151,7 +153,7 @@ No SQL Editor do projeto `site_resetia`, cole **um arquivo por vez**, na ordem, 
 | `0009_tokens.sql`                  | `tokens` (hash, finalidade, validade, revogação), `ler_relatorio`, `revogar_tokens`     |
 | `0010_crm_marcos_preferencias.sql` | `marcos`, `primeira_resposta_em`, `contatos_permitidos()`, preferências por token       |
 
-Verificar depois de cada arquivo (o esperado é o objeto existir e nada de erro):
+Verificar depois da `0010`, com a grade de [supabase/verificar_migracoes.sql](../supabase/verificar_migracoes.sql) (só lê; toda linha deve dizer `ok`, e o teste de banco falha se alguma disser `DIFERENTE`). Rode **antes** das pendentes `0011` e `0012`, que mudam de propósito permissões que a grade confere. Para olhar um passo isolado, as consultas abaixo servem:
 
 ```sql
 -- Tabelas novas, todas com RLS ligado:
@@ -218,6 +220,8 @@ Com o site antigo ainda no ar, faça uma avaliação nele com um e-mail seu e co
 ### 5. Merge e publicação do site
 
 Abra o PR da branch, espere o CI verde (lint, tipos, unidade, build, HTML, peso, links, E2E, axe, visual, Lighthouse) e só então faça o merge. **A DO publica antes de o CI terminar** (memória do projeto): valide tudo localmente (`npm run build && npm run lint && npm run typecheck && npm run test && npm run check:rotas`) e confira que o `.env.production` está completo; o build de produção **falha** sem o Supabase configurado, a menos que `RESETIA_MODO=demo|teste`, de propósito (`scripts/configuracao-build.mjs`). O staging (GitHub Pages, `RESETIA_MODO=demo`) atualiza junto.
+
+**Antes do merge, atualize os consentimentos.** O site e a função antigos não gravam consentimento, então todo lead criado por eles **depois da `0007`** ficou sem registro, e o painel novo só libera contato com consentimento registrado: quem marcou "quero contato" apareceria como "não quer". Rode [supabase/pendentes/atualizar_consentimentos_legado.sql](../supabase/pendentes/atualizar_consentimentos_legado.sql) no SQL Editor: repete a regra da `0007` só para leads que ainda não têm nenhum registro (reflete o que a pessoa marcou, nada além) e é idempotente. Confira com a linha "leads que marcaram algo e estão sem nenhum consentimento" da grade, que deve dar `0`. Rode de novo logo antes do merge, para pegar quem chegou nesse intervalo.
 
 ### 6. Smoke completo em produção
 

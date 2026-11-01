@@ -270,7 +270,7 @@ where routine_schema = 'public' and grantee in ('anon', 'authenticated', 'PUBLIC
 
 **Trava de publicação (`scripts/configuracao-build.mjs`):** o build de produção falha sem o Supabase, a menos que `RESETIA_MODO=demo` (prévias; `pages.yml`) ou `teste` (CI; `ci.yml`). Um valor desconhecido também falha.
 
-**Testes novos:** unidade (`admin`, `conversas`, `analytics`, `consentimentos`, `configuracao-build`), asserções de banco para marcos, primeira resposta e `contatos_permitidos`, mais as de 0011 e 0012 num Postgres local, testes da ação `preferencias` na função e o E2E do painel (`admin.spec.ts`, 3 testes). **Resultados (L, medidos em 01/11):** unidade 282, banco OK (179 asserções), função 37, lint, tipos e knip limpos.
+**Testes novos:** unidade (`admin`, `conversas`, `analytics`, `consentimentos`, `configuracao-build`), asserções de banco para marcos, primeira resposta e `contatos_permitidos`, mais as de 0011 e 0012 num Postgres local, testes da ação `preferencias` na função e o E2E do painel (`admin.spec.ts`, 3 testes). **Resultados (L, medidos em 01/11):** unidade 282, banco OK (184 asserções), função 37, lint, tipos e knip limpos.
 
 **Peso:** painel 228,4 kB (teto 240; foi de 243 a 228 carregando a gaveta e as abas sob demanda); resultado e exemplo 224,9 (teto 225); avaliação 217,3.
 
@@ -317,7 +317,7 @@ where routine_schema = 'public' and grantee in ('anon', 'authenticated', 'PUBLIC
 | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `lint`, `typecheck` (`tsconfig.test.json`), `knip`            | limpos                                                                                                                                                        |
 | Unidade                                                       | 282 em 21 arquivos                                                                                                                                            |
-| Banco (`test:banco`) e função (`test:funcao`)                 | 179 asserções; 37 testes                                                                                                                                      |
+| Banco (`test:banco`) e função (`test:funcao`)                 | 184 asserções; 37 testes                                                                                                                                      |
 | E2E completo, Chromium desktop e WebKit celular               | 286 passando, 8 pulados de propósito, 0 falhas; depois da última correção, AI Score, painel e home de novo: 63 passando, 1 pulado                             |
 | `check:html`, `check:links`, `check:falta`                    | sem erro; 959 links internos OK, 0 quebrados; nenhuma pendência `[FALTA]`                                                                                     |
 | `check:size`                                                  | JS 359,9 kB (teto 380), CSS 9,8 de 20, imagens da home 47,9 de 50                                                                                             |
