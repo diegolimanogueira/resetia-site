@@ -142,6 +142,10 @@ export const seo = {
     title: "Seu resultado RESET AI Score | Reset IA",
     description: "Seu AI Score: nota de 0 a 100, nível de maturidade em IA, resultado por dimensão e próximos passos.",
   },
+  aiScorePreferencias: {
+    title: "Preferências de contato | Reset IA",
+    description: "Escolha como a Reset IA pode falar com você sobre o seu RESET AI Score.",
+  },
   privacidade: {
     title: "Política de privacidade | Reset IA",
     description:

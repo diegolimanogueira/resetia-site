@@ -1,5 +1,6 @@
 import { emailRelatorio as er, emailReset } from "@/content/ai-score-email";
-import { dimensoes, niveis, relatorio } from "@/content/ai-score-questionario";
+import { assinatura } from "@/content/ai-score-sintese";
+import { dimensoes, niveis } from "@/content/ai-score-questionario";
 import type { DimensaoId } from "@/content/types";
 import type { Analise } from "./analisar";
 import { formatarNota } from "./calcular";
@@ -150,8 +151,8 @@ export function montarEmailRelatorio(d: DadosEmailRelatorio) {
     h2(er.conversa.titulo),
     p(er.conversa.texto),
     botao(er.conversa.botao, d.whatsapp),
-    h2(relatorio.assinatura.titulo),
-    relatorio.assinatura.paragrafos.map((t) => p(t, `color:${COR.apoio};font-size:13px;`)).join(""),
+    h2(assinatura.titulo),
+    assinatura.paragrafos.map((t) => p(t, `color:${COR.apoio};font-size:13px;`)).join(""),
   ].join("\n");
 
   const texto = [
@@ -182,7 +183,7 @@ export function montarEmailRelatorio(d: DadosEmailRelatorio) {
     "",
     `${er.conversa.titulo} ${d.whatsapp}`,
     "",
-    ...relatorio.assinatura.paragrafos,
+    ...assinatura.paragrafos,
   ]
     .filter((l, i, arr) => l !== "" || arr[i - 1] !== "")
     .join("\n");

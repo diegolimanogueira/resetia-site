@@ -341,12 +341,12 @@ export function Relatorio({
         )}
       </Bloco>
 
-      <Bloco titulo={t.dicas.titulo} nota={t.dicas.nota}>
+      <Bloco titulo={sintese.dicas.titulo} nota={sintese.dicas.nota}>
         {!alvos.length ? (
-          <p className="text-[15px]">{t.dicas.nenhuma}</p>
+          <p className="text-[15px]">{sintese.dicas.nenhuma}</p>
         ) : !dicas ? (
           <p aria-live="polite" className="border-line bg-painel border p-[22px] text-[15px]">
-            {t.dicas.carregando}
+            {sintese.dicas.carregando}
           </p>
         ) : (
           <>
@@ -374,7 +374,7 @@ export function Relatorio({
               ))}
             </div>
             <p className="text-fg-2 mt-4 text-[13px]" data-fonte-dicas={dicas.fonte}>
-              {t.dicas.fonte[dicas.fonte]}
+              {sintese.dicas.fonte[dicas.fonte]}
             </p>
           </>
         )}
@@ -592,8 +592,8 @@ export function Relatorio({
         : null}
 
       <div className="border-line mt-16 break-inside-avoid border p-[22px] md:p-[30px]" data-assinatura>
-        <p className="eyebrow text-verde mb-3 text-[11px]">{t.assinatura.titulo}</p>
-        {t.assinatura.paragrafos.map((paragrafo) => (
+        <p className="eyebrow text-verde mb-3 text-[11px]">{sintese.assinatura.titulo}</p>
+        {sintese.assinatura.paragrafos.map((paragrafo) => (
           <p key={paragrafo} className="text-fg-2 mb-3 text-[14px] leading-[1.65] last:mb-0">
             {paragrafo}
           </p>

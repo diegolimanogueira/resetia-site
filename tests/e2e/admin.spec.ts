@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { admin } from "@/content/admin";
+import { adminCanais, adminFicha, adminFila, adminMarcos, adminOperacao, adminTokens } from "@/content/admin-conversas";
 
 const AVALIACOES: Array<Record<string, unknown> & { codigo: string }> = [
   {
@@ -36,6 +37,9 @@ const AVALIACOES: Array<Record<string, unknown> & { codigo: string }> = [
         responsavel: null,
         proximo_contato: null,
         relatorio_enviado_em: null,
+        pedido_conversa_em: "2026-10-28T13:00:00Z",
+        primeira_resposta_em: null,
+        canal: "funcao",
         ambiente: "producao",
       },
     ],
@@ -51,11 +55,28 @@ AVALIACOES.push({
 
 const LEAD_ID = "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d";
 
+const TODOS_OS_CANAIS = [{ lead_id: LEAD_ID, email: true, whatsapp: true, ligacao: true, telefone: "5585999990000" }];
+const NENHUM_CANAL = [{ lead_id: LEAD_ID, email: false, whatsapp: false, ligacao: false, telefone: null }];
+
+interface Opcoes {
+  /** O que `contatos_permitidos` responde (lista), ou `null` para o banco fora do ar. */
+  contatos?: Array<{
+    lead_id: string;
+    email: boolean;
+    whatsapp: boolean;
+    ligacao: boolean;
+    telefone: string | null;
+  }> | null;
+}
+
 /** Simula GoTrue, PostgREST e a função ai-score (o CI builda com uma URL fictícia do Supabase). */
-async function simularSupabase(page: Page) {
+async function simularSupabase(page: Page, opcoes: Opcoes = {}) {
   const patches: unknown[] = [];
   const atividades: Array<Record<string, unknown>> = [];
   const funcao: Array<Record<string, unknown>> = [];
+  const marcos: Array<Record<string, unknown>> = [];
+  const escritas: Array<{ caminho: string; metodo: string; corpo: unknown }> = [];
+  const contatos = opcoes.contatos === undefined ? TODOS_OS_CANAIS : opcoes.contatos;
   await page.route("**/auth/v1/token**", async (rota) => {
     const corpo = rota.request().postDataJSON() as { password?: string };
     if (corpo.password !== "senha-certa") return rota.fulfill({ status: 400, json: { error: "invalid_grant" } });
@@ -73,6 +94,63 @@ async function simularSupabase(page: Page) {
     const caminho = new URL(r.url()).pathname;
     expect(r.headers()["authorization"]).toBe("Bearer token");
     if (caminho.endsWith("/rpc/eh_admin")) return rota.fulfill({ json: true });
+    if (caminho.endsWith("/rpc/contatos_permitidos"))
+      return contatos ? rota.fulfill({ json: contatos }) : rota.fulfill({ status: 500, json: {} });
+    if (caminho.endsWith("/rpc/revogar_tokens") || caminho.endsWith("/rpc/reprocessar_tarefa")) {
+      escritas.push({ caminho, metodo: r.method(), corpo: r.postDataJSON() });
+      return rota.fulfill({ json: caminho.endsWith("revogar_tokens") ? 2 : true });
+    }
+    if (caminho.endsWith("/marcos")) {
+      if (r.method() === "POST") {
+        const novo = r.postDataJSON() as Record<string, unknown>;
+        marcos.unshift({
+          ...novo,
+          id: `m${marcos.length}`,
+          ocorrido_em: novo.ocorrido_em ?? "2026-10-28",
+          observacao: novo.observacao ?? null,
+          valor_informado: novo.valor_informado ?? null,
+        });
+        return rota.fulfill({ status: 201 });
+      }
+      if (r.method() === "DELETE") {
+        marcos.length = 0;
+        return rota.fulfill({ status: 204 });
+      }
+      return rota.fulfill({ json: marcos });
+    }
+    if (caminho.endsWith("/consentimentos")) {
+      escritas.push({ caminho, metodo: r.method(), corpo: r.postDataJSON() });
+      return rota.fulfill({ status: 201 });
+    }
+    if (caminho.endsWith("/aprofundamentos")) return rota.fulfill({ json: [] });
+    if (caminho.endsWith("/tarefas"))
+      return rota.fulfill({
+        json: [
+          {
+            id: "t1",
+            tipo: "email-relatorio",
+            lead_id: LEAD_ID,
+            status: "falhou",
+            tentativas: 5,
+            max_tentativas: 5,
+            tentar_em: "2026-10-28T14:00:00Z",
+            ultimo_erro: "tempo esgotado",
+            atualizada_em: "2026-10-28T14:00:00Z",
+          },
+          {
+            id: "t2",
+            tipo: "dicas",
+            lead_id: LEAD_ID,
+            status: "concluida",
+            tentativas: 1,
+            max_tentativas: 5,
+            tentar_em: "2026-10-28T13:10:00Z",
+            ultimo_erro: null,
+            atualizada_em: "2026-10-28T13:10:00Z",
+          },
+        ],
+      });
+    if (new URL(r.url()).searchParams.get("canal")) return rota.fulfill({ json: [] });
     if (r.method() === "PATCH") {
       patches.push(r.postDataJSON());
       return rota.fulfill({ status: 204 });
@@ -95,11 +173,14 @@ async function simularSupabase(page: Page) {
   });
   // E-mail ainda não configurado: a função responde "nao-configurado".
   await page.route("**/functions/v1/ai-score", async (rota) => {
-    funcao.push(rota.request().postDataJSON() as Record<string, unknown>);
-    await rota.fulfill({ json: { status: "nao-configurado" } });
+    const corpo = rota.request().postDataJSON() as Record<string, unknown>;
+    funcao.push(corpo);
+    await rota.fulfill({
+      json: corpo.acao === "processar" ? { processadas: 1, falhas: 0 } : { status: "nao-configurado" },
+    });
   });
   await page.context().route("https://wa.me/**", (rota) => rota.fulfill({ body: "" }));
-  return { patches, atividades, funcao };
+  return { patches, atividades, funcao, marcos, escritas };
 }
 
 const semViolacoes = (page: Page) =>
@@ -122,7 +203,7 @@ test("admin: login, indicadores, funil, gaveta do lead, atividades, e-mail, list
     return;
   }
 
-  const { patches, atividades, funcao } = await simularSupabase(page);
+  const { patches, atividades, funcao, marcos, escritas } = await simularSupabase(page);
   await page.getByLabel(admin.login.email).fill("admin@resetia.com.br");
   await page.getByLabel(admin.login.senha).fill("senha-errada");
   await page.getByRole("button", { name: admin.login.entrar }).click();
@@ -138,6 +219,9 @@ test("admin: login, indicadores, funil, gaveta do lead, atividades, e-mail, list
   await expect(indicador(admin.indicadores.semLead)).toContainText("1");
   await expect(indicador(admin.indicadores.leads)).toContainText("1");
   await expect(indicador(admin.indicadores.pediram)).toContainText("1");
+  // A conversão mostra o denominador, sobre todos os leads, e a outra taxa tem nome próprio.
+  await expect(indicador(admin.indicadores.conversao)).toContainText("0 de 1 · 0%");
+  await expect(indicador(admin.indicadores.conversaoSemDescartados)).toContainText("0 de 1 · 0%");
   await expect(page.getByRole("button", { name: admin.vistas.funil })).toHaveAttribute("aria-pressed", "true");
   await expect(page.locator("[data-etapa='novo']")).toContainText("Maria Teste");
   const cartao = page.locator(`[data-lead='${LEAD_ID}']`);
@@ -179,6 +263,43 @@ test("admin: login, indicadores, funil, gaveta do lead, atividades, e-mail, list
   );
   await semViolacoes(page);
 
+  // Ficha de preparação, pontuações separadas, canais liberados pelo banco e marcos do funil.
+  const ficha = gaveta.locator("[data-ficha]");
+  await expect(ficha.getByRole("heading", { name: adminFicha.titulo })).toBeVisible();
+  for (const secao of ["perfil", "dor", "sustentacao", "hipotese", "faltam", "perguntas", "piloto", "proximo"])
+    await expect(ficha.locator(`[data-ficha-secao='${secao}']`)).toBeVisible();
+  await expect(ficha.locator("[data-ficha-secao='proximo']")).toContainText("Responder ao pedido de conversa");
+  await expect(ficha).not.toContainText("maria@empresa.com.br");
+  await expect(ficha).not.toContainText("5585999990000");
+  for (const nome of [
+    admin.detalhe.pontuacoes.aderencia,
+    admin.detalhe.pontuacoes.intencao,
+    admin.detalhe.pontuacoes.oportunidade,
+  ])
+    await expect(gaveta.locator(`[data-pontuacao='${nome}']`)).toBeVisible();
+  await expect(gaveta.locator("[data-canal='whatsapp']")).toHaveAttribute("data-liberado", "true");
+  await gaveta.getByRole("button", { name: adminMarcos.registrar }).click();
+  await expect(gaveta.locator("[data-marco='reuniao-agendada']")).toBeVisible();
+  expect(marcos[0]).toMatchObject({ lead_id: LEAD_ID, tipo: "reuniao-agendada" });
+  await gaveta.getByLabel(adminMarcos.valor).fill("1.500,50");
+  await gaveta.getByLabel(adminMarcos.tipo).selectOption("proposta-enviada");
+  await gaveta.getByRole("button", { name: adminMarcos.registrar }).click();
+  await expect(gaveta.locator("[data-marco='proposta-enviada']")).toContainText("1.500,50");
+  expect(marcos[0]).toMatchObject({ tipo: "proposta-enviada", valor_informado: 1500.5 });
+  // Revogar os links do relatório e registrar que a pessoa pediu para parar (a equipe só revoga, nunca concede).
+  await gaveta.getByRole("button", { name: adminTokens.revogar }).click();
+  await expect(gaveta.getByText(adminTokens.revogados(2))).toBeVisible();
+  expect(escritas.find((e) => e.caminho.endsWith("revogar_tokens"))?.corpo).toEqual({ p_lead: LEAD_ID });
+  await gaveta.locator("[data-canal='ligacao']").getByRole("button", { name: adminCanais.revogar }).click();
+  await expect(gaveta.getByText(adminCanais.revogado)).toBeVisible();
+  expect(escritas.find((e) => e.caminho.endsWith("consentimentos"))?.corpo).toMatchObject({
+    lead_id: LEAD_ID,
+    finalidade: "contato-analise",
+    canal: "ligacao",
+    concedido: false,
+    fonte: "admin-revogacao",
+  });
+
   // Abrir o WhatsApp registra o contato.
   const popup = page.waitForEvent("popup");
   await wa.click();
@@ -209,7 +330,7 @@ test("admin: login, indicadores, funil, gaveta do lead, atividades, e-mail, list
   // Registrar uma ligação.
   await gaveta.getByLabel(admin.detalhe.atividades.tipo).selectOption("ligacao");
   await gaveta.getByLabel(admin.detalhe.atividades.texto).fill("Pediu proposta para o time de vendas");
-  await gaveta.getByRole("button", { name: admin.detalhe.atividades.registrar }).click();
+  await gaveta.getByRole("button", { name: admin.detalhe.atividades.registrar, exact: true }).click();
   await expect(gaveta.getByText("Pediu proposta para o time de vendas")).toBeVisible();
   expect(atividades[0]).toMatchObject({ tipo: "ligacao", lead_id: LEAD_ID });
 
@@ -250,6 +371,71 @@ test("admin: login, indicadores, funil, gaveta do lead, atividades, e-mail, list
   await page.getByRole("button", { name: admin.exportar }).click();
   expect((await download).suggestedFilename()).toMatch(/^leads-ai-score-\d{4}-\d{2}-\d{2}\.csv$/);
 
+  // Fila de pedidos de conversa: o pedido sem primeira resposta aparece com as pendências.
+  await page.getByRole("button", { name: admin.vistas.conversas }).click();
+  const fila = page.locator("[data-fila]");
+  await expect(fila.getByRole("heading", { name: adminFila.titulo })).toBeVisible();
+  await expect(fila.locator(`[data-fila-lead='${LEAD_ID}']`)).toContainText(adminFila.naoRespondido);
+  await expect(fila.locator(`[data-fila-lead='${LEAD_ID}']`)).toContainText(adminFila.pendencias["sem-resposta"]);
+  // Pedido anterior ao momento guardado ou respondido: sem tempo mediano, o painel diz que não há base.
+  await expect(fila.locator("[data-fila-base]")).toContainText(adminFila.resumo.semBase);
+  await semViolacoes(page);
+
+  // Operação do servidor: analytics, caminho antigo, tarefas e reprocessamento.
+  await page.getByRole("button", { name: admin.vistas.operacao }).click();
+  const operacao = page.locator("[data-operacao]");
+  await expect(operacao.locator("[data-analytics='desligado']")).toContainText(adminOperacao.analytics.desligado);
+  await expect(operacao.locator("[data-legado]")).toContainText("Nos últimos 7 dias: 0 leads e 0 avaliações");
+  await expect(operacao.locator("[data-tarefa='falhou']")).toContainText("tempo esgotado");
+  await operacao
+    .locator("[data-tarefa='falhou']")
+    .getByRole("button", { name: adminOperacao.tarefas.reprocessar })
+    .click();
+  await expect(operacao.getByText(adminOperacao.tarefas.reprocessada)).toBeVisible();
+  expect(escritas.find((e) => e.caminho.endsWith("reprocessar_tarefa"))?.corpo).toEqual({ p_id: "t1" });
+  await operacao.getByRole("button", { name: adminOperacao.tarefas.processar }).click();
+  await expect(operacao.getByText(adminOperacao.tarefas.processado(1, 0))).toBeVisible();
+  expect(funcao.at(-1)).toMatchObject({ acao: "processar" });
+  await expect(operacao.locator("[data-funil]")).toContainText(adminOperacao.funil.semAnalytics);
+
   await page.getByRole("button", { name: admin.sair }).click();
   await expect(page.getByRole("button", { name: admin.login.entrar })).toBeVisible();
+});
+
+test("admin: sem a escolha da pessoa, não há botão de WhatsApp, ligação nem número na tela", async ({ page }) => {
+  await page.goto("/ai-score/");
+  test.skip((await page.locator("main").getAttribute("data-ai-score-modo")) !== "producao", "só com Supabase");
+  await page.goto("/admin/");
+  await simularSupabase(page, { contatos: NENHUM_CANAL });
+  await page.getByLabel(admin.login.email).fill("admin@resetia.com.br");
+  await page.getByLabel(admin.login.senha).fill("senha-certa");
+  await page.getByRole("button", { name: admin.login.entrar }).click();
+  const cartao = page.locator(`[data-lead='${LEAD_ID}']`);
+  await expect(cartao).toBeVisible();
+  await expect(cartao.getByRole("link", { name: admin.detalhe.acoes.whatsapp })).toHaveCount(0);
+  await page.getByRole("button", { name: admin.funil.abrir("Maria Teste") }).click();
+  const gaveta = page.getByRole("dialog", { name: "Maria Teste" });
+  await expect(gaveta.locator("[data-canal='whatsapp']")).toHaveAttribute("data-liberado", "false");
+  await expect(gaveta.getByRole("link", { name: /\+5585999990000/ })).toHaveCount(0);
+  await expect(gaveta.getByRole("link", { name: admin.detalhe.acoes.ligar })).toHaveCount(0);
+  await expect(gaveta.getByText(adminCanais.semNenhum)).toBeVisible();
+  await expect(gaveta.getByText("5585999990000")).toHaveCount(0);
+  await semViolacoes(page);
+});
+
+test("admin: se o banco não confirma as escolhas, nenhum canal é liberado por segurança", async ({ page }) => {
+  await page.goto("/ai-score/");
+  test.skip((await page.locator("main").getAttribute("data-ai-score-modo")) !== "producao", "só com Supabase");
+  await page.goto("/admin/");
+  await simularSupabase(page, { contatos: null });
+  await page.getByLabel(admin.login.email).fill("admin@resetia.com.br");
+  await page.getByLabel(admin.login.senha).fill("senha-certa");
+  await page.getByRole("button", { name: admin.login.entrar }).click();
+  await page.getByRole("button", { name: admin.funil.abrir("Maria Teste") }).click();
+  const gaveta = page.getByRole("dialog", { name: "Maria Teste" });
+  await expect(gaveta.locator("[data-canais='falhou']")).toContainText(adminCanais.falhou);
+  await expect(gaveta.getByRole("link", { name: /\+5585999990000/ })).toHaveCount(0);
+  await expect(
+    page.locator(`[data-lead='${LEAD_ID}']`).getByRole("link", { name: admin.detalhe.acoes.whatsapp }),
+  ).toHaveCount(0);
 });

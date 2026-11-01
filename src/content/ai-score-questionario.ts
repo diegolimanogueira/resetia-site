@@ -774,19 +774,6 @@ export const relatorio = {
     nota: "Perguntas respondidas com Não sei. Elas ficam fora da nota, mas mostram onde falta visibilidade.",
     nenhum: "Nenhum: todas as perguntas foram respondidas.",
   },
-  dicas: {
-    titulo: "Dicas para evoluir",
-    nota: "Para cada dimensão de nota baixa, ações concretas para chegar ao próximo estágio, a partir das suas respostas.",
-    carregando: "Os agentes de IA estão escrevendo e revisando as suas dicas…",
-    nenhuma: "Nenhuma dimensão ficou com nota baixa. O roteiro de 90 dias mostra como seguir evoluindo.",
-    fonte: {
-      ia: "Escritas por um agente de IA a partir das suas respostas e conferidas por um agente revisor.",
-      biblioteca:
-        "Da biblioteca de dicas da Reset, escrita com IA e revisada por um agente revisor, escolhidas pelas suas respostas.",
-      misto:
-        "Escritas por um agente de IA e conferidas por um agente revisor; onde a revisão descartou dicas, entram as da biblioteca da Reset.",
-    },
-  },
   /** Estado REAL do envio por e-mail, como o servidor informa. "Aceito" é o provedor ter aceitado, não a mensagem ter chegado. */
   email: {
     pendente: (e: string) => `Estamos preparando uma cópia deste relatório para ${e}.`,
@@ -799,14 +786,6 @@ export const relatorio = {
     limite: (e: string) => `O limite de envios para ${e} foi atingido hoje. O PDF abaixo continua disponível.`,
   },
   enviado: (email: string) => `Uma cópia deste relatório foi enviada para ${email}.`,
-  assinatura: {
-    titulo: "Relatório gerado por um squad multiagente de IA",
-    paragrafos: [
-      "Este relatório foi produzido por um squad de agentes de inteligência artificial da Reset IA, cada um com uma função: um motor de regras calcula a nota, o nível, as prioridades e o plano a partir das suas respostas; um agente escreve as dicas de evolução; e um agente revisor confere cada dica contra as suas respostas e descarta o que não se apoia nelas.",
-      "A nota não é gerada por IA: as mesmas respostas dão sempre o mesmo resultado, pela metodologia própria da Reset.",
-      "Por ser uma autoavaliação, e por envolver IA, o resultado deve ser conferido: valide as conclusões com a sua equipe antes de decidir. Ele não substitui a análise de um especialista nem é certificação.",
-    ],
-  },
   areas: "Aplicação de IA por atividade",
   baixar: "Baixar PDF",
   gerandoPdf: "Gerando o PDF…",

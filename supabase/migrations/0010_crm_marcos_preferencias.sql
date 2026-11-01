@@ -68,10 +68,11 @@ create policy "admin registra marco" on public.marcos for insert to authenticate
 create policy "admin corrige marco" on public.marcos for delete to authenticated using ((select public.eh_admin()));
 
 -- Contatos permitidos -----------------------------------------------------------------------------------------------
--- O painel pergunta aqui o que pode fazer com cada lead. O número do WhatsApp só volta quando a pessoa escolheu ser
--- contatada por esse canal (e ele existe); sem a escolha, volta nulo.
+-- O painel pergunta aqui o que pode fazer com cada lead. O número de telefone só volta quando a pessoa escolheu ser
+-- contatada por WhatsApp ou por ligação (e ele existe); sem a escolha, volta nulo.
 
-create function public.contatos_permitidos() returns table (lead_id uuid, email boolean, whatsapp text, ligacao boolean)
+create function public.contatos_permitidos()
+returns table (lead_id uuid, email boolean, whatsapp boolean, ligacao boolean, telefone text)
 language plpgsql stable security definer set search_path = '' as $$
 begin
   if not public.eh_admin() then
@@ -81,8 +82,10 @@ begin
   select
     l.id,
     public.elegivel(l.id, 'contato-analise', 'email'),
-    case when public.elegivel(l.id, 'contato-analise', 'whatsapp') then l.whatsapp end,
-    public.elegivel(l.id, 'contato-analise', 'ligacao')
+    public.elegivel(l.id, 'contato-analise', 'whatsapp'),
+    public.elegivel(l.id, 'contato-analise', 'ligacao'),
+    case when public.elegivel(l.id, 'contato-analise', 'whatsapp') or public.elegivel(l.id, 'contato-analise', 'ligacao')
+      then l.whatsapp end
   from public.leads l;
 end $$;
 

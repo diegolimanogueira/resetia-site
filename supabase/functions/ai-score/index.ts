@@ -4,6 +4,7 @@
 //   completar   {avaliacao_id, lead_id, chave, empresa, ...}              -> etapa 2: completa o lead e enfileira o relatório por e-mail.
 //   aprofundar  {lead_id, chave, aprofundamento}                          -> grava o aprofundamento de uma dor (camada 1 ou 2).
 //   status      {lead_id, chave}                                          -> estado real do envio do relatório.
+//   preferencias {token[, escolhas, pedido]}                              -> lê ou muda as escolhas de contato (token de preferências).
 //   processar   (cabeçalho x-processador ou token de admin)               -> processa as tarefas pendentes (agendador, botão do painel).
 //   dicas             {avaliacao_id, lead_id[, chave]} -> dicas de evolução para as dimensões de nota baixa.
 //   enviar-relatorio  {avaliacao_id, lead_id}          -> (só lead antigo, sem chave) envia o relatório completo por e-mail.
@@ -34,7 +35,7 @@ import {
   SUPABASE_URL,
   UUID,
 } from "./base.ts";
-import { aprofundar, completar, concluir, registrar, status } from "./captura.ts";
+import { aprofundar, completar, concluir, preferencias, registrar, status } from "./captura.ts";
 // @ts-types="./nucleo.d.ts"
 import * as nucleo from "./nucleo.js";
 import { CHAVE, sha256hex } from "./seguranca.ts";
@@ -317,6 +318,7 @@ Deno.serve(async (req) => {
     if (corpo.acao === "completar") return await completar(corpo, () => processar(5, dependencias));
     if (corpo.acao === "aprofundar") return await aprofundar(corpo);
     if (corpo.acao === "status") return await status(corpo);
+    if (corpo.acao === "preferencias") return await preferencias(req, corpo);
     if (corpo.acao === "processar") {
       if (!(await podeProcessar(req))) return resposta({ erro: "nao-autorizado" }, 401);
       return resposta(await processar(Number(corpo.max) || 10, dependencias));

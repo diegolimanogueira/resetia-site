@@ -5,7 +5,7 @@ import { semMarcas } from "@/components/ui/linhas";
 import { aiScore } from "@/content/ai-score";
 import { alertas } from "@/content/ai-score-analise";
 import { aprofundar as aprof } from "@/content/ai-score-aprofundamento";
-import { plano as planoTextos } from "@/content/ai-score-sintese";
+import { assinatura as assinaturaTextos, dicas as dicasTextos, plano as planoTextos } from "@/content/ai-score-sintese";
 import {
   aprofundar,
   contato,
@@ -276,12 +276,12 @@ test.describe("RESET AI Score", () => {
     await expect(rel.getByText(modulosArea[1].perguntas[0].texto)).toBeVisible();
 
     // Dicas para evoluir nas dimensões de nota baixa e a assinatura do squad multiagente no fim.
-    await expect(rel.getByRole("heading", { name: relatorio.dicas.titulo })).toBeVisible();
+    await expect(rel.getByRole("heading", { name: dicasTextos.titulo })).toBeVisible();
     const assinatura = rel.locator("[data-assinatura]");
-    await expect(assinatura).toContainText(relatorio.assinatura.titulo);
-    for (const paragrafo of relatorio.assinatura.paragrafos) await expect(assinatura).toContainText(paragrafo);
+    await expect(assinatura).toContainText(assinaturaTextos.titulo);
+    for (const paragrafo of assinaturaTextos.paragrafos) await expect(assinatura).toContainText(paragrafo);
     if (modo === "producao") {
-      await expect(rel.locator("[data-fonte-dicas='ia']")).toHaveText(relatorio.dicas.fonte.ia);
+      await expect(rel.locator("[data-fonte-dicas='ia']")).toHaveText(dicasTextos.fonte.ia);
       await expect(rel.getByText(DICAS_IA.dimensoes[0].dicas[0])).toBeVisible();
       // O estado do e-mail é o que o servidor informa: aceito pelo provedor (nunca "entregue" nem "enviado").
       await expect(page.locator("[data-email-estado='aceito']")).toHaveText(
@@ -291,7 +291,7 @@ test.describe("RESET AI Score", () => {
         },
       );
     } else {
-      await expect(rel.locator("[data-fonte-dicas='biblioteca']")).toHaveText(relatorio.dicas.fonte.biblioteca);
+      await expect(rel.locator("[data-fonte-dicas='biblioteca']")).toHaveText(dicasTextos.fonte.biblioteca);
       expect(funcao).toEqual([]);
     }
     await semViolacoes(page);
@@ -877,6 +877,80 @@ test.describe("RESET AI Score", () => {
     }
   });
 
+  test("preferências de contato: lê o que o servidor tem, grava só o que mudou e não guarda o token", async ({
+    page,
+  }) => {
+    await page.goto("/ai-score/");
+    test.skip((await page.locator("main").getAttribute("data-ai-score-modo")) !== "producao", "só com Supabase");
+    const token = "p".repeat(43);
+    const escolhas: Record<string, boolean> = {
+      "relatorio-email|email": true,
+      "conteudo-email|email": false,
+      "contato-analise|email": true,
+      "contato-analise|whatsapp": false,
+      "contato-analise|ligacao": false,
+    };
+    const resposta = (temNumero: boolean) => ({
+      status: "ok",
+      tem_numero: temNumero,
+      escolhas: Object.entries(escolhas).map(([k, concedido]) => {
+        const [finalidade, canal] = k.split("|");
+        return { finalidade, canal, concedido };
+      }),
+    });
+    const pedidos = await interceptarFuncao(page, {
+      preferencias: (_n, corpo) => {
+        if (corpo.token !== token) return { status: 403, json: { erro: "invalido" } };
+        for (const e of (corpo.escolhas as Array<{ finalidade: string; canal: string; concedido: boolean }>) ?? [])
+          escolhas[`${e.finalidade}|${e.canal}`] = e.concedido;
+        return { json: resposta(false) };
+      },
+    });
+
+    await page.goto(`/ai-score/preferencias/#k=${token}`);
+    const quadro = page.locator("[data-preferencias='pronto']");
+    await expect(quadro).toBeVisible();
+    await expect(page.locator("meta[name='robots']")).toHaveAttribute("content", /noindex/);
+    const caixa = (rotulo: string) => quadro.getByRole("checkbox", { name: new RegExp(rotulo) });
+    await expect(caixa("relatório do meu resultado")).toBeChecked();
+    await expect(caixa("conteúdos da Reset IA")).not.toBeChecked();
+    // Sem número informado, WhatsApp e ligação não podem ser escolhidos, e a tela diz por quê.
+    await expect(caixa("por WhatsApp")).toBeDisabled();
+    await expect(caixa("uma ligação")).toBeDisabled();
+    await expect(quadro.getByText("Você não informou um WhatsApp").first()).toBeVisible();
+    await semViolacoes(page);
+
+    // Sem mudança, nada é enviado; com mudança, só o que mudou, com um identificador do pedido.
+    await quadro.getByRole("button", { name: "Salvar preferências" }).click();
+    await expect(page.locator("[data-situacao='sem-mudanca']")).toBeVisible();
+    expect(pedidos.filter((p) => p.escolhas)).toHaveLength(0);
+    await caixa("conteúdos da Reset IA").check();
+    await caixa("por e-mail, sobre o meu resultado").uncheck();
+    await quadro.getByRole("button", { name: "Salvar preferências" }).click();
+    await expect(page.locator("[data-situacao='salvo']")).toBeVisible();
+    const gravacao = pedidos.find((p) => p.escolhas)!;
+    expect(gravacao.escolhas).toEqual([
+      { finalidade: "conteudo-email", canal: "email", concedido: true },
+      { finalidade: "contato-analise", canal: "email", concedido: false },
+    ]);
+    expect(String(gravacao.pedido)).toMatch(/^[0-9a-f-]{36}$/);
+    await expect(caixa("conteúdos da Reset IA")).toBeChecked();
+
+    // O token fica só no endereço (fragmento): nunca em armazenamento do navegador.
+    expect(
+      await page.evaluate(() => JSON.stringify([...Object.entries(localStorage), ...Object.entries(sessionStorage)])),
+    ).not.toContain(token);
+    await page.reload();
+    await expect(page.locator("[data-preferencias='pronto']")).toBeVisible();
+    await expect(caixa("conteúdos da Reset IA")).toBeChecked();
+
+    // Link inválido ou expirado, e link sem token.
+    await page.goto(`/ai-score/preferencias/#k=${"x".repeat(43)}`);
+    await expect(page.locator("[data-preferencias='indisponivel']")).toContainText("Este link não vale mais.");
+    await page.goto("/ai-score/preferencias/#k=curto");
+    await expect(page.locator("[data-preferencias='indisponivel']")).toContainText("Este link está incompleto.");
+  });
+
   test("a mesma nota de 100 com uma resposta baixa trocada por 'Não sei': a tela mostra que é estimativa", async ({
     page,
   }) => {
@@ -932,7 +1006,12 @@ test.describe("RESET AI Score", () => {
   });
 
   test("questionário, resultado e exemplo ficam fora do índice", async ({ page }) => {
-    for (const caminho of ["/ai-score/avaliacao/", "/ai-score/resultado/", "/ai-score/exemplo/"]) {
+    for (const caminho of [
+      "/ai-score/avaliacao/",
+      "/ai-score/resultado/",
+      "/ai-score/exemplo/",
+      "/ai-score/preferencias/",
+    ]) {
       await page.goto(caminho);
       await expect(page.locator("meta[name='robots']")).toHaveAttribute("content", /noindex/);
       await expect(page).toHaveTitle(/Reset IA$/);

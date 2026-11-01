@@ -8,7 +8,10 @@
  */
 export const MODOS_EXPLICITOS = ["demo", "teste"];
 
-/** @returns {string[]} os problemas encontrados (vazio quando está tudo certo). */
+/**
+ * @param {Record<string, string | undefined>} env
+ * @returns {string[]} os problemas encontrados (vazio quando está tudo certo).
+ */
 export function problemasDeConfiguracao(env) {
   if (env.NODE_ENV !== "production") return [];
   const modo = (env.RESETIA_MODO ?? "").trim();
@@ -28,7 +31,10 @@ export function problemasDeConfiguracao(env) {
   return problemas;
 }
 
-/** Lança com uma mensagem clara quando o build de produção está sem a configuração essencial. */
+/**
+ * Lança com uma mensagem clara quando o build de produção está sem a configuração essencial.
+ * @param {Record<string, string | undefined>} [env]
+ */
 export function verificarConfiguracao(env = process.env) {
   const problemas = problemasDeConfiguracao(env);
   if (!problemas.length) return;

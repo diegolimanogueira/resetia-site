@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { resolve } from "node:path";
 import * as pdfjs from "pdfjs-dist/legacy/build/pdf.mjs";
+import type { TextItem } from "pdfjs-dist/types/src/display/api";
 import { describe, expect, it } from "vitest";
 import { aiScore } from "@/content/ai-score";
 import { relatorio } from "@/content/ai-score-questionario";
@@ -39,7 +40,6 @@ async function ler(bytes: Uint8Array) {
   const doc = await pdfjs.getDocument({
     data: bytes.slice(),
     useSystemFonts: false,
-    isEvalSupported: false,
     standardFontDataUrl: `${resolve(process.cwd(), "node_modules/pdfjs-dist/standard_fonts")}/`,
   }).promise;
   const meta = await doc.getMetadata();
@@ -49,7 +49,7 @@ async function ler(bytes: Uint8Array) {
     const conteudo = await pagina.getTextContent();
     paginas.push(
       conteudo.items
-        .filter((i): i is (typeof conteudo.items)[number] & { str: string } => "str" in i && i.str.trim() !== "")
+        .filter((i): i is TextItem => "str" in i && i.str.trim() !== "")
         .map((i) => ({
           str: i.str,
           x: i.transform[4],

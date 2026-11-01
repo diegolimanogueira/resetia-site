@@ -2,6 +2,8 @@
 // Anthropic, importa a função de verdade e confere as três ações. Sem rede externa: sem RESEND_API_KEY, o
 // e-mail fica em "nao-configurado". Rodar com `npm run test:funcao`.
 import assert from "node:assert/strict";
+// @ts-types="../functions/ai-score/nucleo.d.ts"
+import * as nucleo from "../functions/ai-score/nucleo.js";
 
 const AVALIACAO = "00000000-0000-4000-8000-000000000000";
 const LEAD = "11111111-1111-4111-8111-111111111111";
@@ -60,6 +62,7 @@ const rpcHandlers: Record<string, (a: Linha) => unknown> = {
   pegar_tarefas: () => [],
   concluir_tarefa: (a) => String(a.p_status),
   criar_token: () => null,
+  preferencias_do_token: () => ({ status: "ok", tem_numero: true, escolhas: [] }),
 };
 
 const json = (d: unknown, status = 200) =>
@@ -373,7 +376,7 @@ Deno.test(
         canal: "email",
         concedido: true,
         fonte: "formulario",
-        texto_versao: "2026-11-01",
+        texto_versao: nucleo.CONSENTIMENTOS_VERSAO,
         evento_id: "x",
       },
     );
@@ -485,7 +488,7 @@ Deno.test(
     );
     assert.equal(
       p.consentimentos.every(
-        (e) => e.concedido === true && e.fonte === "formulario" && e.texto_versao === "2026-11-01",
+        (e) => e.concedido === true && e.fonte === "formulario" && e.texto_versao === nucleo.CONSENTIMENTOS_VERSAO,
       ),
       true,
     );
@@ -936,5 +939,116 @@ Deno.test(
     zerar();
     banco.contadores.set("concluir:global", 1200);
     assert.deepEqual(await chamar(conclusao()), { status: 429, dados: { erro: "limite" } });
+  },
+);
+
+// Preferências de contato ----------------------------------------------------------------------------------------------
+
+const TOKEN_PREF = "p".repeat(43);
+const PEDIDO = "9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d";
+
+Deno.test("preferências: só o hash do token vai ao banco, e ler não escreve nada", opcoes, async () => {
+  zerar();
+  const r = await chamar({ acao: "preferencias", token: TOKEN_PREF });
+  assert.equal(r.status, 200);
+  assert.equal(r.dados.status, "ok");
+  const c = ultima("preferencias_do_token") as Linha;
+  assert.equal(c.p_token_hash, await hashDe(TOKEN_PREF));
+  assert.equal(c.p_eventos, null);
+  assert.equal(JSON.stringify(banco.rpcs).includes(TOKEN_PREF), false, "o token nunca chega ao banco");
+});
+
+Deno.test(
+  "preferências: cada escolha vira um evento com a versão do texto e um id estável por pedido",
+  opcoes,
+  async () => {
+    zerar();
+    const escolhas = [
+      { finalidade: "contato-analise", canal: "whatsapp", concedido: false },
+      { finalidade: "conteudo-email", canal: "email", concedido: true },
+    ];
+    await chamar({ acao: "preferencias", token: TOKEN_PREF, pedido: PEDIDO, escolhas });
+    const eventos = (ultima("preferencias_do_token") as Linha).p_eventos as Linha[];
+    assert.equal(eventos.length, 2);
+    assert.deepEqual(
+      eventos.map((e) => [e.finalidade, e.canal, e.concedido]),
+      [
+        ["contato-analise", "whatsapp", false],
+        ["conteudo-email", "email", true],
+      ],
+    );
+    assert.ok(
+      eventos.every(
+        (e) => e.texto_versao === nucleo.CONSENTIMENTOS_VERSAO && /^[0-9a-f-]{36}$/.test(String(e.evento_id)),
+      ),
+    );
+    // O mesmo pedido repetido tem os mesmos ids (o banco ignora o repetido); outro pedido tem ids novos (dá para alternar).
+    zerar();
+    await chamar({ acao: "preferencias", token: TOKEN_PREF, pedido: PEDIDO, escolhas });
+    assert.deepEqual(
+      ((ultima("preferencias_do_token") as Linha).p_eventos as Linha[]).map((e) => e.evento_id),
+      eventos.map((e) => e.evento_id),
+    );
+    zerar();
+    await chamar({ acao: "preferencias", token: TOKEN_PREF, pedido: "11111111-1111-4111-8111-111111111111", escolhas });
+    assert.notEqual(
+      ((ultima("preferencias_do_token") as Linha).p_eventos as Linha[])[0].evento_id,
+      eventos[0].evento_id,
+    );
+  },
+);
+
+Deno.test(
+  "preferências: token mal formado, escolha inexistente e pedido ausente são recusados antes do banco",
+  opcoes,
+  async () => {
+    zerar();
+    const boas = [{ finalidade: "conteudo-email", canal: "email", concedido: true }];
+    for (const corpo of [
+      { token: "curto", escolhas: boas, pedido: PEDIDO },
+      {
+        token: TOKEN_PREF,
+        escolhas: [{ finalidade: "conteudo-email", canal: "whatsapp", concedido: true }],
+        pedido: PEDIDO,
+      },
+      { token: TOKEN_PREF, escolhas: [{ finalidade: "outra", canal: "email", concedido: true }], pedido: PEDIDO },
+      {
+        token: TOKEN_PREF,
+        escolhas: [{ finalidade: "conteudo-email", canal: "email", concedido: "sim" }],
+        pedido: PEDIDO,
+      },
+      { token: TOKEN_PREF, escolhas: boas },
+      { token: TOKEN_PREF, escolhas: [], pedido: PEDIDO },
+      { token: TOKEN_PREF, escolhas: Array(13).fill(boas[0]), pedido: PEDIDO },
+    ]) {
+      const r = await chamar({ acao: "preferencias", ...corpo });
+      assert.equal(r.status, 400, JSON.stringify(corpo).slice(0, 80));
+    }
+    assert.equal(chamadas("preferencias_do_token").length, 0);
+  },
+);
+
+Deno.test(
+  "preferências: token inválido, expirado ou de outra finalidade é 403; sem número, 422; banco fora, 502",
+  opcoes,
+  async () => {
+    zerar();
+    rpcHandlers.preferencias_do_token = () => ({ status: "invalido" });
+    assert.equal((await chamar({ acao: "preferencias", token: TOKEN_PREF })).status, 403);
+    rpcHandlers.preferencias_do_token = () => ({ status: "sem-numero" });
+    assert.equal(
+      (
+        await chamar({
+          acao: "preferencias",
+          token: TOKEN_PREF,
+          pedido: PEDIDO,
+          escolhas: [{ finalidade: "contato-analise", canal: "whatsapp", concedido: true }],
+        })
+      ).status,
+      422,
+    );
+    rpcHandlers.preferencias_do_token = () => json({ message: "fora do ar" }, 503);
+    assert.equal((await chamar({ acao: "preferencias", token: TOKEN_PREF })).status, 502);
+    rpcHandlers.preferencias_do_token = () => ({ status: "ok", tem_numero: true, escolhas: [] });
   },
 );

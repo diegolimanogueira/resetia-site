@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { biblioteca } from "@/content/ai-score-dicas";
 import { emailRelatorio, emailReset } from "@/content/ai-score-email";
-import { perguntasCentrais, relatorio } from "@/content/ai-score-questionario";
+import { perguntasCentrais } from "@/content/ai-score-questionario";
+import { assinatura } from "@/content/ai-score-sintese";
 import { nomesSolucoes } from "@/content/solucoes-nomes";
 import type { DimensaoId } from "@/content/types";
 import { calcular } from "@/lib/ai-score/calcular";
@@ -211,9 +212,9 @@ describe("e-mails", () => {
     expect(email.html).toContain("Empresa &amp; Cia");
     expect(email.html).toContain("#v=1&amp;lead=x");
     expect(email.html).toContain(escapar(dicas.dimensoes[0].dicas[0]));
-    expect(email.html).toContain(escapar(relatorio.assinatura.titulo));
+    expect(email.html).toContain(escapar(assinatura.titulo));
     expect(email.texto).not.toMatch(/<[a-z]/i);
-    expect(email.texto).toContain(relatorio.assinatura.paragrafos[0]);
+    expect(email.texto).toContain(assinatura.paragrafos[0]);
     expect(email.texto).toContain("https://www.resetia.com.br/ai-score/resultado/#v=1&lead=x");
   });
 

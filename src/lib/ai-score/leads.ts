@@ -1,11 +1,12 @@
 import { admin } from "@/content/admin";
 import { desafios, dimensoes, horizontes, modulosArea, niveis, segmentacao } from "@/content/ai-score-questionario";
 import type { Escopo, NivelId, StatusLead } from "@/content/types";
-import type { AvaliacaoLinha, LeadLinha } from "@/lib/supabase-admin";
+import type { AprofundamentoLinha, AvaliacaoLinha, LeadLinha } from "@/lib/supabase-admin";
 import { calcular, formatarNota } from "./calcular";
 import { decodificar } from "./codificar";
 import { paraCsv } from "./csv";
-import { leadScore } from "./lead-score";
+import { pontuacoes, type Pontuacoes } from "./lead-score";
+import { validarAprofundamento, type Aprofundamento } from "./aprofundamento";
 import { recomendar } from "./recomendar";
 import type { Respostas, Resultado } from "./tipos";
 
@@ -20,33 +21,67 @@ export interface LeadVisao {
   respostas: Respostas | null;
   resultado: Resultado | null;
   solucoes: string[];
-  leadScore: number;
+  /** Aderência ao perfil, intenção de conversar e oportunidade investigada, separadas e com os componentes. */
+  pontuacoes: Pontuacoes;
+  /** O aprofundamento que a pessoa respondeu, validado (nulo se não respondeu). */
+  aprofundamento: Aprofundamento | null;
 }
 
-export function montarLeads(avaliacoes: AvaliacaoLinha[]): LeadVisao[] {
+/** Uma linha do banco (colunas em snake_case) no formato do aprofundamento, validado: o que não passa vira nulo. */
+export function aprofundamentoDaLinha(l: AprofundamentoLinha): Aprofundamento | null {
+  const v = validarAprofundamento({
+    area: l.area,
+    camada: l.camada,
+    revisao: l.revisao,
+    rotina: l.rotina ?? undefined,
+    rotinaOutra: l.rotina_outra ?? undefined,
+    volume: l.volume === null ? undefined : Number(l.volume),
+    unidade: l.unidade ?? undefined,
+    periodo: l.periodo ?? undefined,
+    consequencia: l.consequencia ?? undefined,
+    consequenciaOutra: l.consequencia_outra ?? undefined,
+    minutos: l.minutos === null ? undefined : Number(l.minutos),
+    ferramentas: l.ferramentas,
+    dados: l.dados ?? undefined,
+    indicador: l.indicador ?? undefined,
+    papelDecisor: l.papel_decisor ?? undefined,
+    naoSei: l.nao_sei,
+  });
+  return v.ok ? v.valor : null;
+}
+
+export function montarLeads(
+  avaliacoes: AvaliacaoLinha[],
+  aprofundamentos: ReadonlyMap<string, Aprofundamento> = new Map(),
+): LeadVisao[] {
   return avaliacoes.flatMap((a) => {
     const respostas = decodificar(a.codigo);
     const resultado = respostas ? calcular(respostas) : null;
-    const solucoes =
-      respostas && resultado ? recomendar(resultado, respostas.desafios, respostas.centrais).solucoes : [];
-    return (a.leads ?? []).map((lead) => ({
-      lead,
-      avaliacao: a,
-      respostas,
-      resultado,
-      solucoes,
-      leadScore: leadScore({
-        papel: a.papel,
-        porte: a.porte,
-        horizonte: a.horizonte,
-        escopo: a.escopo,
-        desafios: respostas?.desafios.length ?? 0,
-        emailPessoal: lead.email_pessoal,
-        whatsapp: Boolean(lead.whatsapp),
-        relatorioCompleto: Boolean(lead.empresa),
-        pediuContato: lead.pediu_contato,
-      }),
-    }));
+    const rec = respostas && resultado ? recomendar(resultado, respostas.desafios, respostas.centrais) : null;
+    return (a.leads ?? []).map((lead) => {
+      const aprofundamento = aprofundamentos.get(lead.id) ?? null;
+      return {
+        lead,
+        avaliacao: a,
+        respostas,
+        resultado,
+        solucoes: rec?.solucoes ?? [],
+        aprofundamento,
+        pontuacoes: pontuacoes({
+          papel: a.papel,
+          porte: a.porte,
+          horizonte: a.horizonte,
+          escopo: a.escopo,
+          desafios: respostas?.desafios.length ?? 0,
+          emailPessoal: lead.email_pessoal,
+          whatsapp: Boolean(lead.whatsapp),
+          relatorioCompleto: Boolean(lead.empresa),
+          pediuContato: lead.pediu_contato,
+          solucaoIndicada: rec?.indicacoes.some((i) => i.forca === "indicada") ?? false,
+          aprofundamento: aprofundamento?.camada ?? 0,
+        }),
+      };
+    });
   });
 }
 
@@ -56,7 +91,7 @@ export interface Filtros {
   escopo: Escopo | "";
   nivel: NivelId | "parcial" | "";
   ambiente: string;
-  ordem: "recentes" | "leadScore" | "aiScore";
+  ordem: "recentes" | "intencao" | "aderencia" | "aiScore";
 }
 
 export const filtrosIniciais: Filtros = {
@@ -82,11 +117,13 @@ export function filtrarLeads(leads: LeadVisao[], f: Filtros): LeadVisao[] {
         (!busca || normal(`${l.lead.nome} ${l.lead.email} ${l.lead.empresa ?? ""}`).includes(busca)),
     )
     .sort((a, b) =>
-      f.ordem === "leadScore"
-        ? b.leadScore - a.leadScore
-        : f.ordem === "aiScore"
-          ? (b.resultado?.indice ?? -1) - (a.resultado?.indice ?? -1)
-          : b.lead.criado_em.localeCompare(a.lead.criado_em),
+      f.ordem === "intencao"
+        ? b.pontuacoes.intencao.pontos - a.pontuacoes.intencao.pontos
+        : f.ordem === "aderencia"
+          ? b.pontuacoes.aderencia.pontos - a.pontuacoes.aderencia.pontos
+          : f.ordem === "aiScore"
+            ? (b.resultado?.indice ?? -1) - (a.resultado?.indice ?? -1)
+            : b.lead.criado_em.localeCompare(a.lead.criado_em),
     );
 }
 
@@ -111,7 +148,23 @@ export const hojeSp = (agora = new Date()) => agora.toLocaleDateString("en-CA", 
 export const atrasado = (l: LeadLinha, hoje: string) =>
   Boolean(l.proximo_contato && l.proximo_contato < hoje && EM_ABERTO.includes(l.status));
 
-/** Números do topo do funil: leads, em negociação, clientes, conversão, atrasados e pedidos de contato. */
+/** Uma taxa com o numerador e o denominador à vista: nunca um percentual solto. */
+export interface Taxa {
+  n: number;
+  de: number;
+  /** Percentual inteiro; `null` quando não há denominador (não é 0%: é "sem base"). */
+  percentual: number | null;
+}
+export const taxa = (n: number, de: number): Taxa => ({
+  n,
+  de,
+  percentual: de > 0 ? Math.round((n / de) * 100) : null,
+});
+
+/**
+ * Números do topo do funil. A conversão em cliente é sobre TODOS os leads, descartados incluídos; a taxa sobre os que
+ * não foram descartados existe, mas tem nome próprio e mostra o próprio denominador.
+ */
 export function indicadores(leads: LeadVisao[], hoje: string) {
   const total = leads.length;
   const clientes = leads.filter((l) => l.lead.status === "cliente").length;
@@ -120,7 +173,9 @@ export function indicadores(leads: LeadVisao[], hoje: string) {
     leads: total,
     emNegociacao: leads.filter((l) => l.lead.status === "qualificado" || l.lead.status === "oportunidade").length,
     clientes,
-    conversao: total - descartados > 0 ? Math.round((clientes / (total - descartados)) * 100) : 0,
+    descartados,
+    conversao: taxa(clientes, total),
+    conversaoSemDescartados: taxa(clientes, total - descartados),
     atrasados: leads.filter((l) => atrasado(l.lead, hoje)).length,
     pediram: leads.filter((l) => l.lead.pediu_contato).length,
   };
@@ -168,7 +223,9 @@ export function csvLeads(leads: LeadVisao[], solucaoNome: (slug: string) => stri
     c.desafios,
     c.horizonte,
     c.solucoes,
-    c.leadScore,
+    c.aderencia,
+    c.intencao,
+    c.oportunidade,
     c.status,
     c.pediuContato,
     c.marketing,
@@ -181,7 +238,7 @@ export function csvLeads(leads: LeadVisao[], solucaoNome: (slug: string) => stri
     "utm_campaign",
     c.notas,
   ];
-  const linhas = leads.map(({ lead: l, avaliacao: a, resultado, respostas, solucoes, leadScore: ls }) => [
+  const linhas = leads.map(({ lead: l, avaliacao: a, resultado, respostas, solucoes, pontuacoes: p }) => [
     dataBr(l.criado_em),
     l.nome,
     l.email,
@@ -204,7 +261,9 @@ export function csvLeads(leads: LeadVisao[], solucaoNome: (slug: string) => stri
     (respostas?.desafios ?? []).map(rotulos.desafio).join(" | "),
     rotulos.horizonte(a.horizonte),
     solucoes.map(solucaoNome).join(" | "),
-    ls,
+    p.aderencia.pontos,
+    p.intencao.pontos,
+    p.oportunidade.pontos,
     admin.status[l.status],
     l.pediu_contato,
     l.consentimento_marketing,

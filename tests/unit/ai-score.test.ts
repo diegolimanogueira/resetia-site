@@ -6,7 +6,7 @@ import { analisar } from "@/lib/ai-score/analisar";
 import { calcular, faixaDe, formatarNota, indiceDe, nivelDe, notaDe, numeroDoNivel } from "@/lib/ai-score/calcular";
 import { codificar, completas, decodificar, respostasVazias } from "@/lib/ai-score/codificar";
 import { emailPessoal, emailValido, normalizarWhatsapp } from "@/lib/ai-score/contato";
-import { leadScore } from "@/lib/ai-score/lead-score";
+import { pontuacoes, type DadosLead } from "@/lib/ai-score/lead-score";
 import { condicoesDe, ordenarLacunas, recomendar } from "@/lib/ai-score/recomendar";
 import { metodoAtual } from "@/lib/ai-score/metodo";
 import { metodo1 } from "@/lib/ai-score/metodo/metodo-1";
@@ -360,8 +360,8 @@ describe("contato e lead score", () => {
     expect(normalizarWhatsapp("")).toBeNull();
   });
 
-  it("lead score vai de 0 a 100 e é independente do AI Score", () => {
-    const maximo = leadScore({
+  it("três pontuações separadas, cada uma com componentes e máximo, e sem nenhuma ligação com o AI Score", () => {
+    const todos: DadosLead = {
       papel: "ceo",
       porte: "50-199",
       horizonte: "imediato",
@@ -371,8 +371,10 @@ describe("contato e lead score", () => {
       whatsapp: true,
       relatorioCompleto: true,
       pediuContato: true,
-    });
-    const minimo = leadScore({
+      solucaoIndicada: true,
+      aprofundamento: 2,
+    };
+    const nenhum: DadosLead = {
       papel: "outro",
       porte: "ate-10",
       horizonte: "explorando",
@@ -382,9 +384,44 @@ describe("contato e lead score", () => {
       whatsapp: false,
       relatorioCompleto: false,
       pediuContato: false,
-    });
-    expect(maximo).toBe(100);
-    expect(minimo).toBe(regras.leadScore.porte["ate-10"]);
+      solucaoIndicada: false,
+      aprofundamento: 0,
+    };
+    const maximo = pontuacoes(todos);
+    for (const k of ["aderencia", "intencao", "oportunidade"] as const) {
+      expect(maximo[k].pontos, k).toBe(maximo[k].maximo);
+      expect(
+        maximo[k].itens.reduce((t, i) => t + i.pontos, 0),
+        k,
+      ).toBe(maximo[k].pontos);
+    }
+    const minimo = pontuacoes(nenhum);
+    expect(minimo.intencao.pontos).toBe(0);
+    expect(minimo.oportunidade.pontos).toBe(0);
+    // Mesmo no pior perfil, a aderência não zera por completo (cargo e porte não são prova de nada).
+    expect(minimo.aderencia.pontos).toBeGreaterThan(0);
+    // O pedido de contato é o maior componente da intenção; o cargo é pequeno na aderência.
+    const intencao = regras.leadScore.intencao;
+    expect(intencao.pediuContato).toBeGreaterThan(Math.max(...Object.values(intencao.horizonte)));
+    expect(Math.max(...Object.values(regras.leadScore.aderencia.papel))).toBeLessThanOrEqual(10);
+  });
+
+  it("a maturidade não entra em nenhuma pontuação: a mesma pessoa pontua igual com qualquer nota", () => {
+    const pessoa: DadosLead = {
+      papel: "gestor",
+      porte: "11-49",
+      horizonte: "3-meses",
+      escopo: "empresa",
+      desafios: 1,
+      emailPessoal: false,
+      whatsapp: false,
+      relatorioCompleto: true,
+      pediuContato: false,
+      solucaoIndicada: false,
+      aprofundamento: 1,
+    };
+    expect(pontuacoes(pessoa)).toEqual(pontuacoes({ ...pessoa }));
+    expect(Object.keys(pessoa)).not.toContain("indice");
   });
 });
 

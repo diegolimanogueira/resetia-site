@@ -476,15 +476,19 @@ set request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
 select teste.negar($q$select * from public.contatos_permitidos()$q$);
 set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 select teste.afirmar('contatos permitidos: com a escolha de WhatsApp e ligação, o número volta',
-  (select whatsapp = '5511999990000' and ligacao and email from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000003'));
+  (select telefone = '5511999990000' and whatsapp and ligacao and email from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000003'));
 select teste.afirmar('contatos permitidos: pediu contato mas sem número, nada de WhatsApp nem ligação',
-  (select whatsapp is null and not ligacao and email from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000004'));
+  (select telefone is null and not whatsapp and not ligacao and email from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000004'));
 select teste.afirmar('contatos permitidos: quem só pediu o relatório não tem contato de conversa liberado',
-  (select whatsapp is null and not ligacao and not email from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000002'));
+  (select telefone is null and not whatsapp and not ligacao and not email from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000002'));
 insert into public.consentimentos (lead_id, finalidade, canal, concedido, fonte, texto_versao, evento_id)
 values ('d1000000-0000-4000-8000-000000000003', 'contato-analise', 'whatsapp', false, 'admin-revogacao', 'admin', gen_random_uuid());
-select teste.afirmar('contatos permitidos: depois da revogação registrada pela equipe, o número some',
-  (select whatsapp is null from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000003'));
+select teste.afirmar('contatos permitidos: revogado o WhatsApp, o canal fecha, mas a ligação (outra escolha) segue liberada com o número',
+  (select not whatsapp and ligacao and telefone = '5511999990000' from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000003'));
+insert into public.consentimentos (lead_id, finalidade, canal, concedido, fonte, texto_versao, evento_id)
+values ('d1000000-0000-4000-8000-000000000003', 'contato-analise', 'ligacao', false, 'admin-revogacao', 'admin', gen_random_uuid());
+select teste.afirmar('contatos permitidos: sem WhatsApp nem ligação, o número some',
+  (select not whatsapp and not ligacao and telefone is null from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000003'));
 select teste.negar($q$insert into public.consentimentos (lead_id, finalidade, canal, concedido, fonte, texto_versao, evento_id) values ('d1000000-0000-4000-8000-000000000003', 'contato-analise', 'whatsapp', true, 'admin-revogacao', 'admin', gen_random_uuid())$q$);
 reset role;
 
@@ -529,8 +533,8 @@ select public.preferencias_do_token(:'hash_pref3', :'eventos'::jsonb);
 reset role;
 select teste.afirmar('preferências: os eventos ficam gravados como foram dados e o mesmo evento repetido não duplica',
   (select count(*) = 2 from public.consentimentos where fonte = 'preferencias' and lead_id = 'd1000000-0000-4000-8000-000000000003'));
-select teste.afirmar('preferências: nada foi apagado (a revogação da equipe continua no histórico)',
-  (select count(*) = 1 from public.consentimentos where fonte = 'admin-revogacao' and lead_id = 'd1000000-0000-4000-8000-000000000003'));
+select teste.afirmar('preferências: nada foi apagado (as revogações da equipe, de WhatsApp e de ligação, continuam no histórico)',
+  (select count(*) = 2 from public.consentimentos where fonte = 'admin-revogacao' and lead_id = 'd1000000-0000-4000-8000-000000000003'));
 select teste.afirmar('preferências: a escolha mais recente vale (WhatsApp concedido de novo, conteúdo revogado)',
   (select (elegivel_w, elegivel_c) = (true, false) from (select public.elegivel('d1000000-0000-4000-8000-000000000003', 'contato-analise', 'whatsapp') as elegivel_w, public.elegivel('d1000000-0000-4000-8000-000000000003', 'conteudo-email', 'email') as elegivel_c) x));
 select encode(sha256(convert_to('token-de-preferencias-sem-numero', 'UTF8')), 'hex') as hash_pref2 \gset

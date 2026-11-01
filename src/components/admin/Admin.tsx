@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
-import { DetalheLead } from "@/components/admin/DetalheLead";
 import { Kanban } from "@/components/admin/Kanban";
 import { BotaoAcao } from "@/components/ui/botao";
 import { Campo, classesEntrada } from "@/components/ui/campo";
@@ -9,6 +8,7 @@ import { admin } from "@/content/admin";
 import { niveis, segmentacao } from "@/content/ai-score-questionario";
 import type { StatusLead } from "@/content/types";
 import {
+  aprofundamentoDaLinha,
   atrasado,
   csvLeads,
   dataBr,
@@ -21,22 +21,35 @@ import {
   rotulos,
   type Filtros,
 } from "@/lib/ai-score/leads";
+import { useModulo } from "@/lib/carregar-modulo";
 import { supabase } from "@/lib/supabase";
+import type { Aprofundamento } from "@/lib/ai-score/aprofundamento";
 import {
   atualizarLead,
+  contarLegado,
+  contatosPermitidos,
   eAdmin,
   entrar,
   lerSessao,
   listar,
+  listarAprofundamentos,
+  listarMarcos,
+  listarTarefas,
   registrarAtividade,
   sessao,
   type AvaliacaoLinha,
   type CamposCrm,
+  type ContatoPermitido,
+  type Marco,
   type Sessao,
+  type TarefaLinha,
 } from "@/lib/supabase-admin";
 import { cn } from "@/lib/utils";
 
 const caixa = "gutter text-fg pt-[40px] pb-[90px] md:pt-[60px]";
+// As partes grandes só carregam quando aparecem: a gaveta do lead e as abas de pedidos e de operação.
+const carregarGaveta = () => import("@/components/admin/DetalheLead");
+const carregarTelas = () => import("@/components/admin/FilaEOperacao");
 
 /** /admin: login e o mini CRM dos leads. Sem Supabase configurado, avisa que é modo demonstração. */
 export function Admin({ nomesSolucoes }: { nomesSolucoes: Record<string, string> }) {
@@ -151,11 +164,26 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
   const [erroMover, setErroMover] = useState<string | null>(null);
   const [versao, setVersao] = useState(0);
   const [f, setF] = useState<Filtros>(filtrosIniciais);
-  const [vista, setVista] = useState<"funil" | "lista">("funil");
+  const [vista, setVista] = useState<"funil" | "lista" | "conversas" | "operacao">("funil");
+  // Escolhas de contato (conferidas pelo banco), marcos, aprofundamentos, tarefas do servidor e o caminho antigo.
+  const [contatos, setContatos] = useState<Map<string, ContatoPermitido> | null>(null);
+  const [contatosFalhou, setContatosFalhou] = useState(false);
+  const [marcos, setMarcos] = useState<Marco[]>([]);
+  const [aprofundamentos, setAprofundamentos] = useState<Map<string, Aprofundamento>>(new Map());
+  const [tarefas, setTarefas] = useState<TarefaLinha[] | null>(null);
+  const [legado, setLegado] = useState<{ leads: number; avaliacoes: number } | null>(null);
+  const [versaoComercial, setVersaoComercial] = useState(0);
   const [aberto, setAberto] = useState<string | null>(null);
   const gaveta = useRef<HTMLDialogElement>(null);
   // Data de hoje (fuso de São Paulo) lida fora do render, para marcar retornos atrasados.
   const hoje = useSyncExternalStore(nadaAssinar, hojeSp, () => "");
+  // O instante atual, lido fora do render e em minutos: a fila de pedidos mede a espera até agora.
+  const minuto = useSyncExternalStore(
+    nadaAssinar,
+    () => Math.floor(Date.now() / 60_000),
+    () => 0,
+  );
+  const agora = useMemo(() => new Date(minuto * 60_000), [minuto]);
 
   // Carrega a cada login e a cada "Atualizar". A sessão é lida na hora (o token pode ter sido renovado).
   useEffect(() => {
@@ -174,7 +202,47 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
     };
   }, [email, versao]);
 
-  const leads = useMemo(() => montarLeads(dados ?? []), [dados]);
+  // Marcos, escolhas de contato e aprofundamentos: carregados junto, sem travar a lista (se falhar, a tela diz).
+  useEffect(() => {
+    const s = lerSessao(sessao.ler());
+    if (!s) return;
+    let vivo = true;
+    void Promise.all([contatosPermitidos(s), listarMarcos(s), listarAprofundamentos(s)]).then(([c, m, a]) => {
+      if (!vivo) return;
+      setContatosFalhou(!Array.isArray(c));
+      setContatos(Array.isArray(c) ? new Map(c.map((x) => [x.lead_id, x])) : null);
+      setMarcos(Array.isArray(m) ? m : []);
+      setAprofundamentos(
+        new Map(
+          (Array.isArray(a) ? a : []).flatMap((linha) => {
+            const v = aprofundamentoDaLinha(linha);
+            return v ? [[linha.lead_id, v] as const] : [];
+          }),
+        ),
+      );
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [email, versao, versaoComercial]);
+
+  // Operação do servidor: só quando a aba está aberta.
+  useEffect(() => {
+    if (vista !== "operacao") return;
+    const s = lerSessao(sessao.ler());
+    if (!s) return;
+    let vivo = true;
+    void Promise.all([listarTarefas(s), contarLegado(s)]).then(([t, g]) => {
+      if (!vivo) return;
+      setTarefas(Array.isArray(t) ? t : []);
+      setLegado(typeof g === "object" ? g : null);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [vista, email, versao, versaoComercial]);
+
+  const leads = useMemo(() => montarLeads(dados ?? [], aprofundamentos), [dados, aprofundamentos]);
   const lista = useMemo(() => filtrarLeads(leads, f), [leads, f]);
   const resumo = useMemo(() => resumir(dados ?? [], f.ambiente), [dados, f.ambiente]);
   const numeros = useMemo(
@@ -187,6 +255,8 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
   );
   const selecionado = leads.find((l) => l.lead.id === aberto) ?? null;
   const temSelecionado = selecionado !== null;
+  const gavetaDoLead = useModulo(carregarGaveta, temSelecionado);
+  const telas = useModulo(carregarTelas, vista === "conversas" || vista === "operacao");
 
   // A gaveta do lead é um <dialog> modal nativo: foco preso, Esc fecha e o fundo fica inerte.
   useEffect(() => {
@@ -255,7 +325,16 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
     [ind.leads, numeros.leads, false],
     [ind.emNegociacao, numeros.emNegociacao, false],
     [ind.clientes, numeros.clientes, false],
-    [ind.conversao, `${numeros.conversao}%`, false],
+    [ind.conversao, ind.taxa(numeros.conversao.n, numeros.conversao.de, numeros.conversao.percentual), false],
+    [
+      ind.conversaoSemDescartados,
+      ind.taxa(
+        numeros.conversaoSemDescartados.n,
+        numeros.conversaoSemDescartados.de,
+        numeros.conversaoSemDescartados.percentual,
+      ),
+      false,
+    ],
     [ind.atrasados, numeros.atrasados, numeros.atrasados > 0],
     [ind.pediram, numeros.pediram, numeros.pediram > 0],
     [ind.avaliacoes, resumo.avaliacoes, false],
@@ -355,14 +434,15 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
             aoMudar={mudarFiltro("ordem")}
             opcoes={[
               { id: "recentes", label: admin.filtros.recentes },
-              { id: "leadScore", label: admin.filtros.leadScore },
+              { id: "intencao", label: admin.filtros.intencao },
+              { id: "aderencia", label: admin.filtros.aderencia },
               { id: "aiScore", label: admin.filtros.aiScore },
             ]}
           />
         </fieldset>
 
         <div role="group" aria-label={admin.vistas.rotulo} className="border-line mb-5 inline-flex border">
-          {(["funil", "lista"] as const).map((v) => (
+          {(["funil", "lista", "conversas", "operacao"] as const).map((v) => (
             <button
               key={v}
               type="button"
@@ -382,8 +462,32 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
           <p className="border-line border p-6 text-[14px]" aria-live="polite">
             {admin.carregando}
           </p>
+        ) : vista === "conversas" || vista === "operacao" ? (
+          !telas ? (
+            <p className="border-line border p-6 text-[14px]" aria-live="polite">
+              {admin.carregando}
+            </p>
+          ) : vista === "conversas" ? (
+            telas.telaFila({ leads: lista, agora, hoje, contatos, aoAbrir: setAberto })
+          ) : (
+            telas.telaOperacao({
+              tarefas,
+              legado,
+              leads: lista,
+              marcos,
+              carregando: tarefas === null,
+              aoMudar: () => setVersaoComercial((n) => n + 1),
+            })
+          )
         ) : vista === "funil" ? (
-          <Kanban leads={lista} hoje={hoje} aoAbrir={setAberto} aoMover={mover} aoWhatsapp={abriuWhatsapp} />
+          <Kanban
+            leads={lista}
+            hoje={hoje}
+            aoAbrir={setAberto}
+            aoMover={mover}
+            aoWhatsapp={abriuWhatsapp}
+            contatos={contatos}
+          />
         ) : lista.length === 0 ? (
           <p className="border-line border p-6 text-[14px]">{admin.vazio}</p>
         ) : (
@@ -427,7 +531,12 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
                       <b className="tabular-nums">{l.resultado?.indice ?? "–"}</b>{" "}
                       <span className="text-fg-2 text-[12px]">{rotulos.nivel(l.resultado?.nivel ?? null)}</span>
                     </td>
-                    <td className="px-4 py-3 font-bold tabular-nums">{l.leadScore}</td>
+                    {(["aderencia", "intencao", "oportunidade"] as const).map((k) => (
+                      <td key={k} className="px-4 py-3 tabular-nums">
+                        <b>{l.pontuacoes[k].pontos}</b>
+                        <span className="text-fg-2 text-[12px]"> / {l.pontuacoes[k].maximo}</span>
+                      </td>
+                    ))}
                     <td className="px-4 py-3 whitespace-nowrap tabular-nums">
                       {l.lead.proximo_contato ? (
                         <span className={cn(atrasado(l.lead, hoje) && "font-bold")}>
@@ -461,17 +570,22 @@ function Painel({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record
           }}
           className="border-line bg-fundo text-fg backdrop:bg-carvao/70 fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-[min(780px,100vw)] max-w-none overflow-y-auto border-l p-0"
         >
-          {selecionado ? (
-            <DetalheLead
-              key={selecionado.lead.id}
-              visao={selecionado}
-              nomesSolucoes={nomesSolucoes}
-              emailAdmin={email}
-              hoje={hoje}
-              aoSalvar={(campos) => salvar(selecionado.lead.id, campos)}
-              aoFechar={() => gaveta.current?.close()}
-            />
-          ) : null}
+          {selecionado && gavetaDoLead
+            ? gavetaDoLead.detalheLead({
+                visao: selecionado,
+                nomesSolucoes,
+                emailAdmin: email,
+                hoje,
+                agora,
+                contato: contatos?.get(selecionado.lead.id),
+                contatosCarregando: contatos === null && !contatosFalhou,
+                contatosFalhou,
+                marcos,
+                aoSalvar: (campos) => salvar(selecionado.lead.id, campos),
+                aoFechar: () => setAberto(null),
+                aoMudarComercial: () => setVersaoComercial((n) => n + 1),
+              })
+            : null}
         </dialog>
       </div>
     </section>

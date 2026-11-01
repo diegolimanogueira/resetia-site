@@ -197,7 +197,10 @@ describe("cliente do admin (GoTrue + REST com token)", () => {
     expect(fetchMock.mock.calls[0][0]).toContain("grant_type=refresh_token");
     const [url, init] = fetchMock.mock.calls[1];
     expect(url).toContain("/rest/v1/avaliacoes?select=");
-    expect(url).toContain("leads(*)");
+    // As colunas do lead vão por nome (a chave do lead, que autoriza escrita, não sobe para o painel).
+    expect(url).toContain("leads(id,avaliacao_id,");
+    expect(url).not.toContain("leads(*)");
+    expect(url).not.toContain("chave_hash");
     expect(init.headers.Authorization).toBe("Bearer novo");
     expect(lerSessao(sessao.ler())?.access_token).toBe("novo");
   });

@@ -1,5 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { eventoDoClique, EVENTOS_AI_SCORE, limparDados } from "@/lib/analytics";
+import { descricaoDosEventos } from "@/content/ai-score-eventos";
+import { eventoDoClique } from "@/lib/analytics";
+import { EVENTOS_AI_SCORE, limparDados } from "@/lib/analytics-eventos";
 import { testeSpotliteUrl } from "@/lib/teste-spotlite";
 import { waDiagnostico, waGeral } from "@/lib/whatsapp";
 
@@ -44,6 +46,7 @@ describe("eventos do AI Score: sem dado pessoal, sem repetição, só o que est�
   it("sem analytics configurado, nada é enviado", async () => {
     const { track } = await carregar("");
     track("ai_score_abertura");
+    await vi.dynamicImportSettled();
     expect(umami.track).not.toHaveBeenCalled();
   });
 
@@ -51,6 +54,7 @@ describe("eventos do AI Score: sem dado pessoal, sem repetição, só o que est�
     const { track } = await carregar();
     track("evento_inventado", { origem: "x" });
     track("ai_score_abertura");
+    await vi.dynamicImportSettled();
     expect(umami.track.mock.calls.map((c) => c[0])).toEqual(["ai_score_abertura"]);
   });
 
@@ -95,6 +99,7 @@ describe("eventos do AI Score: sem dado pessoal, sem repetição, só o que est�
     for (let i = 0; i < 5; i++) track("ai_score_abertura");
     track("ai_score_etapa", { etapa: 2, total: 9 });
     track("ai_score_etapa", { etapa: 3, total: 9 });
+    await vi.dynamicImportSettled();
     expect(umami.track.mock.calls.filter((c) => c[0] === "ai_score_abertura")).toHaveLength(1);
     // Etapas contam cada avanço (não são únicas).
     expect(umami.track.mock.calls.filter((c) => c[0] === "ai_score_etapa")).toHaveLength(2);
@@ -105,11 +110,12 @@ describe("eventos do AI Score: sem dado pessoal, sem repetição, só o que est�
     track("ai_score_contato", { nivel: "explorando" }, "aval-1");
     track("ai_score_contato", { nivel: "explorando" }, "aval-1");
     track("ai_score_contato", { nivel: "explorando" }, "aval-2");
+    await vi.dynamicImportSettled();
     expect(umami.track.mock.calls.filter((c) => c[0] === "ai_score_contato")).toHaveLength(2);
   });
 
   it("os eventos pedidos existem, cada um com o que mede e o denominador", () => {
-    for (const nome of [
+    const pedidos = [
       "ai_score_abertura",
       "ai_score_primeira_interacao",
       "ai_score_inicio",
@@ -123,9 +129,12 @@ describe("eventos do AI Score: sem dado pessoal, sem repetição, só o que est�
       "ai_score_download",
       "ai_score_email_aceito",
       "ai_score_email_falhou",
-    ] as const) {
-      expect(EVENTOS_AI_SCORE[nome].mede.length, nome).toBeGreaterThan(5);
-      expect(EVENTOS_AI_SCORE[nome].denominador.length, nome).toBeGreaterThan(5);
+    ] as const;
+    expect(Object.keys(EVENTOS_AI_SCORE).sort()).toEqual([...pedidos].sort());
+    expect(Object.keys(descricaoDosEventos).sort()).toEqual([...pedidos].sort());
+    for (const nome of pedidos) {
+      expect(descricaoDosEventos[nome].mede.length, nome).toBeGreaterThan(5);
+      expect(descricaoDosEventos[nome].denominador.length, nome).toBeGreaterThan(5);
     }
   });
 });

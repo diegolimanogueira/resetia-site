@@ -29,6 +29,9 @@ const lead = (extra: Partial<LeadLinha>): LeadLinha => ({
   responsavel: null,
   proximo_contato: null,
   relatorio_enviado_em: null,
+  pedido_conversa_em: null,
+  primeira_resposta_em: null,
+  canal: "funcao",
   ambiente: "producao",
   ...extra,
 });
@@ -82,22 +85,53 @@ const dados: AvaliacaoLinha[] = [
 ];
 
 describe("admin: visão dos leads", () => {
-  it("recalcula o resultado a partir do código (regras atuais, não a nota gravada) e soma o lead score", () => {
+  it("recalcula o resultado a partir do código (regras atuais, não a nota gravada) e separa as três pontuações", () => {
     const [maria] = montarLeads(dados);
     expect(maria.avaliacao.indice).toBe(46);
     expect(maria.resultado?.indice).toBe(34);
     expect(maria.resultado?.areas).toEqual({ vendas: 70 });
     // "Não sabemos por onde começar" não soma pontos: Estratégia está em 70 e o desafio é contradito pelas respostas.
     expect(maria.solucoes).toEqual(["governance", "processos-com-ia"]);
-    // CEO 25 + imediato 25 + 50-199 15 + empresa 5 + desafio 5 + e-mail corporativo 5 + WhatsApp 5
-    // + relatório completo 5 + pediu contato 10
-    expect(maria.leadScore).toBe(100);
+    // Aderência: CEO 10 + 50-199 10 + empresa 5 + e-mail corporativo 5. Intenção: imediato 15 + pediu contato 30 +
+    // WhatsApp 5 + relatório completo 5. Oportunidade: desafio 5 + solução indicada 10 (sem aprofundamento).
+    expect(maria.pontuacoes.aderencia).toMatchObject({ pontos: 30, maximo: 30 });
+    expect(maria.pontuacoes.intencao).toMatchObject({ pontos: 55, maximo: 55 });
+    expect(maria.pontuacoes.oportunidade).toMatchObject({ pontos: 15, maximo: 35 });
+    expect(maria.aprofundamento).toBeNull();
   });
 
-  it("lead só da etapa 1 (sem empresa) entra na lista e perde os pontos do relatório completo", () => {
+  it("o aprofundamento respondido sobe a oportunidade investigada, não a aderência nem a intenção", () => {
+    const aprofundamento = {
+      area: "vendas" as const,
+      camada: 2 as const,
+      revisao: 1,
+      rotina: "propostas",
+      volume: 200,
+      unidade: "propostas",
+      periodo: "mes" as const,
+      consequencia: "retrabalho",
+      minutos: 15,
+      ferramentas: [],
+      naoSei: [],
+    };
+    const [com] = montarLeads(dados, new Map([["l1", aprofundamento]]));
+    const [sem] = montarLeads(dados);
+    expect(com.pontuacoes.oportunidade.pontos - sem.pontuacoes.oportunidade.pontos).toBe(20);
+    expect(com.pontuacoes.aderencia.pontos).toBe(sem.pontuacoes.aderencia.pontos);
+    expect(com.pontuacoes.intencao.pontos).toBe(sem.pontuacoes.intencao.pontos);
+  });
+
+  it("lead só da etapa 1 (sem empresa) entra na lista e perde só os pontos do relatório completo", () => {
     const so = montarLeads([avaliacao({ leads: [lead({ empresa: null })] })])[0];
-    expect(so.leadScore).toBe(95);
+    expect(so.pontuacoes.intencao.pontos).toBe(50);
     expect(filtrarLeads([so], { ...filtrosIniciais, busca: "maria" })).toHaveLength(1);
+  });
+
+  it("cargo, porte e e-mail corporativo são só aderência: gestor e coordenador não ficam muito atrás do CEO", () => {
+    const aderencia = (papel: "ceo" | "gestor" | "coordenador") =>
+      montarLeads([avaliacao({ papel })])[0].pontuacoes.aderencia.pontos;
+    expect(aderencia("ceo") - aderencia("gestor")).toBeLessThanOrEqual(1);
+    expect(aderencia("ceo") - aderencia("coordenador")).toBeLessThanOrEqual(2);
   });
 
   it("filtra por ambiente (produção por padrão), status, nível e busca sem acento", () => {
@@ -108,7 +142,8 @@ describe("admin: visão dos leads", () => {
     expect(filtrarLeads(leads, { ...filtrosIniciais, nivel: "inicial" }).map((l) => l.lead.id)).toEqual(["l2"]);
     expect(filtrarLeads(leads, { ...filtrosIniciais, ordem: "aiScore" })[0].lead.id).toBe("l1");
     expect(filtrarLeads(leads, { ...filtrosIniciais, busca: "agil" }).map((l) => l.lead.id)).toEqual(["l1"]);
-    expect(filtrarLeads(leads, { ...filtrosIniciais, ordem: "leadScore" })[0].lead.id).toBe("l1");
+    expect(filtrarLeads(leads, { ...filtrosIniciais, ordem: "intencao" })[0].lead.id).toBe("l1");
+    expect(filtrarLeads(leads, { ...filtrosIniciais, ordem: "aderencia" })[0].lead.id).toBe("l1");
   });
 
   it("resumo do funil: avaliações, leads, sem lead e pedidos de contato", () => {
@@ -133,7 +168,12 @@ describe("admin: visão dos leads", () => {
     expect(cabecalho.split(";")).toContain("Estratégia e Liderança");
     expect(primeira).toContain("Maria Teste;maria@empresa.com.br;não;Empresa Ágil;5585999990000;Empresário ou CEO");
     expect(primeira).toContain(";34;Explorando;70;40;27,5;40;15;27,5;Vendas 70;");
-    expect(primeira).toContain("GOVERNANCE | PROCESSOS-COM-IA;100;Novo;sim;não;;;;producao;linkedin");
+    expect(primeira).toContain("GOVERNANCE | PROCESSOS-COM-IA;30;55;15;Novo;sim;não;;;;producao;linkedin");
+    expect(cabecalho.split(";")).toEqual(
+      expect.arrayContaining(["Aderência ao perfil", "Intenção de conversar", "Oportunidade investigada"]),
+    );
+    // O valor de negócio nunca vai para o CSV.
+    expect(csv).not.toMatch(/valor/i);
   });
 
   it("CSV leva responsável, próximo contato e envio do relatório", () => {
@@ -184,10 +224,18 @@ describe("admin: visão dos leads", () => {
       leads: 5,
       emNegociacao: 2,
       clientes: 1,
-      conversao: 25,
+      descartados: 1,
+      // Sobre TODOS os leads, descartados incluídos; a taxa sobre os não descartados tem nome próprio e denominador próprio.
+      conversao: { n: 1, de: 5, percentual: 20 },
+      conversaoSemDescartados: { n: 1, de: 4, percentual: 25 },
       atrasados: 1,
       pediram: 1,
     });
-    expect(indicadores([], "2026-10-28")).toMatchObject({ leads: 0, conversao: 0 });
+    // Sem leads não há taxa: é "sem base", não 0%.
+    expect(indicadores([], "2026-10-28")).toMatchObject({
+      leads: 0,
+      conversao: { n: 0, de: 0, percentual: null },
+      conversaoSemDescartados: { n: 0, de: 0, percentual: null },
+    });
   });
 });

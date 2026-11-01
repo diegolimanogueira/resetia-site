@@ -10,6 +10,7 @@ import {
   relatorio as t,
   resultadoTextos,
 } from "@/content/ai-score-questionario";
+import { assinatura, dicas as textosDeDicas } from "@/content/ai-score-sintese";
 import { nomesSolucoes } from "@/content/solucoes-nomes";
 import { esforcoEstimado, type Aprofundamento } from "../aprofundamento";
 import { linhasDoResumo, textoDoEsforco } from "../aprofundamento-resumo";
@@ -171,7 +172,7 @@ export function gerarPdf(e: EntradaDoPdf): Uint8Array<ArrayBuffer> {
   // Dicas ---------------------------------------------------------------------------------------------------------
   if (e.dicas?.dimensoes.length) {
     d.titulo(p.secoes.dicas);
-    d.texto(t.dicas.fonte[e.dicas.fonte], { tamanho: 9.5, cor: CORES.apoio, depois: 6 });
+    d.texto(textosDeDicas.fonte[e.dicas.fonte], { tamanho: 9.5, cor: CORES.apoio, depois: 6 });
     for (const x of e.dicas.dimensoes) {
       d.duasColunas(dimensao(x.id).nome, formatarNota(resultado.dimensoes[x.id] ?? 0), { negrito: true });
       d.lista(x.dicas);
@@ -329,8 +330,8 @@ export function gerarPdf(e: EntradaDoPdf): Uint8Array<ArrayBuffer> {
   // Assinatura e avisos -------------------------------------------------------------------------------------------
   // O bloco final não se parte entre páginas: ou cabe inteiro, ou vai inteiro para a seguinte.
   d.garantir(150);
-  d.titulo(t.assinatura.titulo, 3);
-  for (const paragrafo of t.assinatura.paragrafos) d.texto(paragrafo, { tamanho: 9.5, cor: CORES.apoio, depois: 4 });
+  d.titulo(assinatura.titulo, 3);
+  for (const paragrafo of assinatura.paragrafos) d.texto(paragrafo, { tamanho: 9.5, cor: CORES.apoio, depois: 4 });
 
   return d.bytes();
 }

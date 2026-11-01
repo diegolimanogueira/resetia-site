@@ -265,6 +265,68 @@ export async function aprofundar(corpo: Corpo) {
   });
 }
 
+const TOKEN = /^[A-Za-z0-9_-]{20,200}$/;
+/** As únicas escolhas que existem: finalidade e canal. Qualquer outra combinação é recusada aqui, antes do banco. */
+const ESCOLHAS_VALIDAS = new Set([
+  "relatorio-email|email",
+  "conteudo-email|email",
+  "contato-analise|email",
+  "contato-analise|whatsapp",
+  "contato-analise|ligacao",
+]);
+const PREFERENCIAS_POR_IP_HORA = limite("PREFERENCIAS_POR_IP_HORA", 60);
+
+/**
+ * Preferências de contato pelo link do e-mail: o token de finalidade `preferencias` lê as escolhas da pessoa e
+ * registra novas (cada uma vira um evento, nada é apagado). O token de leitura do relatório não serve aqui, e este
+ * não abre o relatório. A pessoa pode conceder ou revogar as próprias escolhas; a equipe só revoga.
+ * `pedido` é um identificador que o navegador gera por envio: reenviar o mesmo envio não duplica os eventos, e
+ * alternar a mesma escolha de novo (outro `pedido`) registra de novo.
+ */
+export async function preferencias(req: Request, corpo: Corpo) {
+  const token = texto(corpo, "token");
+  if (!TOKEN.test(token)) return resposta({ erro: "campos" }, 400);
+  if (!(await dentroDoLimite(`preferencias:${await sha256hex(ipDoPedido(req))}`, 3600, PREFERENCIAS_POR_IP_HORA)))
+    return resposta({ erro: "limite" }, 429);
+  const hash = await sha256hex(token);
+
+  let eventos: Array<Record<string, unknown>> | null = null;
+  if (corpo.escolhas !== undefined) {
+    const pedido = texto(corpo, "pedido");
+    if (
+      !UUID.test(pedido) ||
+      !Array.isArray(corpo.escolhas) ||
+      corpo.escolhas.length === 0 ||
+      corpo.escolhas.length > 12
+    )
+      return resposta({ erro: "campos" }, 400);
+    eventos = [];
+    for (const e of corpo.escolhas as Array<Record<string, unknown>>) {
+      const finalidade = typeof e?.finalidade === "string" ? e.finalidade : "";
+      const canal = typeof e?.canal === "string" ? e.canal : "";
+      if (!ESCOLHAS_VALIDAS.has(`${finalidade}|${canal}`) || typeof e.concedido !== "boolean")
+        return resposta({ erro: "campos" }, 400);
+      eventos.push({
+        finalidade,
+        canal,
+        concedido: e.concedido,
+        texto_versao: nucleo.CONSENTIMENTOS_VERSAO,
+        evento_id: await uuidDeterministico("preferencias", hash, pedido, finalidade, canal),
+      });
+    }
+  }
+
+  const r = await rpc<{ status: string; tem_numero?: boolean; escolhas?: unknown }>("preferencias_do_token", {
+    p_token_hash: hash,
+    p_eventos: eventos,
+  });
+  if (r.estado !== "ok" || !r.dados) return erroDoBanco(r);
+  if (r.dados.status === "invalido") return resposta({ erro: "invalido" }, 403);
+  if (r.dados.status === "sem-numero") return resposta({ erro: "sem-numero" }, 422);
+  if (r.dados.status !== "ok") return resposta({ erro: "campos" }, 400);
+  return resposta({ status: "ok", tem_numero: r.dados.tem_numero, escolhas: r.dados.escolhas });
+}
+
 type Tarefa = { tipo: string; status: string; tentativas: number; max_tentativas: number; tentar_em: string };
 const publico = (s: string) => (s === "processando" ? "pendente" : s);
 

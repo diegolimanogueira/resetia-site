@@ -4,7 +4,9 @@ import {
   indicacoes as textosDeIndicacao,
   lacunas as textosDeLacuna,
   oportunidades as textosDeOportunidade,
+  assinatura as textosDaAssinatura,
   conversa as textosDaConversa,
+  dicas as textosDeDicas,
   plano as textosDoPlano,
   resumo as textosDoResumo,
   type EtapaId,
@@ -85,6 +87,8 @@ export interface Sintese {
   };
   indicacoes: { titulo: string; nota: string; condicoes: string; semIndicacao: string | null; itens: IndicacaoTexto[] };
   plano: { titulo: string; nota: string; rotulos: typeof textosDoPlano.rotulos; etapas: EtapaDoPlano[] };
+  dicas: typeof textosDeDicas;
+  assinatura: typeof textosDaAssinatura;
   conversa: {
     kicker: string;
     titulo: string[];
@@ -386,6 +390,8 @@ export function montarSintese(
       itens: itensDeIndicacao,
     },
     plano: { titulo: textosDoPlano.titulo, nota: textosDoPlano.nota, rotulos: textosDoPlano.rotulos, etapas },
+    dicas: textosDeDicas,
+    assinatura: textosDaAssinatura,
     conversa: montarConversa(resultado, rec),
   };
 }

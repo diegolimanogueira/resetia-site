@@ -4,6 +4,7 @@ import { useState } from "react";
 import { admin } from "@/content/admin";
 import type { StatusLead } from "@/content/types";
 import { atrasado, dataBr, rotulos, type LeadVisao } from "@/lib/ai-score/leads";
+import type { ContatoPermitido } from "@/lib/supabase-admin";
 import { cn } from "@/lib/utils";
 import { waUrl } from "@/lib/whatsapp";
 
@@ -17,12 +18,15 @@ function CartaoLead({
   aoAbrir,
   aoMover,
   aoWhatsapp,
+  contato,
 }: {
   l: LeadVisao;
   hoje: string;
   aoAbrir: (id: string) => void;
   aoMover: (id: string, status: StatusLead) => void;
   aoWhatsapp: (id: string) => void;
+  /** O que o banco liberou para este lead: o atalho do WhatsApp só existe se a pessoa escolheu esse canal. */
+  contato: ContatoPermitido | undefined;
 }) {
   const { lead, resultado } = l;
   const vencido = atrasado(lead, hoje);
@@ -50,7 +54,7 @@ function CartaoLead({
           <b className="tabular-nums">{resultado?.indice ?? "–"}</b> {rotulos.nivel(resultado?.nivel ?? null)}
         </span>
         <span className={cn(selo, "tabular-nums")}>
-          {admin.colunas.leadScore} {l.leadScore}
+          {admin.colunas.intencao} {l.pontuacoes.intencao.pontos}/{l.pontuacoes.intencao.maximo}
         </span>
         {lead.pediu_contato ? (
           <span className={cn(selo, "border-verde text-verde")}>{admin.detalhe.pediuContato}</span>
@@ -84,9 +88,9 @@ function CartaoLead({
             ))}
           </select>
         </label>
-        {lead.whatsapp ? (
+        {contato?.whatsapp && contato.telefone ? (
           <a
-            href={waUrl(admin.mensagem(lead.nome, resultado?.indice ?? null), lead.whatsapp)}
+            href={waUrl(admin.mensagem(lead.nome, resultado?.indice ?? null), contato.telefone)}
             target="_blank"
             rel="noopener"
             onClick={() => aoWhatsapp(lead.id)}
@@ -107,12 +111,14 @@ export function Kanban({
   aoAbrir,
   aoMover,
   aoWhatsapp,
+  contatos,
 }: {
   leads: LeadVisao[];
   hoje: string;
   aoAbrir: (id: string) => void;
   aoMover: (id: string, status: StatusLead) => void;
   aoWhatsapp: (id: string) => void;
+  contatos: Map<string, ContatoPermitido> | null;
 }) {
   const [sobre, setSobre] = useState<StatusLead | null>(null);
   return (
@@ -158,6 +164,7 @@ export function Kanban({
                         aoAbrir={aoAbrir}
                         aoMover={aoMover}
                         aoWhatsapp={aoWhatsapp}
+                        contato={contatos?.get(l.lead.id)}
                       />
                     ))}
                   </ul>

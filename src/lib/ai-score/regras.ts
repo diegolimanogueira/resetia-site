@@ -81,23 +81,39 @@ export const regras = {
     performance: [{ ref: "p3", minimo: 1 }],
   } satisfies Record<string, Array<{ ref: string; minimo: number }>>,
 
+  /** Conversa com especialista: em quantas horas o pedido deveria ter uma primeira resposta (a fila marca o que passou). */
+  conversa: { respostaEmHoras: 24 },
+
   /**
-   * Lead score (0 a 100), separado do AI Score: aderência ao público, papel, intenção e interesse no contato.
-   * Calculado no admin a partir das respostas, então recalibrar aqui vale para todos os leads.
+   * Pontuações do lead, SEPARADAS (proposta inicial a calibrar com conversas reais). Nenhuma é nota de maturidade
+   * (uma nota baixa no AI Score pode ser justamente uma oportunidade) e nenhuma prova orçamento ou autoridade:
+   * cargo, porte e e-mail corporativo só dizem se a pessoa está no perfil que a Reset atende, e gestores e
+   * coordenadores costumam ser patrocinadores internos relevantes.
    */
   leadScore: {
-    papel: { ceo: 25, diretor: 20, gestor: 15, coordenador: 8, especialista: 4, outro: 0 } satisfies Record<
-      PapelId,
-      number
-    >,
-    horizonte: { imediato: 25, "3-meses": 16, "6-meses": 8, explorando: 0 } satisfies Record<HorizonteId, number>,
-    porte: { "ate-10": 3, "11-49": 10, "50-199": 15, "200-499": 15, "500-mais": 12 } satisfies Record<PorteId, number>,
-    escopo: { empresa: 5, marketing: 0, vendas: 0, "customer-success": 0 } satisfies Record<Escopo, number>,
-    temDesafio: 5,
-    emailCorporativo: 5,
-    whatsapp: 5,
-    /** Pediu o relatório completo (informou a empresa). */
-    relatorioCompleto: 5,
-    pediuContato: 10,
+    /** Aderência ao perfil: quem é a pessoa e a empresa. */
+    aderencia: {
+      papel: { ceo: 10, diretor: 10, gestor: 9, coordenador: 8, especialista: 5, outro: 2 } satisfies Record<
+        PapelId,
+        number
+      >,
+      porte: { "ate-10": 3, "11-49": 7, "50-199": 10, "200-499": 10, "500-mais": 9 } satisfies Record<PorteId, number>,
+      escopo: { empresa: 5, marketing: 2, vendas: 2, "customer-success": 2 } satisfies Record<Escopo, number>,
+      emailCorporativo: 5,
+    },
+    /** Intenção de conversar: o que a pessoa fez e pediu. */
+    intencao: {
+      horizonte: { imediato: 15, "3-meses": 10, "6-meses": 5, explorando: 0 } satisfies Record<HorizonteId, number>,
+      pediuContato: 30,
+      whatsapp: 5,
+      relatorioCompleto: 5,
+    },
+    /** Oportunidade investigada: o que já existe de concreto para conversar. */
+    oportunidade: {
+      desafio: 5,
+      solucaoIndicada: 10,
+      aprofundamentoCamada1: 10,
+      aprofundamentoCamada2: 10,
+    },
   },
 };

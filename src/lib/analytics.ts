@@ -18,7 +18,7 @@ export const analytics = {
   },
 };
 
-type Dados = Record<string, string | number | boolean | undefined>;
+export type Dados = Record<string, string | number | boolean | undefined>;
 
 declare global {
   interface Window {
@@ -29,140 +29,12 @@ declare global {
 }
 
 /**
- * Catálogo dos eventos do RESET AI Score, cada um com o que mede e o denominador natural da taxa. `unico`: o evento
- * conta uma vez por sessão (ou uma vez por avaliação, quando a chave é dada), mesmo que a tela renderize de novo ou
- * a pessoa volte à etapa. Nenhum evento leva nome, e-mail, telefone, texto digitado, resposta privada ou token:
- * `track` só aceita as chaves declaradas aqui, com valores curtos de vocabulário controlado.
- * Documentação para quem lê os números: docs/medicao.md.
- */
-export const EVENTOS_AI_SCORE = {
-  ai_score_abertura: {
-    mede: "Abriu o questionário",
-    denominador: "visitas da página do AI Score",
-    unico: "sessao",
-    chaves: [],
-  },
-  ai_score_primeira_interacao: {
-    mede: "Respondeu a primeira pergunta de segmentação",
-    denominador: "aberturas do questionário",
-    unico: "sessao",
-    chaves: [],
-  },
-  ai_score_inicio: {
-    mede: "Concluiu a segmentação e foi para as perguntas",
-    denominador: "aberturas do questionário",
-    unico: "sessao",
-    chaves: ["escopo", "papel"],
-  },
-  ai_score_etapa: { mede: "Avançou uma etapa", denominador: "segmentações concluídas", chaves: ["etapa", "total"] },
-  ai_score_concluido: {
-    mede: "Terminou o questionário",
-    denominador: "segmentações concluídas",
-    unico: "sessao",
-    chaves: ["escopo", "nivel", "indice", "areas"],
-  },
-  ai_score_contato: {
-    mede: "Contato aceito pelo servidor (nome e e-mail)",
-    denominador: "questionários concluídos",
-    unico: "sessao",
-    chaves: ["nivel", "marketing"],
-  },
-  ai_score_lead: {
-    mede: "Pediu o relatório completo (empresa informada)",
-    denominador: "contatos aceitos",
-    unico: "sessao",
-    chaves: ["nivel", "contato", "marketing"],
-  },
-  ai_score_aprofundamento_inicio: {
-    mede: "Começou o aprofundamento",
-    denominador: "relatórios liberados",
-    unico: "sessao",
-    chaves: [],
-  },
-  ai_score_aprofundamento_salvo: {
-    mede: "Salvou o aprofundamento",
-    denominador: "aprofundamentos iniciados",
-    chaves: ["camada"],
-  },
-  ai_score_aprofundamento_pulado: {
-    mede: "Escolheu não responder agora",
-    denominador: "relatórios liberados",
-    unico: "sessao",
-    chaves: [],
-  },
-  ai_score_download: {
-    mede: "Baixou o PDF ou imprimiu",
-    denominador: "relatórios liberados",
-    chaves: ["nivel", "formato"],
-  },
-  ai_score_email_aceito: {
-    mede: "Provedor de e-mail aceitou o relatório",
-    denominador: "relatórios liberados",
-    unico: "sessao",
-    chaves: [],
-  },
-  ai_score_email_falhou: {
-    mede: "Envio do relatório por e-mail falhou",
-    denominador: "relatórios liberados",
-    unico: "sessao",
-    chaves: ["estado"],
-  },
-} as const;
-
-/** Eventos de conversão do site em geral (cliques) e de desempenho, que já existiam. */
-const EVENTOS_DO_SITE = [
-  "cta_diagnostico_gratuito",
-  "cta_whatsapp",
-  "cta_pagina_diagnostico",
-  "cta_ai_score",
-  "cta_teste_spotlite",
-  "web_vitals",
-] as const;
-const CHAVES_DO_SITE = ["origem", "pagina", "nome", "valor", "rating"];
-
-/** Valor aceito: número, booleano ou texto curto de vocabulário controlado (nada que lembre e-mail, telefone, id ou token). */
-const VOCABULARIO = /^[A-Za-z0-9][A-Za-z0-9_.:/+-]{0,59}$/;
-const pareceDadoPessoal = (v: string) =>
-  /@/.test(v) || /\d{8,}/.test(v) || /[0-9a-f]{8}-[0-9a-f]{4}-/i.test(v) || /[A-Za-z0-9_-]{32,}/.test(v);
-
-/** Deixa só as chaves declaradas e os valores seguros. Exportado para teste. */
-export function limparDados(chaves: readonly string[], dados: Dados): Dados {
-  const saida: Dados = {};
-  for (const k of chaves) {
-    const v = dados[k];
-    if (typeof v === "number" ? Number.isFinite(v) : typeof v === "boolean") saida[k] = v;
-    else if (typeof v === "string" && VOCABULARIO.test(v) && !pareceDadoPessoal(v)) saida[k] = v;
-  }
-  return saida;
-}
-
-const marcaDeEvento = (evento: string, chave?: string) => `resetia.ev.${evento}${chave ? `.${chave}` : ""}`;
-
-/** Já contou nesta sessão? Se não, marca (sem armazenamento disponível, conta de novo: melhor repetir que perder). */
-function jaContou(evento: string, chave?: string) {
-  try {
-    const k = marcaDeEvento(evento, chave);
-    if (sessionStorage.getItem(k)) return true;
-    sessionStorage.setItem(k, "1");
-  } catch {
-    // Sem sessionStorage, o evento passa.
-  }
-  return false;
-}
-
-/**
- * Registra um evento. Eventos fora do catálogo são descartados; os dados passam por `limparDados`; um evento marcado
- * `unico` conta uma vez por sessão (e por `chave`, se informada). Sem analytics configurado, não faz nada.
+ * Registra um evento. Sem analytics configurado (o caso hoje), não faz nada e não baixa nada: o catálogo, o saneamento
+ * e a deduplicação vivem em `analytics-eventos.ts`, carregado só quando há um provedor ligado.
  */
 export function track(evento: string, dados: Dados = {}, chave?: string) {
   if (!analytics.ativo || typeof window === "undefined") return;
-  const doSite = (EVENTOS_DO_SITE as readonly string[]).includes(evento);
-  const ai = EVENTOS_AI_SCORE[evento as keyof typeof EVENTOS_AI_SCORE];
-  if (!doSite && !ai) return;
-  if (ai && "unico" in ai && jaContou(evento, chave)) return;
-  const limpos = limparDados(doSite ? CHAVES_DO_SITE : ai.chaves, dados);
-  if (analytics.provedor === "umami") window.umami?.track(evento, limpos);
-  else window.gtag?.("event", evento, limpos);
+  void import("./analytics-eventos").then((m) => m.enviar(evento, dados, chave));
 }
 
 /** Links que contam como conversão (o listener de clique do Analytics usa este seletor). */
