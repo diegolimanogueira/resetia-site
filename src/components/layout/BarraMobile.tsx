@@ -18,6 +18,9 @@ const SEM_BARRA = /^\/(ai-score\/(avaliacao|resultado|preferencias)|admin)(\/|$)
 /** Onde a intenção da página é a conversa (Análise Estratégica): o WhatsApp é a ação principal, e a avaliação, a alternativa. */
 const CONVERSA_PRINCIPAL = /^\/diagnostico-gratuito(\/|$)/;
 
+/** Em telas de 360px ou menos, o rótulo longo da avaliação caberia em três linhas: texto e margem menores o mantêm em duas. */
+const botaoDaBarra = "w-full md:w-auto max-[360px]:px-3 max-[360px]:text-[13px]";
+
 /**
  * Ação sempre à mão depois do hero (600px): barra fixa no celular e botões flutuantes no desktop. A principal é a
  * avaliação gratuita (RESET AI Score), com o WhatsApp como alternativa; na página da Análise Estratégica, ao contrário.
@@ -47,7 +50,7 @@ export function BarraMobile() {
       <div className="grid grid-cols-[1.4fr_1fr] gap-2 md:flex md:flex-col md:items-end">
         {conversa ? (
           <>
-            <Botao href={waGeral()} origem="barra-mobile" tamanho="sm" className="w-full md:w-auto">
+            <Botao href={waGeral()} origem="barra-mobile" tamanho="sm" className={botaoDaBarra}>
               {site.barraMobile}
             </Botao>
             <Botao
@@ -55,23 +58,17 @@ export function BarraMobile() {
               origem="ai-score-barra"
               variante="secundario"
               tamanho="sm"
-              className="w-full md:w-auto"
+              className={botaoDaBarra}
             >
               {site.ctaMenu}
             </Botao>
           </>
         ) : (
           <>
-            <Botao href="/ai-score/" origem="ai-score-barra" tamanho="sm" className="w-full md:w-auto">
+            <Botao href="/ai-score/" origem="ai-score-barra" tamanho="sm" className={botaoDaBarra}>
               {site.ctaAiScore}
             </Botao>
-            <Botao
-              href={waGeral()}
-              origem="barra-mobile"
-              variante="secundario"
-              tamanho="sm"
-              className="w-full md:w-auto"
-            >
+            <Botao href={waGeral()} origem="barra-mobile" variante="secundario" tamanho="sm" className={botaoDaBarra}>
               {site.barraMobile}
             </Botao>
           </>
