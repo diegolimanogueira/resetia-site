@@ -1,65 +1,57 @@
-// Função do RESET AI Score (Supabase Edge Function, Deno). Três ações, por POST JSON {acao, ...}:
-//   dicas             {avaliacao_id, lead_id} -> dicas de evolução para as dimensões de nota baixa.
-//   enviar-relatorio  {avaliacao_id, lead_id} -> envia o relatório completo por e-mail ao lead (uma vez).
-//   email-reset       {lead_id, assunto, corpo} + token de um admin -> envia o e-mail sobre a Reset IA.
+// Função do RESET AI Score (Supabase Edge Function, Deno). Ações, por POST JSON {acao, ...}:
+//   registrar   {avaliacao_id, lead_id, chave, codigo, nome, email, ...} -> etapa 1: cria avaliação e lead (nota recalculada aqui).
+//   completar   {avaliacao_id, lead_id, chave, empresa, ...}              -> etapa 2: completa o lead e enfileira o relatório por e-mail.
+//   aprofundar  {lead_id, chave, aprofundamento}                          -> grava o aprofundamento de uma dor (camada 1 ou 2).
+//   status      {lead_id, chave}                                          -> estado real do envio do relatório.
+//   processar   (cabeçalho x-processador ou token de admin)               -> processa as tarefas pendentes (agendador, botão do painel).
+//   dicas             {avaliacao_id, lead_id[, chave]} -> dicas de evolução para as dimensões de nota baixa.
+//   enviar-relatorio  {avaliacao_id, lead_id}          -> (só lead antigo, sem chave) envia o relatório completo por e-mail.
+//   email-reset       {lead_id, assunto, corpo} + token de um admin -> e-mail sobre a Reset IA, só com consentimento.
+// Quem escreve num lead prova que conhece a chave que o navegador gerou; o id do lead, que é público, não autoriza
+// escrita. A nota é sempre recalculada aqui, com o mesmo código do site (nucleo.js).
 // Dicas: um agente escritor e um agente revisor (Claude), saída em JSON com esquema, e um validador em código
-// (nucleo.js, o mesmo código do site) que descarta números, marcas e promessas; sem chave ou com falha, a
-// biblioteca de dicas. Os agentes só recebem fatos estruturados (alternativas escolhidas, notas, rótulos):
-// nenhum texto digitado por quem respondeu entra no prompt.
+// (nucleo.js) que descarta números, marcas e promessas; sem chave ou com falha, a biblioteca de dicas. Os agentes
+// só recebem fatos estruturados (alternativas escolhidas, notas, rótulos): nenhum texto digitado entra no prompt.
 // Segredos (Supabase -> Edge Functions -> Secrets): ANTHROPIC_API_KEY, RESEND_API_KEY, EMAIL_REMETENTE
-// ("Reset IA <contato@resetia.com.br>"), EMAIL_RESPOSTA (opcional), SITE_URL (opcional), DICAS_POR_HORA e
-// RELATORIOS_POR_HORA (opcionais, limites contra abuso). SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY vêm do Supabase.
-// Limites: qualquer pessoa cria um lead (o anônimo insere), então a função limita gerações por IA e e-mails de
-// relatório por hora, e no máximo três relatórios por endereço por dia; acima disso, biblioteca e "limite".
+// ("Reset IA <contato@resetia.com.br>"), EMAIL_RESPOSTA (opcional), SITE_URL (opcional), PROCESSADOR_SEGREDO (agendador),
+// e os limites opcionais DICAS_POR_HORA, RELATORIOS_POR_HORA, REGISTROS_POR_IP_HORA e REGISTROS_POR_HORA.
+// SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY vêm do Supabase.
 import Anthropic from "npm:@anthropic-ai/sdk@1.3.0";
+import {
+  agendar,
+  contar,
+  cors,
+  desde,
+  env,
+  espera,
+  limite,
+  resposta,
+  rest,
+  rpc,
+  SERVICO,
+  SITE,
+  SUPABASE_URL,
+  UUID,
+} from "./base.ts";
+import { aprofundar, completar, registrar, status } from "./captura.ts";
+// @ts-types="./nucleo.d.ts"
 import * as nucleo from "./nucleo.js";
+import { CHAVE, sha256hex } from "./seguranca.ts";
+import { processar, type Dependencias, type Envio } from "./tarefas.ts";
 
-const env = (k: string) => Deno.env.get(k) ?? "";
-const SUPABASE_URL = env("SUPABASE_URL");
-const SERVICO = env("SUPABASE_SERVICE_ROLE_KEY");
-const SITE = (env("SITE_URL") || "https://www.resetia.com.br").replace(/\/$/, "");
 const MODELO = "claude-opus-5-5";
-const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const limite = (k: string, padrao: number) => (Number(env(k)) > 0 ? Number(env(k)) : padrao);
 const DICAS_POR_HORA = limite("DICAS_POR_HORA", 20);
 const RELATORIOS_POR_HORA = limite("RELATORIOS_POR_HORA", 30);
 const RELATORIOS_POR_ENDERECO_DIA = 3;
-const desde = (ms: number) => encodeURIComponent(new Date(Date.now() - ms).toISOString());
-
-const cors = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-};
-const resposta = (corpo: unknown, status = 200) =>
-  new Response(JSON.stringify(corpo), { status, headers: { ...cors, "Content-Type": "application/json" } });
-const espera = (ms: number) => new Promise((ok) => setTimeout(ok, ms));
-
-/** REST do próprio projeto com a chave de serviço (a função passa por cima do RLS, com cuidado). */
-function rest(caminho: string, init: RequestInit = {}) {
-  return fetch(`${SUPABASE_URL}/rest/v1/${caminho}`, {
-    ...init,
-    headers: {
-      apikey: SERVICO,
-      Authorization: `Bearer ${SERVICO}`,
-      "Content-Type": "application/json",
-      ...(init.headers as Record<string, string> | undefined),
-    },
-  });
-}
-
-/** Quantas linhas um filtro da REST encontra (Content-Range). Na dúvida, "muitas": o limite vale. */
-async function contar(caminho: string) {
-  const r = await rest(caminho, { headers: { Prefer: "count=exact", Range: "0-0" } });
-  const total = Number((r.headers.get("content-range") ?? "").split("/")[1]);
-  return r.ok && Number.isFinite(total) ? total : Number.POSITIVE_INFINITY;
-}
+const RESEND = (env("RESEND_BASE_URL") || "https://api.resend.com").replace(/\/$/, "");
 
 type Lead = {
   id: string;
   nome: string;
   email: string;
   empresa: string | null;
+  canal: string;
+  chave_hash: string | null;
   relatorio_enviado_em: string | null;
   avaliacao: { id: string; codigo: string } | null;
 };
@@ -68,20 +60,20 @@ async function carregarLead(leadId: string, avaliacaoId?: string): Promise<Lead 
   if (!UUID.test(leadId) || (avaliacaoId !== undefined && !UUID.test(avaliacaoId))) return null;
   const filtro = avaliacaoId ? `&avaliacao_id=eq.${avaliacaoId}` : "";
   const r = await rest(
-    `leads?id=eq.${leadId}${filtro}&select=id,nome,email,empresa,relatorio_enviado_em,avaliacao:avaliacoes(id,codigo)`,
+    `leads?id=eq.${leadId}${filtro}&select=id,nome,email,empresa,canal,chave_hash,relatorio_enviado_em,avaliacao:avaliacoes(id,codigo)`,
   );
   if (!r.ok) return null;
   const [lead] = (await r.json()) as Lead[];
   return lead ?? null;
 }
 
-function analisarLead(lead: Lead) {
-  const r = lead.avaliacao ? nucleo.decodificar(lead.avaliacao.codigo) : null;
-  if (!lead.avaliacao || !nucleo.completas(r)) return null;
-  const respostas = { ...r, id: lead.avaliacao.id };
-  const resultado = nucleo.calcular(respostas);
-  const rec = nucleo.recomendar(resultado, respostas.desafios);
-  return { respostas, resultado, rec, analise: nucleo.analisar(respostas, resultado, rec) };
+function analisarLead(lead: { avaliacao: { id: string; codigo: string } | null }) {
+  const l = lead.avaliacao ? nucleo.lerLink(lead.avaliacao.codigo) : null;
+  if (!lead.avaliacao || l?.tipo !== "ok" || !nucleo.completas(l.respostas)) return null;
+  const respostas = { ...l.respostas, id: lead.avaliacao.id };
+  // A nota usa o método da própria avaliação (um link do formato 1 continua no método 1).
+  const d = nucleo.montarDevolutiva(respostas, l);
+  return { respostas, resultado: d.resultado, rec: d.recomendacao, analise: d.analise };
 }
 
 // Dicas -------------------------------------------------------------------------------------------------------
@@ -187,30 +179,61 @@ async function obterDicas(avaliacaoId: string, a: NonNullable<ReturnType<typeof 
 
 // E-mail ------------------------------------------------------------------------------------------------------
 
-async function enviarEmail(m: { para: string; assunto: string; html: string; texto: string }) {
+/**
+ * Envia pelo Resend. `idempotencia` vai no cabeçalho Idempotency-Key (24 h): repetir a mesma tarefa depois de um tempo
+ * esgotado não envia duas vezes. "aceito" é só o provedor ter aceito a mensagem. Falha de rede, tempo esgotado, 429,
+ * 5xx e 409 de requisição simultânea valem nova tentativa; 4xx do provedor (inclusive chave já usada com outro
+ * conteúdo) é definitivo.
+ */
+async function enviarEmail(
+  m: { para: string; assunto: string; html: string; texto: string },
+  idempotencia?: string,
+): Promise<Envio> {
   const chave = env("RESEND_API_KEY");
   const de = env("EMAIL_REMETENTE");
-  if (!chave || !de) return { status: "nao-configurado" as const };
-  const r = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${chave}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: de,
-      to: [m.para],
-      subject: m.assunto,
-      html: m.html,
-      text: m.texto,
-      ...(env("EMAIL_RESPOSTA") ? { reply_to: env("EMAIL_RESPOSTA") } : {}),
-    }),
-  });
-  return r.ok ? { status: "enviado" as const } : { status: "falhou" as const, erro: (await r.text()).slice(0, 900) };
+  if (!chave || !de) return { status: "nao-configurado" };
+  try {
+    const r = await fetch(`${RESEND}/emails`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${chave}`,
+        "Content-Type": "application/json",
+        ...(idempotencia ? { "Idempotency-Key": idempotencia } : {}),
+      },
+      body: JSON.stringify({
+        from: de,
+        to: [m.para],
+        subject: m.assunto,
+        html: m.html,
+        text: m.texto,
+        ...(env("EMAIL_RESPOSTA") ? { reply_to: env("EMAIL_RESPOSTA") } : {}),
+      }),
+      signal: AbortSignal.timeout(limite("RESEND_TIMEOUT_MS", 20_000)),
+    });
+    const corpo = (await r.json().catch(() => ({}))) as { id?: string; name?: string; message?: string };
+    if (r.ok) return { status: "aceito", id: corpo.id ?? null };
+    const nome = corpo.name ?? "";
+    const transitorio =
+      r.status >= 500 ||
+      r.status === 429 ||
+      r.status === 408 ||
+      (r.status === 409 && nome === "concurrent_idempotent_requests");
+    return {
+      status: "falhou",
+      erro: `${r.status} ${nome} ${corpo.message ?? ""}`.trim().slice(0, 300),
+      definitivo: !transitorio,
+    };
+  } catch (erro) {
+    // Tempo esgotado ou rede: o provedor pode ou não ter recebido; a chave de idempotência cobre a nova tentativa.
+    return { status: "falhou", erro: erro instanceof Error ? erro.name : "erro de rede", definitivo: false };
+  }
 }
 
-async function registrar(
+async function registrarEmail(
   leadId: string,
   tipo: "relatorio" | "reset",
   assunto: string,
-  envio: { status: string; erro?: string },
+  envio: Envio,
   autor: string,
 ) {
   await rest("emails", {
@@ -221,11 +244,12 @@ async function registrar(
       tipo,
       assunto: assunto.slice(0, 300),
       status: envio.status,
-      erro: envio.erro ?? null,
+      erro: envio.status === "falhou" ? envio.erro.slice(0, 900) : null,
+      provedor_id: envio.status === "aceito" ? envio.id : null,
       autor,
     }),
   });
-  if (envio.status === "enviado")
+  if (envio.status === "aceito")
     await rest("atividades", {
       method: "POST",
       headers: { Prefer: "return=minimal" },
@@ -234,7 +258,9 @@ async function registrar(
         tipo: "email",
         autor,
         texto:
-          tipo === "relatorio" ? `Relatório completo enviado por e-mail: ${assunto}` : `E-mail enviado: ${assunto}`,
+          tipo === "relatorio"
+            ? `Relatório completo aceito pelo provedor de e-mail: ${assunto}`
+            : `E-mail aceito pelo provedor: ${assunto}`,
       }),
     });
 }
@@ -254,6 +280,22 @@ async function adminDoToken(req: Request): Promise<string | null> {
   return linhas.length ? (usuario.email ?? "admin") : null;
 }
 
+/** O que o processador de tarefas usa daqui (injetado para não haver importação circular). */
+const dependencias: Dependencias = {
+  carregarLead: (id) => carregarLead(id),
+  analisarLead,
+  obterDicas: (avaliacaoId, a) => obterDicas(avaliacaoId, a),
+  enviarEmail,
+};
+
+/** Agendador (cabeçalho com o segredo) ou admin logado (botão "Processar pendências" do painel). */
+async function podeProcessar(req: Request) {
+  const segredo = env("PROCESSADOR_SEGREDO");
+  const enviado = req.headers.get("x-processador") ?? "";
+  if (segredo.length >= 16 && enviado && (await sha256hex(enviado)) === (await sha256hex(segredo))) return true;
+  return (await adminDoToken(req)) !== null;
+}
+
 // Rotas -------------------------------------------------------------------------------------------------------
 
 Deno.serve(async (req) => {
@@ -268,15 +310,33 @@ Deno.serve(async (req) => {
   const texto = (k: string) => (typeof corpo[k] === "string" ? (corpo[k] as string) : "");
 
   try {
+    // Ações novas: autorizadas pela chave do lead, não pelo id.
+    if (corpo.acao === "registrar") return await registrar(req, corpo);
+    if (corpo.acao === "completar") return await completar(corpo, () => processar(5, dependencias));
+    if (corpo.acao === "aprofundar") return await aprofundar(corpo);
+    if (corpo.acao === "status") return await status(corpo);
+    if (corpo.acao === "processar") {
+      if (!(await podeProcessar(req))) return resposta({ erro: "nao-autorizado" }, 401);
+      return resposta(await processar(Number(corpo.max) || 10, dependencias));
+    }
+
     if (corpo.acao === "dicas" || corpo.acao === "enviar-relatorio") {
       const lead = await carregarLead(texto("lead_id"), texto("avaliacao_id"));
       // O relatório completo (e as dicas) exige a etapa 2: lead com empresa.
       if (!lead?.empresa) return resposta({ erro: "lead" }, 404);
+      // Lead com chave: só quem a conhece; e o envio do relatório é tarefa do servidor (ver `status`).
+      if (lead.chave_hash) {
+        const chave = texto("chave");
+        if (!CHAVE.test(chave) || (await sha256hex(chave)) !== lead.chave_hash)
+          return resposta({ erro: "nao-autorizado" }, 403);
+        if (corpo.acao === "enviar-relatorio") return resposta({ erro: "use-status" }, 409);
+      }
       const a = analisarLead(lead);
       if (!a) return resposta({ erro: "avaliacao" }, 422);
 
       if (corpo.acao === "dicas") return resposta(await obterDicas(lead.avaliacao!.id, a));
 
+      // Caminho dos clientes antigos (lead sem chave): reserva, envio e registro do que de fato aconteceu.
       if (lead.relatorio_enviado_em) return resposta({ status: "ja-enviado" });
       const recentes = await contar(`emails?tipo=eq.relatorio&criado_em=gte.${desde(3_600_000)}&select=id`);
       const paraEsteEndereco = await contar(
@@ -294,7 +354,7 @@ Deno.serve(async (req) => {
         recomendacao: a.rec,
         analise: a.analise,
         dicas,
-        link: nucleo.linkRelatorio(SITE, a.respostas, lead.id),
+        link: nucleo.linkRelatorio(SITE, lead.avaliacao!.codigo, lead.id),
         whatsapp: nucleo.whatsappDoResultado(a.respostas),
         site: SITE,
         nomesSolucoes: nucleo.nomesSolucoes,
@@ -306,15 +366,23 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ relatorio_enviado_em: new Date().toISOString() }),
       });
       if (!reserva.ok || !((await reserva.json()) as unknown[]).length) return resposta({ status: "ja-enviado" });
-      const envio = await enviarEmail({ para: lead.email, ...email });
-      if (envio.status !== "enviado")
+      // `enviarEmail` não lança, mas o que vier depois pode: em qualquer falha a reserva é desfeita, para o relatório
+      // não ficar marcado como enviado sem ter saído.
+      let envio: Envio;
+      try {
+        envio = await enviarEmail({ para: lead.email, ...email });
+      } catch (erro) {
+        envio = { status: "falhou", erro: erro instanceof Error ? erro.name : "erro", definitivo: false };
+      }
+      if (envio.status !== "aceito")
         await rest(`leads?id=eq.${lead.id}`, {
           method: "PATCH",
           headers: { Prefer: "return=minimal" },
           body: JSON.stringify({ relatorio_enviado_em: null }),
         });
-      await registrar(lead.id, "relatorio", email.assunto, envio, "sistema");
-      return resposta({ status: envio.status });
+      await registrarEmail(lead.id, "relatorio", email.assunto, envio, "sistema");
+      // Vocabulário dos clientes antigos: "enviado" quer dizer aceito pelo provedor.
+      return resposta({ status: envio.status === "aceito" ? "enviado" : envio.status });
     }
 
     if (corpo.acao === "email-reset") {
@@ -326,12 +394,27 @@ Deno.serve(async (req) => {
         return resposta({ erro: "campos" }, 400);
       const lead = await carregarLead(texto("lead_id"));
       if (!lead) return resposta({ erro: "lead" }, 404);
-      const r = lead.avaliacao ? nucleo.decodificar(lead.avaliacao.codigo) : null;
-      const whatsapp = nucleo.completas(r) ? nucleo.whatsappDoResultado(r) : nucleo.waUrl();
+      // Só com consentimento registrado: pedir contato com especialista ou aceitar conteúdo, por e-mail.
+      const [contato, conteudo] = await Promise.all(
+        ["contato-analise", "conteudo-email"].map((p_finalidade) =>
+          rpc<boolean>("elegivel", { p_lead: lead.id, p_finalidade, p_canal: "email" }),
+        ),
+      );
+      if (contato.estado === "indisponivel" || conteudo.estado === "indisponivel")
+        return resposta({ erro: "banco" }, 502);
+      if (contato.dados !== true && conteudo.dados !== true) return resposta({ erro: "consentimento" }, 403);
+      const l = lead.avaliacao ? nucleo.lerLink(lead.avaliacao.codigo) : null;
+      const whatsapp =
+        l?.tipo === "ok" && nucleo.completas(l.respostas) ? nucleo.whatsappDoResultado(l.respostas) : nucleo.waUrl();
       const email = nucleo.montarEmailReset({ assunto, corpo: mensagem, whatsapp, site: SITE });
-      const envio = await enviarEmail({ para: lead.email, ...email });
-      await registrar(lead.id, "reset", assunto, envio, autor);
-      return resposta({ status: envio.status });
+      let envio: Envio;
+      try {
+        envio = await enviarEmail({ para: lead.email, ...email });
+      } catch (erro) {
+        envio = { status: "falhou", erro: erro instanceof Error ? erro.name : "erro", definitivo: false };
+      }
+      await registrarEmail(lead.id, "reset", assunto, envio, autor);
+      return resposta({ status: envio.status === "aceito" ? "enviado" : envio.status });
     }
 
     return resposta({ erro: "acao" }, 400);

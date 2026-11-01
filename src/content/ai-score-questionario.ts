@@ -12,6 +12,7 @@ import type {
   PorteId,
   SegmentoId,
 } from "./types";
+import { textosDeConsentimento } from "./ai-score-consentimentos";
 
 /**
  * RESET AI Score: perguntas, escalas, níveis e textos do questionário, do resultado e do relatório.
@@ -693,7 +694,7 @@ export const contato = {
     nome: "Nome",
     email: "E-mail",
     emailApoio: "De preferência o da empresa.",
-    marketing: "Quero receber conteúdos da Reset IA sobre IA nos negócios.",
+    marketing: textosDeConsentimento.conteudoEmail,
   },
   enviar: "Ver meu resultado",
   enviando: "Abrindo…",
@@ -720,12 +721,11 @@ export const formulario = {
     empresa: "Empresa",
     whatsapp: "WhatsApp (opcional)",
     whatsappApoio: "Com DDD. Usado só se você pedir contato.",
-    contato: "Quero que um especialista da Reset fale comigo sobre o resultado.",
-    marketing: "Quero receber conteúdos da Reset IA sobre IA nos negócios.",
+    contato: textosDeConsentimento.contatoAnalise,
+    marketing: textosDeConsentimento.conteudoEmail,
     armadilha: "Deixe este campo em branco",
   },
-  finalidade:
-    "Usamos a empresa para completar o seu relatório, que também enviamos para o seu e-mail. Ligação ou WhatsApp de um especialista, só se você pedir.",
+  finalidade: `${textosDeConsentimento.relatorioEmail} ${textosDeConsentimento.contatoAnaliseCanais}`,
   privacidade: { label: "Política de privacidade", href: "/privacidade" },
   enviar: "Liberar relatório completo",
   enviando: "Liberando…",

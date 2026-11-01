@@ -1,8 +1,8 @@
 import { ANALISE_ATUAL } from "../versoes";
 import { metodoDe } from "../metodo";
 import type { Respostas } from "../tipos";
-import { decodificarV1 } from "./v1";
-import { decodificarV2 } from "./v2";
+import { codificarV1, decodificarV1 } from "./v1";
+import { codificarV2, decodificarV2 } from "./v2";
 
 /**
  * Leitura de um link do resultado, com estados distintos para a tela e para o painel não tratarem tudo como
@@ -50,4 +50,14 @@ export function lerLink(texto: string | null | undefined): LeituraLink {
     };
   }
   return { tipo: "formato-desconhecido" };
+}
+
+/**
+ * Código canônico de um link lido: só as respostas e as versões, sem token (`&k=`) nem `&lead=`. É o que o servidor
+ * grava e o que o link do resultado repete, no formato do link original (um link do formato 1 continua no 1).
+ */
+export function codigoCanonico(l: Extract<LeituraLink, { tipo: "ok" }>): string {
+  return l.formato === "1"
+    ? codificarV1(l.respostas)
+    : codificarV2(l.respostas, { metodo: l.metodo, analise: l.analise ?? ANALISE_ATUAL });
 }

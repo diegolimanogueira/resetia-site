@@ -8,9 +8,15 @@ import { instrucoes } from "@/content/ai-score-instrucoes";
 import { dimensoes, modulosArea, niveis, relatorio, resultadoTextos } from "@/content/ai-score-questionario";
 import { nomesSolucoes } from "@/content/solucoes-nomes";
 import { waUrl } from "@/lib/whatsapp";
+import { CONSENTIMENTOS_VERSAO } from "@/content/ai-score-consentimentos";
 import { analisar } from "./analisar";
+import { esforcoEstimado, paraLinha, validarAprofundamento } from "./aprofundamento";
 import { calcular } from "./calcular";
-import { codificar, completas, decodificar } from "./codificar";
+import { completas, decodificar, lerLink } from "./codificar";
+import { codigoCanonico } from "./codec";
+import { emailPessoal, emailValido, normalizarWhatsapp } from "./contato";
+import { montarDevolutiva } from "./devolutiva";
+import { ANALISE_ATUAL, METODO_ATUAL } from "./versoes";
 import { alvosDasDicas, montarDicas as montarDicasCom } from "./dicas";
 import { esquemaDicas, fatosParaDicas, validarDicas } from "./dicas-ia";
 import { montarEmailRelatorio, montarEmailReset } from "./email";
@@ -24,16 +30,28 @@ const montarDicas = (...args: Parameters<typeof montarDicasCom> extends [unknown
 export {
   alvosDasDicas,
   analisar,
+  ANALISE_ATUAL,
   calcular,
+  codigoCanonico,
   completas,
+  CONSENTIMENTOS_VERSAO,
   decodificar,
+  emailPessoal,
+  emailValido,
+  esforcoEstimado,
   esquemaDicas,
   fatosParaDicas,
   instrucoes,
+  lerLink,
+  METODO_ATUAL,
+  montarDevolutiva,
   montarDicas,
   montarEmailRelatorio,
   montarEmailReset,
+  normalizarWhatsapp,
+  paraLinha,
   recomendar,
+  validarAprofundamento,
   validarDicas,
   waUrl,
 };
@@ -48,9 +66,13 @@ export const quemDoResumo = (r: RespostasCompletas, empresa: string | null) =>
 export const nomeDoNivel = (id: string | null) => niveis.find((n) => n.id === id)?.nome ?? null;
 export const nomeDaDimensao = (id: string) => dimensoes.find((d) => d.id === id)?.nome ?? id;
 
-/** Link do e-mail: o resultado com o par (lead, avaliação), que libera o relatório completo em qualquer aparelho. */
-export const linkRelatorio = (site: string, r: RespostasCompletas & { id: string }, leadId: string) =>
-  `${site}/ai-score/resultado/#${codificar(r)}&lead=${leadId}`;
+/**
+ * Link do e-mail: o resultado, com o código da própria avaliação (no formato e nas versões com que foi feita). Só os
+ * leads antigos (criados pelo navegador, sem chave) levam o `&lead=` que libera o relatório em qualquer aparelho; os
+ * novos não levam o id do lead no link, porque ele não autoriza nada.
+ */
+export const linkRelatorio = (site: string, codigo: string, leadId: string | null) =>
+  `${site}/ai-score/resultado/#${codigo}${leadId ? `&lead=${leadId}` : ""}`;
 
 /** WhatsApp da Análise Estratégica com a nota e as duas maiores lacunas, como na tela de resultado. */
 export function whatsappDoResultado(r: RespostasCompletas) {
