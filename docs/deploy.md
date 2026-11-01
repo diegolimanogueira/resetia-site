@@ -174,8 +174,10 @@ Depois da `0010`, confira pela API que o anônimo continua sem ler nada (use a c
 
 ```bash
 npm run funcao:nucleo && git diff --exit-code supabase/functions/ai-score/nucleo.js
-npx supabase functions deploy ai-score --project-ref pjjzjbjamalwkjtlifgm --no-verify-jwt
+npx supabase functions deploy ai-score --project-ref pjjzjbjamalwkjtlifgm --no-verify-jwt --use-api
 ```
+
+`--use-api` empacota no servidor e dispensa o Docker. Precisa de `npx supabase login` (abre o navegador) uma vez.
 
 3. Confirme no ar (a função só responde a `POST`):
 
