@@ -8,6 +8,8 @@ import { codificar, completas, decodificar, respostasVazias } from "@/lib/ai-sco
 import { emailPessoal, emailValido, normalizarWhatsapp } from "@/lib/ai-score/contato";
 import { leadScore } from "@/lib/ai-score/lead-score";
 import { recomendar } from "@/lib/ai-score/recomendar";
+import { metodoAtual } from "@/lib/ai-score/metodo";
+import { metodo1 } from "@/lib/ai-score/metodo/metodo-1";
 import { regras } from "@/lib/ai-score/regras";
 import type { Respostas, Slot } from "@/lib/ai-score/tipos";
 
@@ -32,7 +34,8 @@ const EXEMPLO = "33 22 21 22 11 21";
 
 describe("cálculo do AI Score", () => {
   it("escala progressiva e a dimensão mais fraca em dobro: o exemplo do documento dá 34, Explorando", () => {
-    expect(regras.pontos).toEqual([0, 15, 40, 70, 100]);
+    expect(metodoAtual).toBe(metodo1);
+    expect(metodo1.pontos).toEqual([0, 15, 40, 70, 100]);
     const r = calcular(base(EXEMPLO));
     expect(r.dimensoes).toEqual({
       estrategia: 70,
@@ -99,7 +102,7 @@ describe("cálculo do AI Score", () => {
   });
 
   it("limites dos níveis: 19/20, 39/40, 59/60, 79/80", () => {
-    expect([19, 20, 39, 40, 59, 60, 79, 80].map(nivelDe)).toEqual([
+    expect([19, 20, 39, 40, 59, 60, 79, 80].map((x) => nivelDe(x))).toEqual([
       "inicial",
       "explorando",
       "explorando",
@@ -198,7 +201,7 @@ describe("codificação do resultado no link", () => {
   it("ida e volta sem perda", () => {
     const texto = codificar(completo);
     expect(texto).toBe(
-      "v=1&e=empresa&p=ceo&t=50-199&s=tecnologia&r=332221221121&a=marketing,customer-success&am=12x3&ac=0014&d=agentes,medir&h=3-meses&id=3f1c2b9e-8a7d-4c6b-9e5f-1a2b3c4d5e6f",
+      "v=2&m=1&n=2&e=empresa&p=ceo&t=50-199&s=tecnologia&r=332221221121&a=marketing,customer-success&am=12x3&ac=0014&d=agentes,medir&h=3-meses&id=3f1c2b9e-8a7d-4c6b-9e5f-1a2b3c4d5e6f",
     );
     expect(decodificar(texto)).toEqual(completo);
     expect(decodificar(`#${texto}`)).toEqual(completo);
@@ -210,7 +213,7 @@ describe("codificação do resultado no link", () => {
     rascunho.centrais[0] = 3;
     rascunho.centrais[1] = null;
     const texto = codificar(rascunho);
-    expect(texto).toBe("v=1&e=vendas&r=3x----------&a=vendas&av=----");
+    expect(texto).toBe("v=2&m=1&n=2&e=vendas&r=3x----------&a=vendas&av=----");
     const volta = decodificar(texto)!;
     expect(volta.centrais.slice(0, 3)).toEqual([3, null, undefined]);
     expect(volta.porArea.vendas).toEqual([undefined, undefined, undefined, undefined]);
@@ -221,7 +224,9 @@ describe("codificação do resultado no link", () => {
     const ok = codificar(completo);
     for (const ruim of [
       "",
-      ok.replace("v=1", "v=2"),
+      ok.replace("v=2", "v=3"),
+      ok.replace("m=1&", ""),
+      ok.replace("n=2", "n=0"),
       ok.replace("e=empresa", "e=governo"),
       ok.replace("r=332221221121", "r=33222122112"),
       ok.replace("r=332221221121", "r=33222122112y"),

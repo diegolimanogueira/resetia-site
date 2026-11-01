@@ -1,20 +1,15 @@
 import type { DesafioId, DimensaoId, Escopo, HorizonteId, PapelId, PorteId } from "@/content/types";
 
 /**
- * Regras numéricas do RESET AI Score: limites, mapa de recomendação e pesos do lead score.
- * Proposta inicial a calibrar com as primeiras aplicações. Mudar aqui muda o resultado de todo mundo,
- * inclusive de quem já respondeu (o resultado é recalculado a partir das respostas).
+ * Parâmetros de ANÁLISE do RESET AI Score: faixas de leitura, limites dos alertas, mapa de recomendação e pesos do
+ * lead score. Proposta inicial a calibrar com as primeiras aplicações.
+ *
+ * A regra numérica da NOTA (pontos de cada alternativa, peso da menor dimensão, mínimo de respostas, faixas dos
+ * níveis) não mora aqui: está no método versionado e congelado, em `metodo/`. Mudar uma regra de análise exige subir
+ * `ANALISE_ATUAL` em `versoes.ts`; as avaliações novas passam a trazer a versão nova e as antigas continuam
+ * identificadas pela que tinham.
  */
 export const regras = {
-  /**
-   * Escala progressiva (28/10, pedido do Diego: avaliação mais exigente). Pontos de cada alternativa, da 1ª à 5ª:
-   * o que é individual ou pontual vale bem menos do que o que é estruturado e integrado. Linear seria 0, 25, 50, 75, 100.
-   */
-  pontos: [0, 15, 40, 70, 100] as const,
-  /** A dimensão mais fraca conta este número de vezes no AI Score (1 = média simples das seis). */
-  pesoMenorDimensao: 2,
-  /** Resultado consolidado exige ao menos 10 das 12 respostas válidas e uma em cada dimensão. */
-  minimoRespondidas: 10,
   /** Faixas da leitura por dimensão: abaixo de 40 "a estruturar", de 40 a 69 "em evolução", 70 ou mais "consolidada". */
   faixas: { mediaDesde: 40, altaDesde: 70 },
   /** Prioridade de cada dimensão no relatório: crítica abaixo de 20, alta abaixo de 40, média abaixo de 70. */
