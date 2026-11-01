@@ -1,19 +1,9 @@
--- Teste de segurança da migração do RESET AI Score num Postgres local (sem Supabase).
+-- Teste de segurança das migrações 0001 a 0004 do RESET AI Score num Postgres local (sem Supabase): o comportamento
+-- original, como foi validado em 28/10. A cadeia completa (0001 a 0008) é testada em captura.sql.
 -- Rodar com: npm run test:banco (sobe um cluster temporário; precisa de initdb/pg_ctl/psql no PATH).
 -- Simula o que o Supabase já traz: os papéis da API (anon, authenticated) com tudo concedido por padrão
 -- nas tabelas novas, auth.users e auth.uid() lendo o sub do JWT. Saída esperada nos comentários "esperado".
-\set ON_ERROR_STOP 1
-\set VERBOSITY terse
-create role anon nologin;
-create role authenticated nologin;
-grant usage on schema public to anon, authenticated;
-alter default privileges in schema public grant all on tables to anon, authenticated;
-alter default privileges in schema public grant all on functions to anon, authenticated;
-create schema auth;
-grant usage on schema auth to anon, authenticated;
-create table auth.users (id uuid primary key, email text);
-create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
-grant execute on function auth.uid() to anon, authenticated;
+\i supabase/tests/preparo.sql
 
 \i supabase/migrations/0001_ai_score.sql
 \i supabase/migrations/0002_cadastro_fechado.sql

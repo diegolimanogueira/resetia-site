@@ -1,0 +1,341 @@
+-- Teste da cadeia completa de migrações (0001 a 0008) num Postgres local, com asserções que FALHAM com exceção
+-- (nada de comparar texto de saída). Rodar com: npm run test:banco. Cobre o que as migrações novas prometem:
+-- inventário de privilégios do anônimo e do logado, o caminho antigo ainda funcionando e mais apertado, as funções de
+-- captura (idempotência, conflito, atomicidade, chave errada, revisão fora de ordem), as tarefas do servidor, os
+-- consentimentos por finalidade e canal e o preenchimento retroativo.
+\i supabase/tests/preparo.sql
+
+create schema teste;
+grant usage on schema teste to public;
+
+create function teste.afirmar(nome text, ok boolean) returns void language plpgsql as $$
+begin
+  if ok is not true then raise exception 'FALHOU: %', nome; end if;
+  raise notice 'ok: %', nome;
+end $$;
+
+-- A instrução tem que falhar, e com o estado de erro esperado (padrão 42501: permissão negada).
+create function teste.negar(p_sql text, p_estado text default '42501') returns void language plpgsql as $$
+declare e text;
+begin
+  begin
+    execute p_sql;
+  exception when others then
+    e := sqlstate;
+    if e = p_estado then raise notice 'ok (negado %): %', e, left(p_sql, 70); return; end if;
+    raise exception 'FALHOU: "%" falhou com % e não com %: %', left(p_sql, 90), e, p_estado, sqlerrm;
+  end;
+  raise exception 'FALHOU: deveria ter sido negado: %', left(p_sql, 100);
+end $$;
+
+\i supabase/migrations/0001_ai_score.sql
+\i supabase/migrations/0002_cadastro_fechado.sql
+\i supabase/migrations/0003_captura_em_duas_etapas.sql
+\i supabase/migrations/0004_crm_email_dicas.sql
+\i supabase/migrations/0005_versoes_capturas.sql
+\i supabase/migrations/0006_tarefas.sql
+
+begin;
+select set_config('resetia.permitir_cadastro', 'sim', true);
+insert into auth.users values ('11111111-1111-4111-8111-111111111111', 'admin@resetia.com.br'), ('22222222-2222-4222-8222-222222222222', 'outro@x.com');
+insert into public.admins (user_id) values ('11111111-1111-4111-8111-111111111111');
+commit;
+
+-- Leads anteriores à tabela de consentimentos (0007): o preenchimento retroativo só pode refletir o que foi marcado.
+insert into public.avaliacoes (id, escopo, papel, porte, segmento, respostas, desafios, horizonte, indice, nivel, parcial, dimensoes, codigo, versao)
+values ('d0000000-0000-4000-8000-000000000001', 'empresa', 'ceo', '50-199', 'tecnologia', '{}', array['comecar'], '3-meses', 34, 'explorando', false, '{}', 'v=1&e=empresa', '1');
+insert into public.leads (id, avaliacao_id, nome, email, empresa, whatsapp, pediu_contato, consentimento_marketing) values
+  ('d1000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001', 'So Resultado', 'a@x.com', null, null, false, false),
+  ('d1000000-0000-4000-8000-000000000002', 'd0000000-0000-4000-8000-000000000001', 'Relatorio', 'b@x.com', 'Empresa B', null, false, false),
+  ('d1000000-0000-4000-8000-000000000003', 'd0000000-0000-4000-8000-000000000001', 'Pediu Tudo', 'c@x.com', 'Empresa C', '5511999990000', true, true),
+  ('d1000000-0000-4000-8000-000000000004', 'd0000000-0000-4000-8000-000000000001', 'Pediu Sem Numero', 'd@x.com', 'Empresa D', null, true, false);
+
+\i supabase/migrations/0007_consentimentos.sql
+\i supabase/migrations/0008_captura.sql
+
+\echo '--- retroativo: só o que foi marcado'
+select teste.afirmar('retroativo: quem só viu o resultado não ganha consentimento',
+  (select count(*) from public.consentimentos where lead_id = 'd1000000-0000-4000-8000-000000000001') = 0);
+select teste.afirmar('retroativo: quem completou a etapa 2 ganha só o relatório por e-mail',
+  (select string_agg(finalidade || '/' || canal, ',' order by finalidade) from public.consentimentos where lead_id = 'd1000000-0000-4000-8000-000000000002') = 'relatorio-email/email');
+select teste.afirmar('retroativo: relatório, conteúdo e contato por e-mail, WhatsApp e ligação (pediu e tem número)',
+  (select string_agg(finalidade || '/' || canal, ',' order by finalidade, canal) from public.consentimentos where lead_id = 'd1000000-0000-4000-8000-000000000003')
+  = 'contato-analise/email,contato-analise/ligacao,contato-analise/whatsapp,conteudo-email/email,relatorio-email/email');
+select teste.afirmar('retroativo: pediu contato sem número não ganha WhatsApp nem ligação',
+  (select string_agg(finalidade || '/' || canal, ',' order by finalidade, canal) from public.consentimentos where lead_id = 'd1000000-0000-4000-8000-000000000004') = 'contato-analise/email,relatorio-email/email');
+select teste.afirmar('retroativo: todos marcados como legado, sem texto inventado',
+  (select bool_and(fonte = 'legado' and texto_versao = 'legado-2026-10-28') from public.consentimentos));
+select teste.afirmar('retroativo: o momento do pedido de conversa não é inventado',
+  (select count(*) from public.leads where pedido_conversa_em is not null) = 0);
+
+\echo '--- inventário de privilégios'
+select teste.afirmar('anon: nenhum privilégio de tabela em nenhuma tabela',
+  (select count(*) = 0 from pg_class c join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind = 'r'
+     and has_table_privilege('anon', c.oid, 'SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER')));
+select teste.afirmar('anon: nenhuma coluna legível, alterável ou referenciável',
+  (select count(*) = 0 from pg_attribute a join pg_class c on c.oid = a.attrelid join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind = 'r' and a.attnum > 0 and not a.attisdropped
+     and has_column_privilege('anon', c.oid, a.attnum, 'SELECT, UPDATE, REFERENCES')));
+select teste.afirmar('anon: insere em avaliacoes só as 17 colunas que o site antigo enviava',
+  (select array_agg(a.attname::text order by a.attname) from pg_attribute a
+   where a.attrelid = 'public.avaliacoes'::regclass and a.attnum > 0 and not a.attisdropped
+     and has_column_privilege('anon', 'public.avaliacoes', a.attname, 'INSERT'))
+  = (select array_agg(x order by x) from unnest(array['id','escopo','papel','porte','segmento','respostas','desafios','horizonte','indice','nivel','parcial','dimensoes','areas','codigo','versao','origem','ambiente']) x));
+select teste.afirmar('anon: insere em leads só as 10 colunas que o site antigo enviava',
+  (select array_agg(a.attname::text order by a.attname) from pg_attribute a
+   where a.attrelid = 'public.leads'::regclass and a.attnum > 0 and not a.attisdropped
+     and has_column_privilege('anon', 'public.leads', a.attname, 'INSERT'))
+  = (select array_agg(x order by x) from unnest(array['id','avaliacao_id','nome','email','email_pessoal','empresa','whatsapp','pediu_contato','consentimento_marketing','ambiente']) x));
+select teste.afirmar('anon: executa só ping, completar_lead e lead_liberado',
+  (select string_agg(p.proname, ',' order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.prokind = 'f' and has_function_privilege('anon', p.oid, 'EXECUTE'))
+  = 'completar_lead,lead_liberado,ping');
+select teste.afirmar('logado: executa só eh_admin, ping, completar_lead e lead_liberado',
+  (select string_agg(p.proname, ',' order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.prokind = 'f' and has_function_privilege('authenticated', p.oid, 'EXECUTE'))
+  = 'completar_lead,eh_admin,lead_liberado,ping');
+select teste.afirmar('logado: tabelas só para leitura (e atividades para registrar); alteração só por coluna',
+  (select string_agg(c.relname || ':' || p, ',' order by c.relname, p) from pg_class c cross join unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE']) p
+   join pg_namespace n on n.oid = c.relnamespace
+   where n.nspname = 'public' and c.relkind = 'r' and has_table_privilege('authenticated', c.oid, p))
+  = 'aprofundamentos:SELECT,atividades:INSERT,atividades:SELECT,avaliacoes:SELECT,consentimentos:SELECT,dicas:SELECT,emails:SELECT,leads:SELECT,relatorios:SELECT,tarefas:SELECT');
+select teste.afirmar('service_role executa as funções de captura, de tarefas e de consentimento',
+  (select count(*) = 8 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname in ('registrar_captura','completar_captura','gravar_aprofundamento','pegar_tarefas','concluir_tarefa','consumir_limite','limpar_expirados','elegivel')
+     and has_function_privilege('service_role', p.oid, 'EXECUTE')));
+select teste.afirmar('toda tabela nova do schema public tem RLS ligado',
+  (select bool_and(c.relrowsecurity) from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r'));
+
+\echo '--- caminho antigo: o site com JavaScript em cache continua funcionando, mais apertado'
+set role anon;
+insert into public.avaliacoes (id, escopo, papel, porte, segmento, respostas, desafios, horizonte, indice, nivel, parcial, dimensoes, areas, codigo, versao, origem, ambiente)
+values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'empresa', 'ceo', '50-199', 'tecnologia', '{"centrais":[3,3,2,2,2,1,2,2,1,1,2,1],"areas":{}}', array['comecar'], '3-meses', 34, 'explorando', false, '{"estrategia":70}', '{}', 'v=1&e=empresa', '1', '{"utm_source":"linkedin"}', 'producao');
+insert into public.leads (id, avaliacao_id, nome, email, email_pessoal, empresa, whatsapp, pediu_contato, consentimento_marketing, ambiente)
+values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Maria Teste', 'maria@empresa.com.br', false, null, null, false, false, 'producao');
+select teste.negar($q$insert into public.leads (id, avaliacao_id, nome, email, relatorio_enviado_em) values (gen_random_uuid(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Fulano', 'f@x.com', now())$q$);
+select teste.negar($q$insert into public.leads (id, avaliacao_id, nome, email, responsavel) values (gen_random_uuid(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Fulano', 'f@x.com', 'eu')$q$);
+select teste.negar($q$insert into public.leads (id, avaliacao_id, nome, email, proximo_contato) values (gen_random_uuid(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Fulano', 'f@x.com', current_date)$q$);
+select teste.negar($q$insert into public.leads (id, avaliacao_id, nome, email, status) values (gen_random_uuid(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Fulano', 'f@x.com', 'cliente')$q$);
+select teste.negar($q$insert into public.leads (id, avaliacao_id, nome, email, notas) values (gen_random_uuid(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Fulano', 'f@x.com', 'x')$q$);
+select teste.negar($q$insert into public.leads (id, avaliacao_id, nome, email, chave_hash) values (gen_random_uuid(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Fulano', 'f@x.com', repeat('a', 64))$q$);
+select teste.negar($q$insert into public.leads (id, avaliacao_id, nome, email, canal) values (gen_random_uuid(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Fulano', 'f@x.com', 'funcao')$q$);
+select teste.negar($q$insert into public.leads (id, avaliacao_id, nome, email, criado_em) values (gen_random_uuid(), 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Fulano', 'f@x.com', '2000-01-01')$q$);
+select teste.negar($q$insert into public.avaliacoes (id, escopo, papel, porte, segmento, respostas, desafios, horizonte, codigo, versao, canal) values (gen_random_uuid(), 'empresa', 'ceo', '50-199', 'tecnologia', '{}', array['comecar'], '3-meses', 'x', '1', 'funcao')$q$);
+select teste.negar($q$insert into public.avaliacoes (id, escopo, papel, porte, segmento, respostas, desafios, horizonte, codigo, versao, resultado) values (gen_random_uuid(), 'empresa', 'ceo', '50-199', 'tecnologia', '{}', array['comecar'], '3-meses', 'x', '1', '{}')$q$);
+select teste.negar($q$insert into public.avaliacoes (id, criada_em, escopo, papel, porte, segmento, respostas, desafios, horizonte, codigo, versao) values (gen_random_uuid(), '2000-01-01', 'empresa', 'ceo', '50-199', 'tecnologia', '{}', array['comecar'], '3-meses', 'x', '1')$q$);
+select teste.negar($q$select count(*) from public.relatorios$q$);
+select teste.negar($q$select count(*) from public.tarefas$q$);
+select teste.negar($q$select count(*) from public.consentimentos$q$);
+select teste.negar($q$select count(*) from public.aprofundamentos$q$);
+select teste.negar($q$select public.registrar_captura('{}'::jsonb)$q$);
+select teste.negar($q$select public.completar_captura('{}'::jsonb)$q$);
+select teste.negar($q$select public.gravar_aprofundamento('{}'::jsonb)$q$);
+select teste.negar($q$select public.consumir_limite('x', 60, 1)$q$);
+select teste.negar($q$select public.elegivel(gen_random_uuid(), 'relatorio-email', 'email')$q$);
+insert into public.avaliacoes (id, escopo, papel, porte, segmento, respostas, desafios, horizonte, indice, nivel, parcial, dimensoes, codigo, versao)
+values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaab2', 'empresa', 'ceo', '50-199', 'tecnologia', '{}', array['comecar'], '3-meses', 34, 'explorando', false, '{}', 'v=2&m=1&n=2&e=empresa', '2');
+select teste.negar($q$insert into public.avaliacoes (id, escopo, papel, porte, segmento, respostas, desafios, horizonte, indice, nivel, parcial, dimensoes, codigo, versao) values (gen_random_uuid(), 'empresa', 'ceo', '50-199', 'tecnologia', '{}', array['comecar'], '3-meses', 34, 'explorando', false, '{}', 'x', '3')$q$, '23514');
+reset role;
+
+select teste.afirmar('legado: o lead criado pelo navegador nasce legado, sem chave, novo e sem campos do CRM',
+  (select canal = 'legado' and chave_hash is null and status = 'novo' and relatorio_enviado_em is null and responsavel is null and proximo_contato is null
+   from public.leads where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'));
+select teste.afirmar('legado: a avaliação do navegador nasce legado, sem versões de método e análise',
+  (select canal = 'legado' and versao_metodo is null and versao_analise is null and resultado is null and criada_em::date = current_date
+   from public.avaliacoes where id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'));
+
+\echo '--- completar_lead (caminho antigo): só preenche vazio, só lead sem chave, só por 7 dias'
+set role anon;
+select teste.afirmar('completar_lead preenche empresa e WhatsApp', public.completar_lead('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Empresa Um', '5511999990000', true, false));
+select teste.afirmar('completar_lead não sobrescreve empresa nem WhatsApp já informados',
+  public.completar_lead('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Empresa Dois', '5511888880000', false, true));
+select teste.afirmar('completar_lead de id inexistente devolve falso', not public.completar_lead(gen_random_uuid(), 'X'));
+reset role;
+select teste.afirmar('legado: empresa e WhatsApp originais mantidos; pedido de contato e conteúdo só ligam',
+  (select empresa = 'Empresa Um' and whatsapp = '5511999990000' and pediu_contato and consentimento_marketing
+   from public.leads where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'));
+update public.leads set criado_em = now() - interval '8 days' where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+set role anon;
+select teste.afirmar('completar_lead recusa lead com mais de 7 dias', not public.completar_lead('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Empresa Tres'));
+reset role;
+
+\echo '--- função de captura (service_role): registrar'
+select jsonb_build_object(
+  'avaliacao', jsonb_build_object('id', 'a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1', 'escopo', 'empresa', 'papel', 'ceo', 'porte', '50-199',
+    'segmento', 'tecnologia', 'respostas', jsonb_build_object('centrais', jsonb_build_array(3,3,2,2,2,1,2,2,1,1,2,1), 'areas', '{}'::jsonb),
+    'desafios', jsonb_build_array('comecar'), 'horizonte', '3-meses', 'indice', 34, 'nivel', 'explorando', 'parcial', false,
+    'dimensoes', jsonb_build_object('estrategia', 70), 'areas', '{}'::jsonb, 'codigo', 'v=2&m=1&n=2&e=empresa', 'versao', '2',
+    'versao_metodo', '1', 'versao_analise', '2', 'resultado', jsonb_build_object('indice', 34, 'situacao', 'completa'),
+    'origem', jsonb_build_object('utm_source', 'teste'), 'ambiente', 'dev'),
+  'lead', jsonb_build_object('id', 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'nome', 'Maria Funcao', 'email', 'maria.f@empresa.com.br',
+    'email_pessoal', false, 'consentimento_marketing', true, 'ambiente', 'dev'),
+  'chave_hash', repeat('1', 64),
+  'consentimentos', jsonb_build_array(jsonb_build_object('finalidade', 'conteudo-email', 'canal', 'email', 'concedido', true,
+    'fonte', 'formulario', 'texto_versao', 't1', 'evento_id', 'e1e1e1e1-e1e1-4e1e-8e1e-e1e1e1e1e1e1')),
+  'relatorio', jsonb_build_object('versao_metodo', '1', 'versao_analise', '2', 'resultado', jsonb_build_object('indice', 34),
+    'devolutiva', jsonb_build_object('x', 1), 'hash', repeat('2', 64))
+)::text as reg \gset
+select (:'reg'::jsonb || jsonb_build_object('chave_hash', repeat('9', 64)))::text as reg_outra_chave \gset
+select jsonb_set(:'reg'::jsonb, '{relatorio,hash}', '"curto"')::text as reg_invalido \gset
+select jsonb_set(jsonb_set(jsonb_set(:'reg'::jsonb, '{avaliacao,id}', '"a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2"'), '{lead,id}', '"b2b2b2b2-b2b2-4b2b-8b2b-b2b2b2b2b2b2"'), '{relatorio,hash}', '"curto"')::text as reg_atomico \gset
+select jsonb_set(:'reg'::jsonb, '{avaliacao,codigo}', '"v=2&m=1&n=2&e=vendas"')::text as reg_outro_codigo \gset
+
+set role service_role;
+select teste.afirmar('registrar: primeira vez devolve registrado', (public.registrar_captura(:'reg'::jsonb) ->> 'status') = 'registrado');
+select teste.afirmar('registrar: o mesmo pedido de novo devolve ja-registrado (idempotente)', (public.registrar_captura(:'reg'::jsonb) ->> 'status') = 'ja-registrado');
+select teste.afirmar('registrar: o mesmo lead com outra chave é conflito', (public.registrar_captura(:'reg_outra_chave'::jsonb) ->> 'status') = 'conflito');
+select teste.afirmar('registrar: a mesma avaliação com outro código é conflito', (public.registrar_captura(:'reg_outro_codigo'::jsonb) ->> 'status') = 'conflito');
+select teste.negar(format('select public.registrar_captura(%L::jsonb)', :'reg_invalido'), '23514');
+reset role;
+
+select teste.afirmar('registrar: uma avaliação, um lead, um relatório e um consentimento, mesmo com o pedido repetido',
+  (select count(*) from public.avaliacoes where id = 'a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1') = 1
+  and (select count(*) from public.leads where id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1') = 1
+  and (select count(*) from public.relatorios where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1') = 1
+  and (select count(*) from public.consentimentos where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1') = 1);
+select teste.afirmar('registrar: a nota e as versões ficam gravadas, com canal função e a chave só em hash',
+  (select a.canal = 'funcao' and a.versao = '2' and a.versao_metodo = '1' and a.versao_analise = '2' and (a.resultado ->> 'indice') = '34'
+     and l.canal = 'funcao' and l.chave_hash = repeat('1', 64) and l.status = 'novo' and l.empresa is null
+   from public.avaliacoes a join public.leads l on l.avaliacao_id = a.id where l.id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1'));
+
+\echo '--- atomicidade: se qualquer parte falha, nada fica gravado'
+set role service_role;
+select teste.negar(format('select public.registrar_captura(%L::jsonb)', :'reg_atomico'), '23514');
+reset role;
+select teste.afirmar('atomicidade: sem avaliação nem lead órfãos depois da falha no relatório',
+  (select count(*) from public.avaliacoes where id = 'a2a2a2a2-a2a2-4a2a-8a2a-a2a2a2a2a2a2') = 0
+  and (select count(*) from public.leads where id = 'b2b2b2b2-b2b2-4b2b-8b2b-b2b2b2b2b2b2') = 0);
+
+\echo '--- completar: exige a chave; enfileira o envio e as dicas uma vez só'
+select jsonb_build_object('lead_id', 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'avaliacao_id', 'a1a1a1a1-a1a1-4a1a-8a1a-a1a1a1a1a1a1',
+  'chave_hash', repeat('1', 64), 'empresa', 'Empresa F', 'whatsapp', '5511999990000', 'pediu_contato', true, 'marketing', false,
+  'consentimentos', jsonb_build_array(
+    jsonb_build_object('finalidade', 'relatorio-email', 'canal', 'email', 'concedido', true, 'fonte', 'formulario', 'texto_versao', 't1', 'evento_id', 'e2e2e2e2-e2e2-4e2e-8e2e-e2e2e2e2e2e2'),
+    jsonb_build_object('finalidade', 'contato-analise', 'canal', 'email', 'concedido', true, 'fonte', 'formulario', 'texto_versao', 't1', 'evento_id', 'e3e3e3e3-e3e3-4e3e-8e3e-e3e3e3e3e3e3'),
+    jsonb_build_object('finalidade', 'contato-analise', 'canal', 'whatsapp', 'concedido', true, 'fonte', 'formulario', 'texto_versao', 't1', 'evento_id', 'e4e4e4e4-e4e4-4e4e-8e4e-e4e4e4e4e4e4')
+  ))::text as comp \gset
+select jsonb_set(:'comp'::jsonb, '{chave_hash}', to_jsonb(repeat('8', 64)))::text as comp_errada \gset
+select jsonb_set(:'comp'::jsonb, '{lead_id}', '"c0c0c0c0-c0c0-4c0c-8c0c-c0c0c0c0c0c0"')::text as comp_inexistente \gset
+set role service_role;
+select teste.afirmar('completar: chave errada é recusada', (public.completar_captura(:'comp_errada'::jsonb) ->> 'status') = 'nao-autorizado');
+select teste.afirmar('completar: lead inexistente tem a mesma resposta da chave errada (sem pista)', (public.completar_captura(:'comp_inexistente'::jsonb) ->> 'status') = 'nao-autorizado');
+reset role;
+select teste.afirmar('completar: a recusa não mudou nada',
+  (select empresa is null and not pediu_contato from public.leads where id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1')
+  and (select count(*) from public.tarefas) = 0);
+set role service_role;
+select teste.afirmar('completar: com a chave certa completa', (public.completar_captura(:'comp'::jsonb) ->> 'status') = 'completado');
+select teste.afirmar('completar: repetir o pedido é seguro', (public.completar_captura(:'comp'::jsonb) ->> 'status') = 'completado');
+reset role;
+select teste.afirmar('completar: empresa, pedido e momento do pedido gravados',
+  (select empresa = 'Empresa F' and whatsapp = '5511999990000' and pediu_contato and pedido_conversa_em is not null
+   from public.leads where id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1'));
+select teste.afirmar('completar: uma tarefa de e-mail e uma de dicas, mesmo com o pedido repetido',
+  (select string_agg(tipo || '/' || status, ',' order by tipo) from public.tarefas where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1') = 'dicas/pendente,email-relatorio/pendente');
+select teste.afirmar('completar: consentimentos do formulário registrados uma vez cada (evento_id)',
+  (select count(*) from public.consentimentos where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1') = 4);
+
+\echo '--- consentimento por finalidade e canal'
+select teste.afirmar('elegível: relatório por e-mail, sim', public.elegivel('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'relatorio-email', 'email'));
+select teste.afirmar('elegível: contato da análise por e-mail e WhatsApp, sim',
+  public.elegivel('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'contato-analise', 'email') and public.elegivel('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'contato-analise', 'whatsapp'));
+select teste.afirmar('elegível: ligação, não (não foi concedida)', not public.elegivel('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'contato-analise', 'ligacao'));
+select teste.afirmar('elegível: sem registro nenhum, não', not public.elegivel('d1000000-0000-4000-8000-000000000001', 'conteudo-email', 'email'));
+insert into public.consentimentos (lead_id, finalidade, canal, concedido, fonte, texto_versao, evento_id)
+values ('d1000000-0000-4000-8000-000000000004', 'contato-analise', 'whatsapp', true, 'formulario', 't1', gen_random_uuid());
+select teste.afirmar('elegível: um evento concedido sem número informado continua não valendo',
+  not public.elegivel('d1000000-0000-4000-8000-000000000004', 'contato-analise', 'whatsapp'));
+select teste.negar($q$insert into public.consentimentos (lead_id, finalidade, canal, concedido, fonte, texto_versao, evento_id) values ('d1000000-0000-4000-8000-000000000001', 'conteudo-email', 'whatsapp', true, 'formulario', 't1', gen_random_uuid())$q$, '23514');
+
+set role authenticated;
+set request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
+select teste.afirmar('logado sem ser admin: não vê relatórios, tarefas, consentimentos nem aprofundamentos',
+  (select count(*) from public.relatorios) + (select count(*) from public.tarefas) + (select count(*) from public.consentimentos) + (select count(*) from public.aprofundamentos) = 0);
+select teste.negar($q$insert into public.consentimentos (lead_id, finalidade, canal, concedido, fonte, texto_versao, evento_id) values ('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'contato-analise', 'email', false, 'admin-revogacao', 't1', gen_random_uuid())$q$);
+select teste.negar($q$select public.elegivel('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'relatorio-email', 'email')$q$);
+
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+select teste.afirmar('admin: lê relatórios, tarefas e consentimentos',
+  (select count(*) from public.relatorios) = 1 and (select count(*) from public.tarefas) = 2 and (select count(*) from public.consentimentos) > 0);
+select teste.negar($q$insert into public.consentimentos (lead_id, finalidade, canal, concedido, fonte, texto_versao, evento_id) values ('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'contato-analise', 'ligacao', true, 'admin-revogacao', 't1', gen_random_uuid())$q$);
+select teste.negar($q$insert into public.consentimentos (lead_id, finalidade, canal, concedido, fonte, texto_versao, evento_id) values ('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'contato-analise', 'email', false, 'formulario', 't1', gen_random_uuid())$q$);
+insert into public.consentimentos (lead_id, finalidade, canal, concedido, fonte, texto_versao, evento_id)
+values ('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'contato-analise', 'whatsapp', false, 'admin-revogacao', 'revogacao-admin', gen_random_uuid());
+select teste.negar($q$update public.consentimentos set concedido = true$q$);
+select teste.negar($q$delete from public.consentimentos$q$);
+select teste.negar($q$update public.relatorios set devolutiva = '{}'$q$);
+select teste.negar($q$delete from public.relatorios$q$);
+select teste.negar($q$update public.tarefas set status = 'aceito'$q$);
+select teste.negar($q$insert into public.tarefas (tipo, lead_id, chave) values ('dicas', 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'x')$q$);
+reset role;
+select teste.afirmar('a revogação registrada pelo admin vale no mesmo instante',
+  not public.elegivel('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'contato-analise', 'whatsapp')
+  and public.elegivel('b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'contato-analise', 'email'));
+
+\echo '--- aprofundamento: chave, revisão fora de ordem e limites'
+select jsonb_build_object('lead_id', 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1', 'chave_hash', repeat('1', 64), 'revisao', 1, 'area', 'vendas',
+  'camada', 1, 'rotina', 'propostas', 'volume', 200, 'unidade', 'propostas', 'periodo', 'mes', 'consequencia', 'retrabalho',
+  'ferramentas', '[]'::jsonb, 'nao_sei', '[]'::jsonb)::text as apro1 \gset
+select jsonb_set(:'apro1'::jsonb, '{chave_hash}', to_jsonb(repeat('7', 64)))::text as apro_errada \gset
+select (:'apro1'::jsonb || jsonb_build_object('revisao', 2, 'camada', 2, 'minutos', 15, 'dados', 'parcial', 'papel_decisor', 'influencio',
+  'ferramentas', jsonb_build_array('CRM'), 'indicador', 'tempo de resposta'))::text as apro2 \gset
+select jsonb_set(jsonb_set(:'apro1'::jsonb, '{volume}', '0'), '{revisao}', '4')::text as apro_volume_zero \gset
+select jsonb_set(jsonb_set(:'apro1'::jsonb, '{revisao}', '3'), '{minutos}', '9999')::text as apro_minutos_enorme \gset
+set role service_role;
+select teste.afirmar('aprofundamento: chave errada é recusada', (public.gravar_aprofundamento(:'apro_errada'::jsonb) ->> 'status') = 'nao-autorizado');
+select teste.afirmar('aprofundamento: revisão 1 grava', (public.gravar_aprofundamento(:'apro1'::jsonb) ->> 'status') = 'gravado');
+select teste.afirmar('aprofundamento: a mesma revisão de novo é ignorada', (public.gravar_aprofundamento(:'apro1'::jsonb) ->> 'status') = 'ignorado');
+select teste.afirmar('aprofundamento: revisão 2 atualiza', (public.gravar_aprofundamento(:'apro2'::jsonb) ->> 'status') = 'gravado');
+select teste.afirmar('aprofundamento: uma gravação atrasada (revisão 1 depois da 2) não sobrescreve', (public.gravar_aprofundamento(:'apro1'::jsonb) ->> 'status') = 'ignorado');
+reset role;
+select teste.afirmar('aprofundamento: ficou a revisão 2, com a camada 2 completa',
+  (select revisao = 2 and camada = 2 and minutos = 15 and dados = 'parcial' and ferramentas = array['CRM'] and volume = 200 and periodo = 'mes'
+   from public.aprofundamentos where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1'));
+set role service_role;
+select teste.negar(format('select public.gravar_aprofundamento(%L::jsonb)', :'apro_volume_zero'), '23514');
+select teste.negar(format('select public.gravar_aprofundamento(%L::jsonb)', :'apro_minutos_enorme'), '23514');
+reset role;
+select teste.afirmar('aprofundamento: volume zero foi recusado e não mudou nada',
+  (select revisao = 2 from public.aprofundamentos where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1'));
+
+\echo '--- tarefas: reserva, nova tentativa com espera, falha definitiva e limites'
+set role service_role;
+select teste.afirmar('tarefas: pega as duas pendentes e as reserva', (select count(*) from public.pegar_tarefas(5)) = 2);
+select teste.afirmar('tarefas: reservadas, ninguém pega de novo (vários processadores ao mesmo tempo)', (select count(*) from public.pegar_tarefas(5)) = 0);
+reset role;
+select teste.afirmar('tarefas: tentativa contada e trava de alguns minutos',
+  (select bool_and(status = 'processando' and tentativas = 1 and travada_ate > now()) from public.tarefas));
+update public.tarefas set travada_ate = now() - interval '1 minute';
+set role service_role;
+select teste.afirmar('tarefas: a reserva vencida (processo que morreu) volta para a fila', (select count(*) from public.pegar_tarefas(5)) = 2);
+select teste.afirmar('tarefas: aceito pelo provedor é final e guarda o id do provedor',
+  (select public.concluir_tarefa(id, 'aceito', 'prov-123') from public.tarefas where tipo = 'email-relatorio') = 'aceito');
+select teste.afirmar('tarefas: nova tentativa agenda para depois',
+  (select public.concluir_tarefa(id, 'nova-tentativa', null, 'tempo esgotado', interval '10 minutes') from public.tarefas where tipo = 'dicas') = 'nova-tentativa');
+select teste.afirmar('tarefas: com espera pela frente ninguém a pega agora', (select count(*) from public.pegar_tarefas(5)) = 0);
+select teste.negar($q$select public.concluir_tarefa(gen_random_uuid(), 'inventado')$q$, 'P0001');
+reset role;
+select teste.afirmar('tarefas: e-mail aceito com o id do provedor; dicas esperando a próxima tentativa',
+  (select string_agg(tipo || '/' || status || '/' || coalesce(provedor_id, '-'), ',' order by tipo) from public.tarefas) = 'dicas/nova-tentativa/-,email-relatorio/aceito/prov-123');
+update public.tarefas set tentar_em = now() - interval '1 minute', tentativas = max_tentativas where tipo = 'dicas';
+set role service_role;
+select teste.afirmar('tarefas: sem tentativas sobrando a nova tentativa vira falha',
+  (select public.concluir_tarefa(id, 'nova-tentativa', null, 'sem rede') from public.tarefas where tipo = 'dicas') = 'falhou');
+select teste.afirmar('limite: dentro do máximo', public.consumir_limite('teste', 3600, 2) and public.consumir_limite('teste', 3600, 2));
+select teste.afirmar('limite: acima do máximo', not public.consumir_limite('teste', 3600, 2));
+select teste.afirmar('limite: chaves diferentes não se misturam', public.consumir_limite('outra', 3600, 2));
+reset role;
+insert into public.emails (lead_id, tipo, assunto, status, tarefa_id, provedor_id)
+select lead_id, 'relatorio', 'Seu relatório', 'aceito', id, 'prov-123' from public.tarefas where tipo = 'email-relatorio';
+select teste.afirmar('emails: o estado aceito existe e o enviado antigo continua válido',
+  (select count(*) from public.emails where status = 'aceito') = 1);
+select teste.negar($q$insert into public.emails (lead_id, tipo, assunto, status) select id, 'relatorio', 'x', 'entregue' from public.leads limit 1$q$, '23514');
+
+\echo '--- apagar um lead leva tudo junto'
+delete from public.leads where id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1';
+select teste.afirmar('cascata: relatórios, consentimentos, tarefas e aprofundamento do lead apagado se vão com ele',
+  (select count(*) from public.relatorios) + (select count(*) from public.tarefas) + (select count(*) from public.aprofundamentos)
+  + (select count(*) from public.consentimentos where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1') = 0);
+
+\echo 'CAPTURA_OK'
