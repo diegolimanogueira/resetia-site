@@ -10,16 +10,16 @@ Legenda de evidência: **L** = simulado ou testado localmente; **P** = confirmad
 
 ## Estado das fases
 
-| Fase | Escopo                                                       | Estado                                                      |
-| ---- | ------------------------------------------------------------ | ----------------------------------------------------------- |
-| 0    | Branch, documento de progresso                               | feita                                                       |
-| 1    | Medir a base, protótipo do PDF, consultas de produção        | feita (PDF passa para a Fase 4, ver registro)               |
-| 2    | Fidelidade, método, cobertura, versões, corte de peso        | feita (forte, lacuna, passos e plano ficam para a Fase 4)   |
-| 3    | Dados, captura confiável, aprofundamento                     | feita (L; produção: nada aplicado, ver registro)            |
-| 4    | Prioridades, devolutiva, PDF, e-mail                         | feita (L; tokens e e-mail só validados com simulações)      |
-| 5    | Painel, preferências, métricas, trava de publicação          | feita (L; migrações 0010 aplicada só no Postgres local)     |
-| 6    | Home, celular, jornadas, serviços, agentes, privacidade      | feita (L; prints de referência e revisão de copy pendentes) |
-| 7    | Validação integrada, documentação de publicação e calibração | pendente                                                    |
+| Fase | Escopo                                                       | Estado                                                        |
+| ---- | ------------------------------------------------------------ | ------------------------------------------------------------- |
+| 0    | Branch, documento de progresso                               | feita                                                         |
+| 1    | Medir a base, protótipo do PDF, consultas de produção        | feita (PDF passa para a Fase 4, ver registro)                 |
+| 2    | Fidelidade, método, cobertura, versões, corte de peso        | feita (forte, lacuna, passos e plano ficam para a Fase 4)     |
+| 3    | Dados, captura confiável, aprofundamento                     | feita (L; produção: nada aplicado, ver registro)              |
+| 4    | Prioridades, devolutiva, PDF, e-mail                         | feita (L; tokens e e-mail só validados com simulações)        |
+| 5    | Painel, preferências, métricas, trava de publicação          | feita (L; migrações 0010 aplicada só no Postgres local)       |
+| 6    | Home, celular, jornadas, serviços, agentes, privacidade      | feita (L; prints de referência e revisão de copy pendentes)   |
+| 7    | Validação integrada, documentação de publicação e calibração | feita (L); publicação e validações externas ficam com o Diego |
 
 ## Achados confirmados no código (31/10/2026)
 
@@ -270,7 +270,7 @@ where routine_schema = 'public' and grantee in ('anon', 'authenticated', 'PUBLIC
 
 **Trava de publicação (`scripts/configuracao-build.mjs`):** o build de produção falha sem o Supabase, a menos que `RESETIA_MODO=demo` (prévias; `pages.yml`) ou `teste` (CI; `ci.yml`). Um valor desconhecido também falha.
 
-**Testes novos:** unidade (`admin`, `conversas`, `analytics`, `consentimentos`, `configuracao-build`), asserções de banco para marcos, primeira resposta e `contatos_permitidos`, mais as de 0011 e 0012 num Postgres local, testes da ação `preferencias` na função e o E2E do painel (`admin.spec.ts`, 3 testes). **Resultados (L, medidos em 01/11):** unidade 277, banco OK (179 asserções), função 37, lint, tipos e knip limpos.
+**Testes novos:** unidade (`admin`, `conversas`, `analytics`, `consentimentos`, `configuracao-build`), asserções de banco para marcos, primeira resposta e `contatos_permitidos`, mais as de 0011 e 0012 num Postgres local, testes da ação `preferencias` na função e o E2E do painel (`admin.spec.ts`, 3 testes). **Resultados (L, medidos em 01/11):** unidade 282, banco OK (179 asserções), função 37, lint, tipos e knip limpos.
 
 **Peso:** painel 228,4 kB (teto 240; foi de 243 a 228 carregando a gaveta e as abas sob demanda); resultado e exemplo 224,9 (teto 225); avaliação 217,3.
 
@@ -300,7 +300,7 @@ where routine_schema = 'public' and grantee in ('anon', 'authenticated', 'PUBLIC
 
 **Privacidade e provas:** a política foi reescrita para o que o sistema faz (aprofundamento, navegador e links, consentimento por canal, tokens de 180 e 365 dias, provedores nomeados, "não há prazo automático de apagamento"); a promessa antiga de e-mail comercial sem escolha da pessoa saiu. `docs/provas.md` lista o que o site afirma como prova, de onde vem, e o que o proprietário precisa fornecer para termos casos reais; não há caso medido nem depoimento no material, e nenhum foi criado.
 
-**Testes novos:** `home.spec.ts` (abertura, mobile, demonstração, ordem das seções, barra, `data-cta` único), blocos de conteúdo para "Para começar", fichas e política em `content.test.ts`. **Resultados (L):** unidade 277; E2E em Chromium desktop e WebKit celular: `home.spec.ts` 11 passando e 1 pulado (o teste de celular não roda no desktop); agentes, soluções, a11y e SEO, 72 passando (a11y e SEO, 42 deles, repetidos depois da política); lint, tipos e knip limpos.
+**Testes novos:** `home.spec.ts` (abertura, mobile, demonstração, ordem das seções, barra, `data-cta` único), blocos de conteúdo para "Para começar", fichas e política em `content.test.ts`. **Resultados (L):** unidade 282; E2E em Chromium desktop e WebKit celular: `home.spec.ts` 11 passando e 1 pulado (o teste de celular não roda no desktop); agentes, soluções, a11y e SEO, 72 passando (a11y e SEO, 42 deles, repetidos depois da política); lint, tipos e knip limpos.
 
 **Peso:** rotas entre 205 e 228 kB (tetos 225 e 240 no painel). JS total **359,9 kB, com teto de 360**: as fichas pesam ~6,4 kB gzip em cada um de dois chunks (o catálogo é um componente client que importa o conteúdo todo). O teto da soma subiu a 380 kB. O total é a soma de **todos** os chunks, inclusive cópias que o Turbopack cria por grupo e que nenhuma página baixa junto; já subiu seis vezes (280 → 290 → 300 → 320 → 330 → 360 → 380) com a mesma causa e deixou de ser um limite informativo. O que protege o visitante é o teto por página e por chunk. **Alternativa a decidir:** trocar o teto da soma por um aviso, ou renderizar as fichas no servidor e passá-las ao catálogo como `children` (economia estimada de ~12,7 kB no total, com mais trabalho de código).
 
@@ -308,3 +308,51 @@ where routine_schema = 'public' and grantee in ('anon', 'authenticated', 'PUBLIC
 
 - Prints de referência (visuais) a regenerar no Docker (pouca memória disponível até agora): Fase 7.
 - Revisão de copy pelo Diego (lista no ADR de 01/11 à noite) e as pendências de `docs/provas.md`.
+
+### Fase 7 (01/11) — feita
+
+**Validação integrada (L, medida em 01/11):**
+
+| Verificação                                                   | Resultado                                                                                                                                                     |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lint`, `typecheck` (`tsconfig.test.json`), `knip`            | limpos                                                                                                                                                        |
+| Unidade                                                       | 282 em 21 arquivos                                                                                                                                            |
+| Banco (`test:banco`) e função (`test:funcao`)                 | 179 asserções; 37 testes                                                                                                                                      |
+| E2E completo, Chromium desktop e WebKit celular               | 286 passando, 8 pulados de propósito, 0 falhas; depois da última correção, AI Score, painel e home de novo: 63 passando, 1 pulado                             |
+| `check:html`, `check:links`, `check:falta`                    | sem erro; 959 links internos OK, 0 quebrados; nenhuma pendência `[FALTA]`                                                                                     |
+| `check:size`                                                  | JS 359,9 kB (teto 380), CSS 9,8 de 20, imagens da home 47,9 de 50                                                                                             |
+| `check:rotas`                                                 | resultado e exemplo **224,9 de 225 (0,1 kB de folga)**, painel 228,4 de 240, avaliação 217,4; demais 199 a 206; chunks sob demanda até 15,1 de 30 kB          |
+| Lighthouse local (`collect` + `assert`, 3 rodadas, mediana)   | desempenho 96–97, acessibilidade 98–100, boas práticas 100, SEO 100, CLS 0, TBT ≤ 4 ms; script transferido 163–177 kB e **183 kB em `/ai-score/` (teto 185)** |
+| Telas de 320, 390 e 1440 px, 404, teclado, movimento reduzido | `responsivo.spec.ts` (novo) e `404.spec.ts`, ver abaixo                                                                                                       |
+
+**O que a validação achou e eu corrigi:**
+
+1. **Rolagem horizontal em 320 px** em `/agentes-de-ia/`, `/ai-score/exemplo/` e nas soluções (até 65 px de excesso): `Botao` usava `whitespace-nowrap`, e os rótulos longos ("Quero criar agentes para minha empresa") não cabiam. Agora o rótulo quebra abaixo de `sm`; de `sm` para cima nada mudou.
+2. **Barra fixa do celular em 320 px:** com o `nowrap` os botões estouravam a tela sem que nenhum teste visse (a barra é `fixed`); depois da correção do item 1 a avaliação passou a três linhas. Abaixo de 360 px os botões da barra ficam menores e o rótulo, em duas linhas.
+3. **Defeito meu da Fase 4, no resumo executivo:** "Consequência declarada e hipótese" juntava o primeiro desafio marcado com a hipótese da dimensão mais frágil como se fossem um par (no exemplo: "tarefas repetitivas" seguido de "pode expor dados sensíveis"), e o teste fixava esse comportamento. Agora só se pareiam quando o desafio é da mesma dimensão; senão os desafios aparecem à parte e o texto diz que a dimensão mais frágil é outro assunto. A ficha comercial usa o mesmo marcador e continua funcionando. O `nucleo.js` mudou: **a função precisa ser republicada** (`docs/deploy.md`, passo 2).
+
+**Novos testes de acessibilidade e responsividade (`responsivo.spec.ts`):** 13 páginas em 320, 390 e 1440 px sem rolagem horizontal e sem texto fora da tela, nos dois navegadores; foco por Tab em cinco páginas com contorno de 2 px e contraste de pelo menos 3:1 com o fundo (inclui o rodapé em carvão; só no Chromium); movimento reduzido sem transição, animação nem rolagem suave. A conferência de contraste do foco tinha um erro meu (usava o fundo do próprio botão, o que dava 1,00:1) e foi corrigida antes de valer.
+
+**Capturas visuais:** regeneradas no Docker (`mcr.microsoft.com/playwright:v1.64.1-noble`, contêiner limitado a 1,4 GB e um worker, para não competir com os contêineres de Supabase que já rodavam): 20 passaram, **12 imagens mudaram** (home, AI Score, diagnóstico, agentes, uma solução e privacidade, em desktop e celular), as outras 8 ficaram iguais. Olhei a home em desktop e celular em baixa resolução (ordem das seções e sem estouro); o que muda no diff do PR é para o Diego revisar.
+
+**PDF de exemplo:** `docs/exemplos/relatorio-exemplo.pdf` (8 páginas, caso hipotético, gerado pelo botão "Baixar PDF" da página de exemplo). Texto conferido com o pdf.js: acentos, rótulo "Exemplo ilustrativo com respostas hipotéticas; não representa uma empresa real", nota 28, nível Explorando.
+
+**Documentação entregue nesta fase:** `docs/deploy.md` (ordem segura, verificação e reversão), `docs/calibracao.md`, `docs/testing.md`, `docs/provas.md`, `docs/medicao.md` e `CLAUDE.md` atualizados.
+
+**Para o Diego decidir:**
+
+- O `lighthouserc.cjs` termina o `lhci autorun` do CI enviando o relatório ao armazenamento público temporário do Google. Localmente usei só `collect` + `assert`. Trocar `upload.target` por `filesystem` evita a publicação.
+- O teto do JS total (380 kB) já subiu seis vezes e não mede o que o visitante baixa; ver o ADR de 01/11 à noite para as duas saídas.
+- `/ai-score/resultado/` tem 0,1 kB de folga: qualquer acréscimo de texto ou lógica nessa rota vai exigir mover algo para o chunk sob demanda.
+
+**Pendências externas (nada disto foi feito; roteiro em `docs/deploy.md`):**
+
+1. Cópia dos dados e consultas de produção (Q1 em diante, acima).
+2. Migrações `0005` a `0010` em produção, uma por vez; depois `0011` e, muito depois, `0012`.
+3. Segredos (`PROCESSADOR_SEGREDO` e os demais) e publicação da função (agora com o `nucleo.js` corrigido).
+4. Agendador (pg_cron, pg_net, Vault).
+5. Merge da branch (publica o site) e smoke com uma caixa e um telefone seus.
+6. Envio real pelo Resend (aceito não é entregue), renderização do e-mail no Gmail e no Outlook, leitor de tela de verdade.
+7. ID do analytics (atualizar a política antes de usar GA4) e Lighthouse em produção.
+8. Decisões do proprietário em `docs/provas.md`: autorização dos nomes na faixa de prova, região do Supabase, revisão jurídica da política, prazo de guarda dos dados; casos reais e entrevistas de calibração (`docs/calibracao.md`).
+9. Revisão da copy escrita por mim (lista nos ADRs de 01/11).
