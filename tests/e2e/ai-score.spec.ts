@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { semMarcas } from "@/components/ui/linhas";
@@ -338,6 +339,23 @@ test.describe("RESET AI Score", () => {
       expect(funcao).toEqual([]);
       await expect(page.getByText(formulario.demo)).toBeVisible();
     }
+
+    // Download direto do PDF, gerado no navegador com os dados deste relatório (a impressão segue como alternativa).
+    await expect(rel.getByRole("button", { name: relatorio.imprimir })).toBeVisible();
+    const [download] = await Promise.all([
+      page.waitForEvent("download"),
+      rel.getByRole("button", { name: relatorio.baixar }).click(),
+    ]);
+    expect(download.suggestedFilename()).toBe("RESET-AI-Score-Empresa-Teste.pdf");
+    const pdf = readFileSync((await download.path())!).toString("latin1");
+    expect(pdf.startsWith("%PDF-1.4")).toBe(true);
+    expect(pdf.trimEnd().endsWith("%%EOF")).toBe(true);
+    // O texto do PDF é texto (os literais ficam legíveis no arquivo): a nota, a empresa e o roteiro da mesma devolutiva.
+    expect(pdf).toContain("Preparado para Maria Teste, Empresa Teste");
+    expect(pdf).toContain("Empresa Teste est");
+    expect(pdf).toContain("(34)");
+    expect(pdf.length).toBeLessThan(200_000);
+    await expect(rel.getByRole("button", { name: relatorio.baixar })).toBeEnabled();
 
     // Relatório continua liberado depois de recarregar.
     await page.reload();
@@ -735,6 +753,14 @@ test.describe("RESET AI Score", () => {
     await expect(page.getByRole("button", { name: formulario.enviar })).toHaveCount(0);
     await expect(page.locator("a[data-cta='ai-score-exemplo-topo']")).toHaveAttribute("href", "/ai-score/avaliacao/");
     await semViolacoes(page);
+    // O PDF do exemplo sai com o aviso de caso fictício.
+    await aguardarPronto(page);
+    const [baixado] = await Promise.all([
+      page.waitForEvent("download"),
+      rel.getByRole("button", { name: relatorio.baixar }).click(),
+    ]);
+    expect(baixado.suggestedFilename()).toBe("RESET-AI-Score-Empresa-Exemplo.pdf");
+    expect(readFileSync((await baixado.path())!).toString("latin1")).toContain("Exemplo ilustrativo com respostas hip");
   });
 
   test("link do e-mail libera o relatório completo em outro aparelho, só com o par certo", async ({ page }) => {

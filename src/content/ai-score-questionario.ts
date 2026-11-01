@@ -820,8 +820,12 @@ export const relatorio = {
     ],
   },
   areas: "Aplicação de IA por atividade",
-  baixar: "Baixar relatório (salvar como PDF)",
-  baixarApoio: "Abre a impressão do navegador: escolha Salvar como PDF. No celular, use Compartilhar.",
+  baixar: "Baixar PDF",
+  gerandoPdf: "Gerando o PDF…",
+  imprimir: "Imprimir",
+  pdfFalhou: "Não foi possível gerar o PDF agora. Tente de novo ou use a impressão do navegador.",
+  baixarApoio:
+    "O PDF é gerado no seu navegador, com os mesmos dados deste relatório. Se preferir, imprima ou salve pela impressão.",
   impresso: {
     titulo: "Relatório RESET AI Score",
     para: (nome: string, empresa: string, data?: string) =>

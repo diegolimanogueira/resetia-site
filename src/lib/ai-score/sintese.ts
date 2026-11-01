@@ -109,6 +109,20 @@ function condicaoEmTexto(c: Condicao, r: RespostasCompletas) {
   };
 }
 
+/** As respostas da dimensão, citadas pelo tema da pergunta e pela alternativa literal ("Não sei" também conta). */
+function respostasDaDimensao(id: DimensaoId, r: RespostasCompletas) {
+  const papeis = textosDeLeitura.papeis[id];
+  const indices = perguntasCentrais.flatMap((p, i) => (p.dimensao === id ? [i] : []));
+  return indices.map((i, k) => {
+    const tema = (k === 0 ? papeis.primeira : papeis.segunda).nome;
+    const v = r.centrais[i];
+    return textosDoResumo.sustentacao.resposta(
+      tema,
+      typeof v === "number" ? perguntasCentrais[i].alternativas[v] : null,
+    );
+  });
+}
+
 function montarResumo(
   r: RespostasCompletas,
   resultado: Resultado,
@@ -152,9 +166,7 @@ function montarResumo(
 
   // As respostas que sustentam: as declaradas na dimensão em foco (a mais frágil ou, sem lacuna, a mais forte).
   const foco = lacuna ?? rec.forte;
-  const declaradas = foco
-    ? leituras[foco].afirmacoes.filter((a) => a.id.includes(".declarado.")).map((a) => a.texto)
-    : [];
+  const declaradas = foco ? respostasDaDimensao(foco, r) : [];
 
   const desafio = r.desafios.map((id) => desafios.find((d) => d.id === id)!)[0];
   const consequencia = [

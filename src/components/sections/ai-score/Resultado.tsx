@@ -469,10 +469,13 @@ function Pronto({
           <Relatorio
             respostas={r}
             resultado={resultado}
-            analise={analise}
-            leituras={devolutiva.leituras}
-            cobertura={cobertura}
-            sintese={devolutiva.sintese}
+            devolutiva={devolutiva}
+            contexto={{
+              nome: nome ?? null,
+              empresa: empresa ?? null,
+              data: liberacao?.data ?? new Date().toLocaleDateString("pt-BR"),
+              exemplo: modo.tipo === "exemplo",
+            }}
             cartoes={cartoes}
             focar={foco === "relatorio"}
             demo={modo.tipo === "publico" && !supabase.ativo}

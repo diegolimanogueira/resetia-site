@@ -40,6 +40,11 @@ export const resumo = {
   },
   sustentacao: {
     nenhuma: "Sem respostas válidas para apontar.",
+    /** Cita o tema da pergunta e a alternativa que a pessoa escolheu, literal; "Não sei" é dito como tal. */
+    resposta: (tema: string, alternativa: string | null) =>
+      alternativa === null
+        ? `Sobre ${tema}, você respondeu Não sei responder.`
+        : `Sobre ${tema}, você respondeu: «${alternativa}»`,
   },
   consequencia: {
     declarada: (desafio: string) => `Você apontou como desafio: ${desafio.charAt(0).toLowerCase()}${desafio.slice(1)}`,
@@ -182,7 +187,7 @@ export const plano = {
     entrega: "Entrega verificável",
     indicador: "Indicador",
     depende: "Depende de",
-    semDependencia: "Pode começar já",
+    semDependencia: "nenhuma etapa anterior: pode começar já",
   },
   fases: {
     1: { periodo: "Dias 1 a 30", nome: "Organizar a base" },

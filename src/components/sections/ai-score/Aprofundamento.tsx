@@ -34,6 +34,7 @@ import {
   type PassoId,
   type Rascunho,
 } from "@/lib/ai-score/aprofundamento-form";
+import { linhasDoResumo, textoDoEsforco } from "@/lib/ai-score/aprofundamento-resumo";
 import { gravarAprofundamento } from "@/lib/ai-score/captura";
 import {
   aprofundamentoRascunho,
@@ -43,100 +44,35 @@ import {
 } from "@/lib/ai-score/navegador";
 
 const AREAS: readonly AreaId[] = ["marketing", "vendas", "customer-success"];
-const numero = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
-const rotuloDe = (lista: ReadonlyArray<{ id: string; label: string }>, id: string | undefined) =>
-  lista.find((o) => o.id === id)?.label;
 
 /** Esforço informado: a conta com as entradas e as premissas, ou o que falta para poder calculá-lo. */
 function BlocoEsforco({ esforco }: { esforco: Esforco }) {
-  const e = t.esforco;
-  const extenso = (id: string) => periodos.find((p) => p.id === id)?.extenso ?? id;
+  const e = textoDoEsforco(esforco);
   return (
     <div data-esforco={esforco.calculavel ? "calculado" : "incompleto"} className="border-line mt-6 border p-5">
-      {esforco.calculavel ? (
+      {e.conta ? (
         <>
           <p className="eyebrow text-verde mb-2 text-[11px]">{e.titulo}</p>
           <p className="text-[18px] font-bold" data-esforco-conta>
-            {e.formula(
-              numero(esforco.volume),
-              esforco.unidade,
-              extenso(esforco.periodo),
-              numero(esforco.minutos),
-              numero(esforco.horas),
-            )}
+            {e.conta}
           </p>
-          <ul className="text-fg-2 mt-3 grid gap-1.5 text-[14px] leading-[1.55]">
-            {e.premissas.map((p) => (
-              <li key={p}>{p}</li>
-            ))}
-          </ul>
         </>
       ) : (
-        <>
-          <p className="font-semibold">{e.falta.titulo}</p>
-          <ul className="text-fg-2 mt-2 grid gap-1 text-[14px]">
-            {esforco.falta.map((f) => (
-              <li key={f}>{e.falta[f]}</li>
-            ))}
-          </ul>
-        </>
+        <p className="font-semibold">{e.titulo}</p>
       )}
+      <ul className="text-fg-2 mt-3 grid gap-1.5 text-[14px] leading-[1.55]">
+        {e.itens.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
     </div>
   );
 }
 
 function Resumo({ valor }: { valor: ValorAprofundamento }) {
-  const r = t.resumo;
-  const sei = (campo: NaoSei) => valor.naoSei.includes(campo);
-  const linhas: Array<[string, string]> = [
-    [r.area, t.area.nomes[valor.area]],
-    [
-      r.rotina,
-      sei("rotina")
-        ? r.naoSei
-        : valor.rotina === OUTRA
-          ? (valor.rotinaOutra ?? r.naoRespondido)
-          : (rotinas[valor.area].find((o) => o.id === valor.rotina)?.label ?? r.naoRespondido),
-    ],
-    [
-      r.volume,
-      sei("volume")
-        ? r.naoSei
-        : valor.volume !== undefined && valor.unidade && valor.periodo
-          ? t.volume.resumo(
-              numero(valor.volume),
-              valor.unidade,
-              periodos.find((p) => p.id === valor.periodo)?.extenso ?? valor.periodo,
-            )
-          : r.naoRespondido,
-    ],
-    [
-      r.consequencia,
-      sei("consequencia")
-        ? r.naoSei
-        : valor.consequencia === OUTRA
-          ? (valor.consequenciaOutra ?? r.naoRespondido)
-          : (rotuloDe(consequencias, valor.consequencia) ?? r.naoRespondido),
-    ],
-  ];
-  if (valor.camada === 2)
-    linhas.push(
-      [
-        r.minutos,
-        sei("minutos")
-          ? r.naoSei
-          : valor.minutos !== undefined
-            ? r.minutosValor(numero(valor.minutos))
-            : r.naoRespondido,
-      ],
-      [r.ferramentas, valor.ferramentas.length ? valor.ferramentas.join(", ") : r.naoRespondido],
-      [r.dados, rotuloDe(dadosDisponiveis, valor.dados) ?? r.naoRespondido],
-      [r.indicador, valor.indicador ?? r.naoRespondido],
-      [r.papel, rotuloDe(papeisNaDecisao, valor.papelDecisor) ?? r.naoRespondido],
-    );
   return (
     <dl className="mt-4 grid gap-3 text-[15px] md:grid-cols-[200px_1fr] md:gap-x-6">
-      {linhas.map(([rotulo, texto]) => (
+      {linhasDoResumo(valor).map(([rotulo, texto]) => (
         <div key={rotulo} className="contents">
           <dt className="text-fg-2">{rotulo}</dt>
           <dd className="font-semibold">{texto}</dd>

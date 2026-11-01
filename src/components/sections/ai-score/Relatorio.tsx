@@ -16,14 +16,11 @@ import {
   resultadoTextos,
 } from "@/content/ai-score-questionario";
 import type { DimensaoId } from "@/content/types";
-import type { Analise } from "@/lib/ai-score/analisar";
+import type { Devolutiva } from "@/lib/ai-score/devolutiva";
 import { formatarNota } from "@/lib/ai-score/calcular";
-import type { Cobertura } from "@/lib/ai-score/cobertura";
 import type { EmailEstado } from "@/lib/ai-score/navegador";
-import type { LeituraDaDimensao } from "@/lib/ai-score/leituras";
 import type { Biblioteca } from "@/content/ai-score-dicas";
 import { alvosDasDicas, lerDicas, montarDicas, type Dicas } from "@/lib/ai-score/dicas";
-import type { Sintese } from "@/lib/ai-score/sintese";
 import type { RespostasCompletas, Resultado } from "@/lib/ai-score/tipos";
 import { track } from "@/lib/analytics";
 import { chamarFuncao } from "@/lib/supabase";
@@ -77,7 +74,13 @@ function Bloco({
 }
 
 /** O que precisa estar pronto, com a situação de cada condição (atendida, pendente ou sem resposta). */
-function Condicoes({ titulo, itens }: { titulo: string; itens: Sintese["indicacoes"]["itens"][number]["condicoes"] }) {
+function Condicoes({
+  titulo,
+  itens,
+}: {
+  titulo: string;
+  itens: Devolutiva["sintese"]["indicacoes"]["itens"][number]["condicoes"];
+}) {
   if (!itens.length) return null;
   return (
     <div className="mb-3">
@@ -106,10 +109,8 @@ const corPrioridade = {
 export function Relatorio({
   respostas: r,
   resultado,
-  analise: a,
-  leituras,
-  cobertura,
-  sintese,
+  devolutiva,
+  contexto,
   cartoes,
   focar,
   demo,
@@ -121,11 +122,10 @@ export function Relatorio({
 }: {
   respostas: RespostasCompletas;
   resultado: Resultado;
-  analise: Analise;
-  leituras: Record<DimensaoId, LeituraDaDimensao>;
-  cobertura: Cobertura;
-  /** Resumo, oportunidades, indicações e plano, já em texto (a mesma síntese do PDF e do e-mail). */
-  sintese: Sintese;
+  /** A devolutiva inteira: a mesma da tela, do PDF e do e-mail. */
+  devolutiva: Devolutiva;
+  /** Para o PDF: quem é, de que empresa, a data, e se é a página de exemplo. */
+  contexto: { nome: string | null; empresa: string | null; data: string; exemplo: boolean };
   cartoes: Record<string, ReactNode>;
   focar: boolean;
   /** Supabase desligado (staging, testes): avisa que nada foi enviado. */
@@ -139,6 +139,7 @@ export function Relatorio({
   /** Estado real do envio do relatório por e-mail e o endereço, como o servidor informa. */
   email?: { estado: EmailEstado; endereco: string };
 }) {
+  const { analise: a, leituras, cobertura, sintese } = devolutiva;
   const titulo = useRef<HTMLHeadingElement>(null);
   const podeAprofundar = !demo && Boolean(avaliacaoId && leadId && chave);
   const aprofundamento = useAprofundamento(podeAprofundar);
@@ -177,8 +178,20 @@ export function Relatorio({
   }, [pedir, avaliacaoId, leadId, chave, alvos]);
   const dicas: Dicas | null = !pedir ? reserva : daFuncao === null ? null : daFuncao === "falhou" ? reserva : daFuncao;
 
+  // O PDF é gerado aqui, no navegador, e só então o código dele é baixado.
+  const [pdf, setPdf] = useState<"" | "gerando" | "falhou">("");
   const baixar = () => {
-    track("ai_score_download", { nivel: resultado.nivel ?? "parcial" });
+    setPdf("gerando");
+    track("ai_score_download", { nivel: resultado.nivel ?? "parcial", formato: "pdf" });
+    void import("@/lib/ai-score/pdf/baixar")
+      .then((m) => m.baixarPdf({ devolutiva, respostas: r, ...contexto, avaliacaoId, dicas }))
+      .then(
+        () => setPdf(""),
+        () => setPdf("falhou"),
+      );
+  };
+  const imprimir = () => {
+    track("ai_score_download", { nivel: resultado.nivel ?? "parcial", formato: "impressao" });
     window.print();
   };
 
@@ -207,10 +220,17 @@ export function Relatorio({
           ) : null}
         </div>
         <div data-nao-imprimir className="md:max-w-[340px]">
-          <BotaoAcao type="button" onClick={baixar} className="w-full md:w-auto">
-            {t.baixar}
-          </BotaoAcao>
-          <p className="text-fg-2 mt-3 text-[13px] leading-[1.5]">{t.baixarApoio}</p>
+          <div className="flex flex-wrap gap-3">
+            <BotaoAcao type="button" onClick={baixar} disabled={pdf === "gerando"} className="w-full md:w-auto">
+              {pdf === "gerando" ? t.gerandoPdf : t.baixar}
+            </BotaoAcao>
+            <BotaoAcao type="button" variante="secundario" onClick={imprimir} className="w-full md:w-auto">
+              {t.imprimir}
+            </BotaoAcao>
+          </div>
+          <p aria-live="polite" className="text-fg-2 mt-3 text-[13px] leading-[1.5]">
+            {pdf === "falhou" ? t.pdfFalhou : t.baixarApoio}
+          </p>
         </div>
       </div>
 
