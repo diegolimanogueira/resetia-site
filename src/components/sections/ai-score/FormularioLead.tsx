@@ -81,7 +81,7 @@ export function FormularioLead({
         if (status === "enviado" || status === "ja-enviado") atualizarLiberacao(avaliacaoId, { emailEnviado: true });
       });
     }
-    track("ai_score_lead", { nivel: resultado.nivel ?? "parcial", contato, marketing });
+    track("ai_score_lead", { nivel: resultado.nivel ?? "parcial", contato, marketing }, avaliacaoId);
     // Mescla com o que já está guardado: o estado do contato e do e-mail pode ter mudado enquanto isso.
     if (relatorio.ler(avaliacaoId)) atualizarLiberacao(avaliacaoId, { empresa: empresa.trim(), completo: true });
     else relatorio.liberar(avaliacaoId, { ...liberacao, empresa: empresa.trim(), completo: true });

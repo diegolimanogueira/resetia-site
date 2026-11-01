@@ -117,6 +117,7 @@ export function Avaliacao() {
   useEffect(() => {
     void reenviarPendentes();
     void retomarFila();
+    track("ai_score_abertura");
   }, []);
 
   // Depois de avançar ou voltar: topo da avaliação e foco no título da etapa (leitor de tela anuncia).
@@ -128,6 +129,7 @@ export function Avaliacao() {
   }, [passo]);
 
   function mudar(novo: Respostas) {
+    track("ai_score_primeira_interacao");
     setDecidiu(true);
     setErro(null);
     setR(novo);
@@ -194,12 +196,16 @@ export function Avaliacao() {
     const codigo = codificar(final);
     const resultado = calcular(final);
     setConcluindo(true);
-    track("ai_score_concluido", {
-      escopo: final.escopo,
-      nivel: resultado.nivel ?? "parcial",
-      indice: resultado.indice ?? -1,
-      areas: final.areas.length,
-    });
+    track(
+      "ai_score_concluido",
+      {
+        escopo: final.escopo,
+        nivel: resultado.nivel ?? "parcial",
+        indice: resultado.indice ?? -1,
+        areas: final.areas.length,
+      },
+      final.id,
+    );
     // Grava só a avaliação (sem lead), pela função, que recalcula a nota: mede quem conclui sem deixar contato.
     void concluirAvaliacao({ avaliacaoId: final.id, codigo });
     rascunho.apagar();

@@ -9,6 +9,7 @@ import {
   type TipoItem,
   type Veredito,
 } from "./fila";
+import { track } from "@/lib/analytics";
 import { atualizarLiberacao, lerOrigem, novoId, resolverAprofundamento, type EmailEstado } from "./navegador";
 
 /**
@@ -213,6 +214,9 @@ export async function acompanharEmail(avaliacaoId: string, leadId: string, chave
       await new Promise((ok) => setTimeout(ok, espera));
       const estado = await consultarEmail(leadId, chave);
       if (estado && estado !== "nao-pedido") atualizarLiberacao(avaliacaoId, { emailEstado: estado });
+      // Só o fim da história vira evento: aceito pelo provedor ou falha (nunca "entregue", que ninguém confirma).
+      if (estado === "aceito") track("ai_score_email_aceito", {}, avaliacaoId);
+      else if (estado === "falhou" || estado === "limite") track("ai_score_email_falhou", { estado }, avaliacaoId);
       if (estado && estado !== "pendente" && estado !== "nova-tentativa") return;
     }
   } finally {

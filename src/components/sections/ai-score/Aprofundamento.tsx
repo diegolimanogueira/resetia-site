@@ -36,6 +36,7 @@ import {
 } from "@/lib/ai-score/aprofundamento-form";
 import { linhasDoResumo, textoDoEsforco } from "@/lib/ai-score/aprofundamento-resumo";
 import { gravarAprofundamento } from "@/lib/ai-score/captura";
+import { track } from "@/lib/analytics";
 import {
   aprofundamentoRascunho,
   aprofundamentoSalvo,
@@ -139,8 +140,14 @@ function Aprofundamento({ avaliacaoId, leadId, chave, areasEscolhidas }: Props) 
     naoSei: [],
     ...parte,
   });
-  const comecar = () => gravarRascunho(novo({}));
-  const adiar = () => gravarRascunho(rascunho ? { ...rascunho, fase: "adiado" } : novo({ fase: "adiado" }));
+  const comecar = () => {
+    track("ai_score_aprofundamento_inicio", {}, avaliacaoId);
+    gravarRascunho(novo({}));
+  };
+  const adiar = () => {
+    if (!rascunho && !salvo) track("ai_score_aprofundamento_pulado", {}, avaliacaoId);
+    gravarRascunho(rascunho ? { ...rascunho, fase: "adiado" } : novo({ fase: "adiado" }));
+  };
   const retomar = () => gravarRascunho(rascunho ? { ...rascunho, fase: "perguntas" } : novo({}));
   const dosSalvos = (camada: 1 | 2, passo?: PassoId) =>
     salvo
@@ -214,6 +221,7 @@ function Aprofundamento({ avaliacaoId, leadId, chave, areasEscolhidas }: Props) 
       valor: { ...v.valor },
       situacao: situacao === "aceito" ? "aceito" : situacao === "recusado" ? "recusado" : "pendente",
     });
+    track("ai_score_aprofundamento_salvo", { camada: v.valor.camada }, `${avaliacaoId}.${v.valor.revisao}`);
     gravarRascunho(null);
     setSalvando(false);
   }

@@ -73,7 +73,7 @@ export function EtapaContato({
         }),
         new Promise<Situacao>((ok) => setTimeout(() => ok("pendente"), ESPERA_MAXIMA_MS)),
       ]);
-      if (situacao === "aceito") track("ai_score_contato", { nivel: resultado.nivel ?? "parcial", marketing });
+      if (situacao === "aceito") track("ai_score_contato", { nivel: resultado.nivel ?? "parcial", marketing }, id);
     }
     relatorio.liberar(id, {
       leadId,

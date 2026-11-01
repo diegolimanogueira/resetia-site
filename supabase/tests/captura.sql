@@ -1,4 +1,4 @@
--- Teste da cadeia completa de migrações (0001 a 0009) num Postgres local, com asserções que FALHAM com exceção
+-- Teste da cadeia completa de migrações (0001 a 0010) num Postgres local, com asserções que FALHAM com exceção
 -- (nada de comparar texto de saída). Rodar com: npm run test:banco. Cobre o que as migrações novas prometem:
 -- inventário de privilégios do anônimo e do logado, o caminho antigo ainda funcionando e mais apertado, as funções de
 -- captura (idempotência, conflito, atomicidade, chave errada, revisão fora de ordem), as tarefas do servidor, os
@@ -53,6 +53,7 @@ insert into public.leads (id, avaliacao_id, nome, email, empresa, whatsapp, pedi
 \i supabase/migrations/0007_consentimentos.sql
 \i supabase/migrations/0008_captura.sql
 \i supabase/migrations/0009_tokens.sql
+\i supabase/migrations/0010_crm_marcos_preferencias.sql
 
 \echo '--- retroativo: só o que foi marcado'
 select teste.afirmar('retroativo: quem só viu o resultado não ganha consentimento',
@@ -92,18 +93,18 @@ select teste.afirmar('anon: executa só ping, completar_lead, lead_liberado e le
   (select string_agg(p.proname, ',' order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
    where n.nspname = 'public' and p.prokind = 'f' and has_function_privilege('anon', p.oid, 'EXECUTE'))
   = 'completar_lead,lead_liberado,ler_relatorio,ping');
-select teste.afirmar('logado: executa só eh_admin, ping, completar_lead, lead_liberado, ler_relatorio e revogar_tokens',
+select teste.afirmar('logado: executa só as funções de leitura pública e as de admin (conferem eh_admin por dentro)',
   (select string_agg(p.proname, ',' order by p.proname) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
    where n.nspname = 'public' and p.prokind = 'f' and has_function_privilege('authenticated', p.oid, 'EXECUTE'))
-  = 'completar_lead,eh_admin,lead_liberado,ler_relatorio,ping,revogar_tokens');
+  = 'completar_lead,contatos_permitidos,eh_admin,lead_liberado,ler_relatorio,ping,reprocessar_tarefa,revogar_tokens');
 select teste.afirmar('logado: tabelas só para leitura (e atividades para registrar); alteração só por coluna',
   (select string_agg(c.relname || ':' || p, ',' order by c.relname, p) from pg_class c cross join unnest(array['SELECT','INSERT','UPDATE','DELETE','TRUNCATE']) p
    join pg_namespace n on n.oid = c.relnamespace
    where n.nspname = 'public' and c.relkind = 'r' and has_table_privilege('authenticated', c.oid, p))
-  = 'aprofundamentos:SELECT,atividades:INSERT,atividades:SELECT,avaliacoes:SELECT,consentimentos:SELECT,dicas:SELECT,emails:SELECT,leads:SELECT,relatorios:SELECT,tarefas:SELECT');
+  = 'aprofundamentos:SELECT,atividades:INSERT,atividades:SELECT,avaliacoes:SELECT,consentimentos:SELECT,dicas:SELECT,emails:SELECT,leads:SELECT,marcos:DELETE,marcos:INSERT,marcos:SELECT,relatorios:SELECT,tarefas:SELECT');
 select teste.afirmar('service_role executa as funções de captura, de tarefas, de consentimento e de token',
-  (select count(*) = 10 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
-   where n.nspname = 'public' and p.proname in ('registrar_avaliacao','registrar_captura','completar_captura','gravar_aprofundamento','pegar_tarefas','concluir_tarefa','consumir_limite','limpar_expirados','elegivel','criar_token')
+  (select count(*) = 11 from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+   where n.nspname = 'public' and p.proname in ('registrar_avaliacao','registrar_captura','completar_captura','gravar_aprofundamento','pegar_tarefas','concluir_tarefa','consumir_limite','limpar_expirados','elegivel','criar_token','preferencias_do_token')
      and has_function_privilege('service_role', p.oid, 'EXECUTE')));
 select teste.afirmar('toda tabela nova do schema public tem RLS ligado',
   (select bool_and(c.relrowsecurity) from pg_class c join pg_namespace n on n.oid = c.relnamespace where n.nspname = 'public' and c.relkind = 'r'));
@@ -405,10 +406,160 @@ update public.leads set criado_em = now() - interval '181 days' where id = 'bbbb
 select teste.afirmar('lead_liberado: depois de 180 dias o link antigo deixa de abrir',
   (select public.lead_liberado(id, avaliacao_id) is null from public.leads where id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'));
 
+\echo '--- pedido de conversa, primeira resposta, marcos, contatos permitidos, reprocessar e preferências'
+insert into public.leads (id, avaliacao_id, nome, email, empresa, pediu_contato) values
+  ('e1000000-0000-4000-8000-000000000001', 'd0000000-0000-4000-8000-000000000001', 'Sem Pedido', 'p1@x.com', 'E1', false),
+  ('e1000000-0000-4000-8000-000000000002', 'd0000000-0000-4000-8000-000000000001', 'Com Pedido', 'p2@x.com', 'E2', true);
+select teste.afirmar('pedido de conversa: o momento é gravado quando a pessoa pede, e só nessa hora',
+  (select pedido_conversa_em is null from public.leads where id = 'e1000000-0000-4000-8000-000000000001')
+  and (select pedido_conversa_em is not null from public.leads where id = 'e1000000-0000-4000-8000-000000000002'));
+update public.leads set pediu_contato = true where id = 'e1000000-0000-4000-8000-000000000001';
+select teste.afirmar('pedido de conversa: ligar o pedido depois (caminho antigo) também grava o momento',
+  (select pedido_conversa_em is not null from public.leads where id = 'e1000000-0000-4000-8000-000000000001'));
+select pedido_conversa_em as pedido_antes from public.leads where id = 'e1000000-0000-4000-8000-000000000002' \gset
+update public.leads set nome = 'Com Pedido Editado' where id = 'e1000000-0000-4000-8000-000000000002';
+select teste.afirmar('pedido de conversa: editar o lead não muda o momento do pedido',
+  (select pedido_conversa_em = :'pedido_antes'::timestamptz from public.leads where id = 'e1000000-0000-4000-8000-000000000002'));
+
+-- Primeira resposta: só contato humano da equipe.
+set request.jwt.claim.sub = '';
+set role service_role;
+insert into public.atividades (lead_id, tipo, texto) values ('e1000000-0000-4000-8000-000000000002', 'email', 'Relatório aceito pelo provedor');
+reset role;
+select teste.afirmar('primeira resposta: o que o sistema registra sozinho não conta',
+  (select primeira_resposta_em is null from public.leads where id = 'e1000000-0000-4000-8000-000000000002'));
+set role authenticated;
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+insert into public.atividades (lead_id, tipo, texto) values ('e1000000-0000-4000-8000-000000000002', 'nota', 'Anotação interna');
+reset role;
+select teste.afirmar('primeira resposta: uma nota interna não é resposta',
+  (select primeira_resposta_em is null from public.leads where id = 'e1000000-0000-4000-8000-000000000002'));
+set role authenticated;
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+insert into public.atividades (lead_id, tipo, texto) values ('e1000000-0000-4000-8000-000000000002', 'ligacao', 'Liguei e conversamos');
+reset role;
+select primeira_resposta_em as primeira from public.leads where id = 'e1000000-0000-4000-8000-000000000002' \gset
+select teste.afirmar('primeira resposta: a primeira ligação da equipe grava o momento', :'primeira' <> '');
+set role authenticated;
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+insert into public.atividades (lead_id, tipo, texto) values ('e1000000-0000-4000-8000-000000000002', 'whatsapp', 'Segundo contato');
+reset role;
+select teste.afirmar('primeira resposta: um contato seguinte não a move',
+  (select primeira_resposta_em = :'primeira'::timestamptz from public.leads where id = 'e1000000-0000-4000-8000-000000000002'));
+
+-- Marcos do funil.
+set role anon;
+select teste.negar($q$select count(*) from public.marcos$q$);
+select teste.negar($q$insert into public.marcos (lead_id, tipo) values ('e1000000-0000-4000-8000-000000000002', 'ganho')$q$);
+reset role;
+set role authenticated;
+set request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
+select teste.negar($q$insert into public.marcos (lead_id, tipo) values ('e1000000-0000-4000-8000-000000000002', 'ganho')$q$);
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+insert into public.marcos (lead_id, tipo, valor_informado, observacao) values ('e1000000-0000-4000-8000-000000000002', 'proposta-enviada', 1500.50, 'proposta de piloto');
+insert into public.marcos (lead_id, tipo) values ('e1000000-0000-4000-8000-000000000002', 'reuniao-agendada');
+select teste.negar($q$insert into public.marcos (lead_id, tipo, valor_informado) values ('e1000000-0000-4000-8000-000000000002', 'ganho', -1)$q$, '23514');
+select teste.negar($q$insert into public.marcos (lead_id, tipo) values ('e1000000-0000-4000-8000-000000000002', 'inventado')$q$, '23514');
+select teste.negar($q$insert into public.marcos (lead_id, tipo, criado_por) values ('e1000000-0000-4000-8000-000000000002', 'ganho', '22222222-2222-4222-8222-222222222222')$q$);
+select teste.afirmar('marcos: o admin registra e lê, com o valor que informou e o autor',
+  (select count(*) = 2 and bool_and(criado_por = '11111111-1111-4111-8111-111111111111') from public.marcos)
+  and (select valor_informado = 1500.50 from public.marcos where tipo = 'proposta-enviada'));
+select teste.afirmar('marcos: mudar o status do lead não cria valor nem marco (receita nunca é deduzida)',
+  (select count(*) from public.marcos where tipo in ('ganho', 'perdido')) = 0);
+delete from public.marcos where tipo = 'reuniao-agendada';
+select teste.afirmar('marcos: o admin corrige apagando um marco registrado por engano', (select count(*) = 1 from public.marcos));
+reset role;
+
+-- Contatos permitidos: o número só volta com a escolha registrada.
+set role authenticated;
+set request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
+select teste.negar($q$select * from public.contatos_permitidos()$q$);
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+select teste.afirmar('contatos permitidos: com a escolha de WhatsApp e ligação, o número volta',
+  (select whatsapp = '5511999990000' and ligacao and email from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000003'));
+select teste.afirmar('contatos permitidos: pediu contato mas sem número, nada de WhatsApp nem ligação',
+  (select whatsapp is null and not ligacao and email from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000004'));
+select teste.afirmar('contatos permitidos: quem só pediu o relatório não tem contato de conversa liberado',
+  (select whatsapp is null and not ligacao and not email from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000002'));
+insert into public.consentimentos (lead_id, finalidade, canal, concedido, fonte, texto_versao, evento_id)
+values ('d1000000-0000-4000-8000-000000000003', 'contato-analise', 'whatsapp', false, 'admin-revogacao', 'admin', gen_random_uuid());
+select teste.afirmar('contatos permitidos: depois da revogação registrada pela equipe, o número some',
+  (select whatsapp is null from public.contatos_permitidos() where lead_id = 'd1000000-0000-4000-8000-000000000003'));
+select teste.negar($q$insert into public.consentimentos (lead_id, finalidade, canal, concedido, fonte, texto_versao, evento_id) values ('d1000000-0000-4000-8000-000000000003', 'contato-analise', 'whatsapp', true, 'admin-revogacao', 'admin', gen_random_uuid())$q$);
+reset role;
+
+-- Reprocessar tarefa.
+update public.tarefas set status = 'falhou', tentativas = 5 where tipo = 'dicas';
+select id as tarefa_dicas from public.tarefas where tipo = 'dicas' \gset
+set role authenticated;
+set request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
+select teste.negar(format('select public.reprocessar_tarefa(%L)', :'tarefa_dicas'));
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+select teste.afirmar('reprocessar: tarefa que falhou volta para a fila com as tentativas zeradas',
+  (select public.reprocessar_tarefa(id) from public.tarefas where tipo = 'dicas'));
+reset role;
+select teste.afirmar('reprocessar: fica pendente, para já, sem erro antigo',
+  (select status = 'pendente' and tentativas = 0 and ultimo_erro is null and tentar_em <= now() from public.tarefas where tipo = 'dicas'));
+update public.tarefas set status = 'cancelada' where tipo = 'dicas';
+set role authenticated;
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+select teste.afirmar('reprocessar: tarefa cancelada (sem consentimento) não volta', not (select public.reprocessar_tarefa(id) from public.tarefas where tipo = 'dicas'));
+reset role;
+
+-- Preferências pelo token.
+select encode(sha256(convert_to('token-de-preferencias-do-lead-3', 'UTF8')), 'hex') as hash_pref3 \gset
+select encode(sha256(convert_to('token-de-leitura-do-lead-3-0000', 'UTF8')), 'hex') as hash_leitura3 \gset
+set role service_role;
+select public.criar_token('d1000000-0000-4000-8000-000000000003', 'preferencias', :'hash_pref3', 30);
+select public.criar_token('d1000000-0000-4000-8000-000000000003', 'ler-relatorio', :'hash_leitura3', 30);
+select teste.afirmar('preferências: o token lê as escolhas atuais, com o WhatsApp já revogado pela equipe',
+  (select (public.preferencias_do_token(:'hash_pref3') ->> 'status') = 'ok'
+    and (select bool_and(case when e ->> 'canal' = 'whatsapp' then (e ->> 'concedido') = 'false' else true end)
+         from jsonb_array_elements(public.preferencias_do_token(:'hash_pref3') -> 'escolhas') e)));
+select teste.afirmar('preferências: token de outra finalidade, inexistente ou expirado não vale',
+  (public.preferencias_do_token(:'hash_leitura3') ->> 'status') = 'invalido'
+  and (public.preferencias_do_token(repeat('a', 64)) ->> 'status') = 'invalido');
+select jsonb_build_array(
+  jsonb_build_object('finalidade', 'contato-analise', 'canal', 'whatsapp', 'concedido', true, 'texto_versao', 't1', 'evento_id', 'f1000000-0000-4000-8000-000000000001'),
+  jsonb_build_object('finalidade', 'conteudo-email', 'canal', 'email', 'concedido', false, 'texto_versao', 't1', 'evento_id', 'f1000000-0000-4000-8000-000000000002')
+)::text as eventos \gset
+select teste.afirmar('preferências: a própria pessoa pode voltar a conceder e pode revogar; vira evento com a fonte preferencias',
+  (public.preferencias_do_token(:'hash_pref3', :'eventos'::jsonb) ->> 'status') = 'ok');
+select public.preferencias_do_token(:'hash_pref3', :'eventos'::jsonb);
+reset role;
+select teste.afirmar('preferências: os eventos ficam gravados como foram dados e o mesmo evento repetido não duplica',
+  (select count(*) = 2 from public.consentimentos where fonte = 'preferencias' and lead_id = 'd1000000-0000-4000-8000-000000000003'));
+select teste.afirmar('preferências: nada foi apagado (a revogação da equipe continua no histórico)',
+  (select count(*) = 1 from public.consentimentos where fonte = 'admin-revogacao' and lead_id = 'd1000000-0000-4000-8000-000000000003'));
+select teste.afirmar('preferências: a escolha mais recente vale (WhatsApp concedido de novo, conteúdo revogado)',
+  (select (elegivel_w, elegivel_c) = (true, false) from (select public.elegivel('d1000000-0000-4000-8000-000000000003', 'contato-analise', 'whatsapp') as elegivel_w, public.elegivel('d1000000-0000-4000-8000-000000000003', 'conteudo-email', 'email') as elegivel_c) x));
+select encode(sha256(convert_to('token-de-preferencias-sem-numero', 'UTF8')), 'hex') as hash_pref2 \gset
+set role service_role;
+select public.criar_token('d1000000-0000-4000-8000-000000000002', 'preferencias', :'hash_pref2', 30);
+select teste.afirmar('preferências: não dá para conceder WhatsApp ou ligação sem número informado',
+  (public.preferencias_do_token(:'hash_pref2', jsonb_build_array(jsonb_build_object('finalidade', 'contato-analise', 'canal', 'whatsapp', 'concedido', true, 'texto_versao', 't1', 'evento_id', 'f1000000-0000-4000-8000-000000000003'))) ->> 'status') = 'sem-numero');
+select teste.afirmar('preferências: lista grande demais é recusada',
+  (public.preferencias_do_token(:'hash_pref2', (select jsonb_agg(jsonb_build_object('finalidade', 'conteudo-email', 'canal', 'email', 'concedido', false, 'texto_versao', 't1', 'evento_id', gen_random_uuid())) from generate_series(1, 13))) ->> 'status') = 'campos');
+select teste.negar(format('select public.preferencias_do_token(%L, %L::jsonb)', :'hash_pref3', '[{"finalidade":"conteudo-email","canal":"whatsapp","concedido":true,"texto_versao":"t1","evento_id":"f1000000-0000-4000-8000-000000000009"}]'), '23514');
+reset role;
+set role anon;
+select teste.negar(format('select public.preferencias_do_token(%L)', :'hash_pref2'));
+reset role;
+update public.tokens set criado_em = now() - interval '40 days', expira_em = now() - interval '10 days' where token_hash = :'hash_pref2';
+set role service_role;
+select teste.afirmar('preferências: token expirado não vale', (public.preferencias_do_token(:'hash_pref2') ->> 'status') = 'invalido');
+reset role;
+
 \echo '--- apagar um lead leva tudo junto'
 delete from public.leads where id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1';
-select teste.afirmar('cascata: relatórios, consentimentos, tarefas, tokens e aprofundamento do lead apagado se vão com ele',
-  (select count(*) from public.relatorios) + (select count(*) from public.tarefas) + (select count(*) from public.aprofundamentos) + (select count(*) from public.tokens)
+select teste.afirmar('cascata: relatórios, consentimentos, tarefas, tokens, marcos e aprofundamento do lead apagado se vão com ele',
+  (select count(*) from public.relatorios where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1')
+  + (select count(*) from public.tarefas where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1')
+  + (select count(*) from public.aprofundamentos where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1')
+  + (select count(*) from public.tokens where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1')
   + (select count(*) from public.consentimentos where lead_id = 'b1b1b1b1-b1b1-4b1b-8b1b-b1b1b1b1b1b1') = 0);
+delete from public.leads where id = 'e1000000-0000-4000-8000-000000000002';
+select teste.afirmar('cascata: os marcos e as atividades do lead apagado se vão com ele',
+  (select count(*) from public.marcos where lead_id = 'e1000000-0000-4000-8000-000000000002') = 0);
 
 \echo 'CAPTURA_OK'
