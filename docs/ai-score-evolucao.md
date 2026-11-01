@@ -16,7 +16,7 @@ Legenda de evidência: **L** = simulado ou testado localmente; **P** = confirmad
 | 1    | Medir a base, protótipo do PDF, consultas de produção        | feita (PDF passa para a Fase 4, ver registro)             |
 | 2    | Fidelidade, método, cobertura, versões, corte de peso        | feita (forte, lacuna, passos e plano ficam para a Fase 4) |
 | 3    | Dados, captura confiável, aprofundamento                     | feita (L; produção: nada aplicado, ver registro)          |
-| 4    | Prioridades, devolutiva, PDF, e-mail                         | pendente                                                  |
+| 4    | Prioridades, devolutiva, PDF, e-mail                         | feita (L; tokens e e-mail só validados com simulações)    |
 | 5    | Painel, preferências, métricas, trava de publicação          | pendente                                                  |
 | 6    | Home, celular, jornadas, serviços, agentes                   | pendente                                                  |
 | 7    | Validação integrada, documentação de publicação e calibração | pendente                                                  |
@@ -227,3 +227,32 @@ where routine_schema = 'public' and grantee in ('anon', 'authenticated', 'PUBLIC
 - Prints de referência da landing `/ai-score/` ainda a regenerar no Docker (a memória da VM estava ocupada por outras pilhas do Supabase; tentar de novo com `--workers=1`).
 - Eventos de analytics do aprofundamento ficam para a Fase 5.
 - Textos novos a revisar com o Diego: `ai-score-aprofundamento.ts` (perguntas, opções, premissas do esforço), avisos de contato e de e-mail em `ai-score-questionario.ts`.
+
+### Fase 4 (01/11) — feita
+
+**Prioridades e indicações (`recomendar.ts`, `regras.ts`):** só dimensões abaixo de 70 são lacunas (tudo em 70 ou mais não vira lacuna); um desafio que as respostas contradizem (por exemplo, "não sabemos por onde começar" com Estratégia em 70) não soma pontos e vira validação; a prioridade de uma solução é a da dimensão mais frágil que aponta para ela (somar fazia soluções com duas dimensões passarem à frente de quem cobre a mais fraca); uma solução só é **indicada** com evidência direta e condições atendidas, senão fica **a investigar** (pedido de agentes sem processo mapeado, dados e regras; Performance sem nada em uso para medir; falta de liderança sem sinal de falta de capacitação); pode não haver nenhuma solução; no máximo duas. Empates se decidem por critério dito na tela (desafio declarado, resposta mais baixa, evidência direta, ordem de dependência), nunca pela posição na lista. A regra fixa para iniciantes saiu: a Governança, quando é a mais fraca, é a primeira.
+
+**Síntese (`sintese.ts`, `ai-score-sintese.ts`):** resumo executivo com as seis perguntas (cenário e cobertura; o que merece atenção; respostas que sustentam, citando o tema e a alternativa literal; consequência declarada × hipótese; primeira ação; o que validar), oportunidades a investigar (cada desafio como hipótese, com perguntas, condições e a situação frente às respostas), indicações com evidência e condições, e o **roteiro de 90 dias por dependências** (problema, responsável e indicador → linha de base → controles, capacitação e dados quando há lacuna → piloto → avaliação → ampliação, com reavaliação). Cada etapa tem ação, responsável sugerido (um papel, nunca um nome), entrega verificável, indicador e dependência; nenhuma meta, prazo de implantação ou valor é inventado. Tudo vai na devolutiva (JSON, ~25 kB), que alimenta tela, PDF, e-mail e a mensagem do WhatsApp.
+
+**Tela:** o resumo executivo abre o resultado (no lugar dos três cartões por dimensão, que repetiam frases fixas por dimensão); lacunas, alertas e oportunidades são saídas separadas; roteiro e indicações mostram fases, campos, evidências e condições. O convite à Análise Estratégica reconhece o resultado, diz para que serve a conversa e mostra, antes do clique, o texto exato da mensagem do WhatsApp (só nota, nível, lacunas e soluções em avaliação).
+
+**PDF (`pdf/escritor.ts`, `pdf/relatorio.ts`, `pdf/baixar.ts`):** download direto, gerado no navegador, carregado só no clique (10,2 kB gzip); PDF 1.4 com Helvetica em WinAnsi, texto de verdade, quebra de linha, paginação, rodapé e contador por página. Falha com erro para qualquer glifo sem mapa (há uma tabela de substituição declarada). Verificado com `pdfjs-dist` (dependência só de teste): as larguras batem exatamente com as do leitor, nada passa da margem, acentos voltam, bytes iguais para o mesmo relatório; olhei as oito páginas do PDF do exemplo renderizadas. A impressão segue como alternativa.
+
+**Acesso (migração 0009, `captura.sql`):** tabela `tokens` (só o hash), `ler_relatorio` (anônimo, só leitura, devolve nome, empresa e a avaliação a que o token pertence), `revogar_tokens` (admin), `lead_liberado` restrita aos leads antigos sem chave e com menos de 180 dias. O e-mail leva um token de leitura (180 dias) e outro de preferências (365), sem o id do lead; o site lê o token, confere a avaliação, tira o token da barra, não o guarda e não o compartilha.
+
+**Testes novos:** `sintese.test.ts` (18, inclui varredura de 300 vetores para a topologia do roteiro), `pdf.test.ts` (16, com mutação na tabela de larguras e na margem do rodapé), reescrita das recomendações e das análises em `ai-score.test.ts`, 9 asserções de banco para tokens, 1 teste de função para o token e o 503, e E2E (download real do PDF em Chromium e WebKit celular, token no link, convite com prévia, roteiro e indicações). **Resultados (L):** unidade 242, banco OK (129 asserções), função 33, E2E 178 passando e 2 pulados, lint, tipos e knip limpos.
+
+**Peso:** `/ai-score/resultado/` e exemplo 224,2 kB (teto 225); avaliação 216,9; painel 226,8 (teto 240); chunks sob demanda: motor 10,8, PDF 10,2, aprofundamento 9,2 (teto 30 cada). JS total 312,8 kB, teto 290 → 320 kB (o total soma todos os chunks, inclusive os sob demanda e as cópias do conteúdo do questionário; o que vale para o visitante é o teto por página e por chunk).
+
+**Decisões e desvios:**
+
+- Mantive `ANALISE_ATUAL = "2"`: a versão 2 nunca foi publicada (só a v1 está em produção), então as regras novas da Fase 4 entram nela.
+- Não indico solução em resultado parcial (menos de 10 respostas, ou dimensão vazia).
+- O texto das lacunas empatadas aparece nas duas dimensões do empate; o critério vale para as duas.
+- O texto `ai-score-sintese.ts` (hipóteses, perguntas, etapas, responsáveis) é novo e fica a revisar com o Diego.
+
+**Pendências desta fase para as seguintes:**
+
+- Página de preferências (`/ai-score/preferencias/`) e botão de revogar o link no painel: Fase 5.
+- Aplicar a migração 0009 e o código da função em produção, e confirmar o envio real: ver `docs/deploy.md` (Fase 7).
+- Prints de referência (visuais) a regenerar no Docker depois das mudanças de tela das Fases 4 e 6.
