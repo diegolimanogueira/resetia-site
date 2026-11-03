@@ -19,7 +19,7 @@ function Orbitas() {
     <div
       aria-hidden="true"
       data-decorativo
-      className="relative order-first mt-[30px] grid h-[260px] place-items-center sm:h-[350px] md:order-none md:mt-0 md:h-[580px]"
+      className="relative mt-[10px] mb-[40px] grid h-[230px] place-items-center sm:h-[350px] md:mt-0 md:mb-0 md:h-[580px]"
     >
       {[
         "size-[140px] sm:size-[190px] md:size-[270px]",
@@ -65,16 +65,16 @@ export function Hero() {
     >
       <div aria-hidden="true" className="grade pointer-events-none absolute inset-0" />
       <div className="container-site relative grid items-center md:min-h-[680px] md:grid-cols-2">
-        <div className="relative z-[2] pt-5 pb-[70px] md:py-[70px]">
+        <div className="relative z-[2] pt-5 pb-[20px] md:py-[70px]">
           <p className="eyebrow text-verde mb-6 flex items-center gap-[9px]">
             <span className="bg-verde-vivo inline-block size-[7px] rounded-full shadow-[0_0_12px_#00e676]" />
             {h.eyebrow}
           </p>
-          <h1 className="mb-[30px] text-[clamp(38px,4.4vw,64px)] leading-[1.04] font-bold tracking-[-0.035em]">
+          <h1 className="mb-[22px] text-[clamp(34px,4.4vw,64px)] leading-[1.06] font-bold tracking-[-0.035em] md:mb-[30px]">
             <Linhas itens={h.titulo} />
           </h1>
-          <p className="text-fg-2 max-w-[550px] text-[18px] leading-[1.75]">{h.lead}</p>
-          <div className="mt-[35px] flex flex-wrap gap-3">
+          <p className="text-fg-2 max-w-[550px] text-[17px] leading-[1.7] md:text-[18px] md:leading-[1.75]">{h.lead}</p>
+          <div className="mt-[28px] flex flex-wrap gap-3 md:mt-[35px]">
             <Botao href="/ai-score/" origem="ai-score-hero">
               {h.ctaPrimario}
             </Botao>
@@ -82,6 +82,18 @@ export function Hero() {
               {h.ctaSecundario.label}
             </Botao>
           </div>
+          <ul data-garantias className="text-fg mt-5 flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] font-semibold">
+            {h.garantias.map((g) => (
+              <li key={g} className="flex items-center gap-1.5">
+                <span aria-hidden="true" className="text-verde">
+                  ✓
+                </span>
+                {g}
+              </li>
+            ))}
+          </ul>
+          <p className="text-fg-2 mt-4 max-w-[550px] text-[14px] leading-[1.6]">{h.produto}</p>
+          <p className="text-fg-2 mt-1.5 max-w-[550px] text-[13px] leading-[1.6]">{h.opcional}</p>
         </div>
         <Orbitas />
       </div>

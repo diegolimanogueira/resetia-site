@@ -6,7 +6,7 @@
 export const emailRelatorio = {
   assunto: (indice: number | null, nivel: string | null) =>
     indice === null ? "Seu RESET AI Score (resultado parcial)" : `Seu RESET AI Score: ${indice}/100, nível ${nivel}`,
-  previa: "O relatório completo, com as dicas de evolução e o plano de 90 dias.",
+  previa: "O relatório completo, com o resumo executivo, as dicas de evolução e o roteiro de 90 dias.",
   saudacao: (nome: string) => `Olá, ${nome.trim().split(/\s+/)[0]}.`,
   intro:
     "Aqui está o relatório completo do RESET AI Score que você pediu. Ele também fica disponível no link abaixo, em qualquer aparelho, para compartilhar com a liderança.",
@@ -15,17 +15,17 @@ export const emailRelatorio = {
     dimensoes: "Resultado por dimensão",
     alertas: "O que o resultado revela",
     dicas: "Dicas para evoluir",
-    plano: "Plano de 90 dias",
-    solucoes: "Onde a Reset entra",
   },
   conversa: {
     titulo: "Quer ajuda para colocar o plano em prática?",
-    texto: "Converse com um especialista da Reset sobre o seu resultado. A conversa é sem custo.",
+    texto:
+      "Converse com um especialista da Reset sobre o seu resultado: para validar o que ficou como hipótese e decidir se faz sentido testar uma solução. A conversa é sem custo.",
     botao: "Conversar no WhatsApp",
   },
   rodape:
     "Você recebeu este e-mail porque pediu o relatório completo do RESET AI Score em resetia.com.br. Se não foi você, ignore esta mensagem.",
   privacidade: "Política de privacidade",
+  preferencias: "Gerenciar preferências de contato",
 };
 
 /** E-mail sobre a Reset IA que o admin envia ao lead, com assunto e texto editáveis antes do envio. */

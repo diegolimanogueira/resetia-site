@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { biblioteca } from "@/content/ai-score-dicas";
 import { emailRelatorio, emailReset } from "@/content/ai-score-email";
-import { perguntasCentrais, relatorio } from "@/content/ai-score-questionario";
+import { perguntasCentrais } from "@/content/ai-score-questionario";
+import { assinatura } from "@/content/ai-score-sintese";
 import { nomesSolucoes } from "@/content/solucoes-nomes";
 import type { DimensaoId } from "@/content/types";
-import { analisar } from "@/lib/ai-score/analisar";
 import { calcular } from "@/lib/ai-score/calcular";
 import { completas, decodificar } from "@/lib/ai-score/codificar";
 import { alvosDasDicas, dicasDaBiblioteca, lerDicas, montarDicas } from "@/lib/ai-score/dicas";
 import { esquemaDicas, fatosParaDicas, validarDicas } from "@/lib/ai-score/dicas-ia";
 import { escapar, montarEmailRelatorio, montarEmailReset } from "@/lib/ai-score/email";
-import { recomendar } from "@/lib/ai-score/recomendar";
+import { montarDevolutiva } from "@/lib/ai-score/devolutiva";
 import type { RespostasCompletas, Resultado } from "@/lib/ai-score/tipos";
 
 // Estratégia 70, Pessoas 40, Processos 27,5, Dados 40, Governança 15, Resultados 27,5.
@@ -193,14 +193,14 @@ describe("e-mails", () => {
   it("relatório: assunto com a nota, dados digitados escapados, dicas, link e assinatura do squad", () => {
     const r = respostas();
     const resultado = calcular(r);
-    const rec = recomendar(resultado, r.desafios);
+    const devolutiva = montarDevolutiva(r);
     const dicas = montarDicas(biblioteca, r, alvosDasDicas(resultado));
     const email = montarEmailRelatorio({
       nome: "Maria <script>alert(1)</script> Teste",
       quem: "Empresa & Cia",
       resultado,
-      recomendacao: rec,
-      analise: analisar(r, resultado, rec),
+      sintese: devolutiva.sintese,
+      analise: devolutiva.analise,
       dicas,
       link: "https://www.resetia.com.br/ai-score/resultado/#v=1&lead=x",
       whatsapp: "https://wa.me/5585999990000?text=oi",
@@ -212,9 +212,9 @@ describe("e-mails", () => {
     expect(email.html).toContain("Empresa &amp; Cia");
     expect(email.html).toContain("#v=1&amp;lead=x");
     expect(email.html).toContain(escapar(dicas.dimensoes[0].dicas[0]));
-    expect(email.html).toContain(escapar(relatorio.assinatura.titulo));
+    expect(email.html).toContain(escapar(assinatura.titulo));
     expect(email.texto).not.toMatch(/<[a-z]/i);
-    expect(email.texto).toContain(relatorio.assinatura.paragrafos[0]);
+    expect(email.texto).toContain(assinatura.paragrafos[0]);
     expect(email.texto).toContain("https://www.resetia.com.br/ai-score/resultado/#v=1&lead=x");
   });
 

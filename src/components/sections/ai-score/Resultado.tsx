@@ -1,16 +1,15 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { EtapaContato } from "@/components/sections/ai-score/EtapaContato";
-import { FormularioLead } from "@/components/sections/ai-score/FormularioLead";
 import { Barra, BarrasDimensoes, Nota, Regua } from "@/components/sections/ai-score/Placar";
 import { Relatorio } from "@/components/sections/ai-score/Relatorio";
+import { ResumoExecutivo } from "@/components/sections/ai-score/ResumoExecutivo";
 import { Botao, BotaoAcao } from "@/components/ui/botao";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Linhas } from "@/components/ui/linhas";
 import { Section } from "@/components/ui/section";
+import { SinalDePronto } from "@/components/ui/sinal-de-pronto";
 import {
-  alertas,
   dimensoes,
   exemplo as textosExemplo,
   modulosArea,
@@ -18,9 +17,13 @@ import {
   relatorio as impresso,
   resultadoTextos as t,
 } from "@/content/ai-score-questionario";
-import { analisar } from "@/lib/ai-score/analisar";
+import { acompanharEmail, retomarFila } from "@/lib/ai-score/captura";
+import { carregarContato } from "@/lib/ai-score/contato-sob-demanda";
 import { calcular, formatarNota } from "@/lib/ai-score/calcular";
-import { completas, decodificar } from "@/lib/ai-score/codificar";
+import { completas, lerLink } from "@/lib/ai-score/codificar";
+import type { Devolutiva, OrigemDoLink } from "@/lib/ai-score/devolutiva";
+import { metodoDe } from "@/lib/ai-score/metodo";
+import { tentarCarregarMotor, useMotor } from "@/lib/ai-score/motor";
 import {
   assinarArmazenamento,
   assinarHash,
@@ -30,54 +33,119 @@ import {
   relatorio,
   verComoAdmin,
 } from "@/lib/ai-score/navegador";
-import { recomendar } from "@/lib/ai-score/recomendar";
 import type { RespostasCompletas } from "@/lib/ai-score/tipos";
+import { useModulo } from "@/lib/carregar-modulo";
 import { consultarLiberacao, reenviarPendentes, supabase } from "@/lib/supabase";
 import { waUrl } from "@/lib/whatsapp";
 
 const AVALIACAO = "/ai-score/avaliacao/";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-/** O link do e-mail traz `&lead=<id>` no hash; ele libera o relatório, mas não vai junto quando a pessoa compartilha. */
-const leadDoHash = (hash: string | null) => {
-  const id = new URLSearchParams((hash ?? "").replace(/^#/, "")).get("lead");
-  return id && UUID.test(id) ? id : null;
+/**
+ * O link do e-mail traz `&k=<token>` (e-mails novos) ou `&lead=<id>` (antigos) no hash: libera o relatório, mas não
+ * vai junto quando a pessoa compartilha, e sai da barra de endereço assim que é lido.
+ */
+const acessoDoHash = (hash: string | null) => {
+  const p = new URLSearchParams((hash ?? "").replace(/^#/, ""));
+  const token = p.get("k");
+  const lead = p.get("lead");
+  return token && /^[A-Za-z0-9_-]{20,200}$/.test(token) ? { token } : lead && UUID.test(lead) ? { lead } : null;
+};
+const tirarAcessoDoEndereco = () => {
+  const p = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  p.delete("k");
+  p.delete("lead");
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${p}`);
 };
 const dimensao = (id: string) => dimensoes.find((d) => d.id === id)!;
 
 const topo =
   "border-line overflow-hidden border-b bg-[radial-gradient(circle_at_85%_30%,rgba(0,230,118,0.12)_0%,rgba(0,230,118,0)_45%)] pt-[50px] pb-[60px] md:pt-[80px] md:pb-[90px]";
 
-/** Exemplo fixo (/ai-score/exemplo): mostra tudo, sem etapas de captura nem gravação. */
+/**
+ * Exemplo fixo (/ai-score/exemplo): mostra tudo, sem etapas de captura nem gravação. A devolutiva vem pronta do
+ * servidor (calculada no build), então a página não baixa o motor.
+ */
 export interface Exemplo {
   codigo: string;
   nome: string;
   empresa: string;
+  devolutiva: Devolutiva;
 }
 
 type Modo = { tipo: "publico" } | { tipo: "admin" } | ({ tipo: "exemplo" } & Exemplo);
 
-/** Estado sem resultado (servidor, link vazio ou adulterado): o mesmo H1, com o convite para começar. */
-function SemResultado({ carregando }: { carregando: boolean }) {
+type EstadoSemResultado = "carregando" | "vazio" | "invalido" | "versao" | "falha";
+
+/** Estado sem resultado (servidor, link vazio, adulterado, de versão desconhecida ou leitura que não carregou). */
+function SemResultado({ estado }: { estado: EstadoSemResultado }) {
+  const texto = estado === "invalido" ? t.invalido : estado === "versao" ? t.versaoDesconhecida : t.vazio;
   return (
     <Section espaco="nenhum" className={topo}>
       <div className="container-site max-w-[760px]">
         <Eyebrow>{t.kicker}</Eyebrow>
         <h1 className="display-h2 mb-6">{t.titulo}</h1>
-        {carregando ? (
+        {estado === "carregando" ? (
           <p className="text-fg-2 text-[18px]" aria-live="polite">
             {t.carregando}
           </p>
+        ) : estado === "falha" ? (
+          <>
+            <p className="mb-2 text-[22px] font-bold">{t.falha.titulo}</p>
+            <p className="text-fg-2 mb-8 text-[18px] leading-[1.6]">{t.falha.texto}</p>
+            <BotaoAcao type="button" onClick={tentarCarregarMotor}>
+              {t.falha.tentar}
+            </BotaoAcao>
+          </>
         ) : (
           <>
-            <p className="mb-2 text-[22px] font-bold">{t.vazio.titulo}</p>
-            <p className="text-fg-2 mb-8 text-[18px] leading-[1.6]">{t.vazio.texto}</p>
+            <p className="mb-2 text-[22px] font-bold">{texto.titulo}</p>
+            <p className="text-fg-2 mb-8 text-[18px] leading-[1.6]">{texto.texto}</p>
             <Botao href={AVALIACAO} origem="ai-score-resultado-vazio">
-              {t.vazio.cta}
+              {texto.cta}
             </Botao>
           </>
         )}
       </div>
     </Section>
+  );
+}
+
+const ALERTAS_VISIVEIS = 3;
+
+function CartaoDeAlerta({ alerta }: { alerta: Devolutiva["analise"]["alertas"][number] }) {
+  return (
+    <li className="border-line border-l-verde bg-painel break-inside-avoid border border-l-2 p-[22px]">
+      <p className="mb-2 text-[17px] leading-[1.3] font-bold">{alerta.titulo}</p>
+      <p className="text-fg-2 text-[14px] leading-[1.6]">{alerta.texto}</p>
+    </li>
+  );
+}
+
+/**
+ * Quanta informação existe por trás da nota: nota estimada (com "Não sei") ou completa, sempre com a contagem de
+ * respostas. Nunca vira margem de erro nem grau de confiança.
+ */
+function CoberturaDaNota({ cobertura }: { cobertura: Devolutiva["cobertura"] }) {
+  const { situacao, validas, total } = cobertura;
+  if (situacao === "estimativa")
+    return (
+      <div
+        className="border-verde mt-6 max-w-[560px] border-l-2 pl-3 text-[14px] leading-[1.6]"
+        data-cobertura={situacao}
+      >
+        <p className="font-semibold">{t.cobertura.estimativa.titulo}</p>
+        <p className="text-fg-2">{t.cobertura.estimativa.texto(validas, total)}</p>
+        {cobertura.umaResposta.length ? (
+          <p className="text-fg-2 mt-1">
+            {t.cobertura.estimativa.umaResposta(cobertura.umaResposta.map((id) => dimensao(id).nome).join(", "))}
+          </p>
+        ) : null}
+      </div>
+    );
+  return (
+    <p className="text-fg-2 mt-6 max-w-[560px] text-[14px]" data-cobertura={situacao}>
+      {situacao === "parcial" ? t.cobertura.parcial(validas, total) : t.cobertura.completa(validas, total)}
+    </p>
   );
 }
 
@@ -87,7 +155,16 @@ function SemResultado({ carregando }: { carregando: boolean }) {
  * hash da URL. `cartoes`: os cinco cards de solução, renderizados no servidor. `exemplo`: o caso fixo da página
  * de exemplo, com tudo aberto (renderizado já no servidor).
  */
-export function Resultado({ cartoes, exemplo }: { cartoes: Record<string, ReactNode>; exemplo?: Exemplo }) {
+export function Resultado(props: { cartoes: Record<string, ReactNode>; exemplo?: Exemplo }) {
+  return (
+    <>
+      <SinalDePronto />
+      <ResultadoInterno {...props} />
+    </>
+  );
+}
+
+function ResultadoInterno({ cartoes, exemplo }: { cartoes: Record<string, ReactNode>; exemplo?: Exemplo }) {
   const hash = useSyncExternalStore(assinarHash, lerHash, () => null);
   const admin = useSyncExternalStore(
     assinarArmazenamento,
@@ -95,34 +172,60 @@ export function Resultado({ cartoes, exemplo }: { cartoes: Record<string, ReactN
     () => false,
   );
   const texto = exemplo ? exemplo.codigo : hash;
-  const respostas = useMemo(() => (texto === null ? undefined : decodificar(texto)), [texto]);
+  const link = useMemo(() => (texto === null ? undefined : lerLink(texto)), [texto]);
+  const acesso = useMemo(() => acessoDoHash(hash), [hash]);
 
   useEffect(() => {
-    if (!exemplo) void reenviarPendentes();
+    if (exemplo) return;
+    void reenviarPendentes();
+    void retomarFila();
   }, [exemplo]);
 
-  if (respostas === undefined) return <SemResultado carregando />;
-  if (!completas(respostas)) return <SemResultado carregando={false} />;
+  if (link === undefined) return <SemResultado estado="carregando" />;
+  if (link.tipo === "vazio") return <SemResultado estado="vazio" />;
+  if (link.tipo === "invalido") return <SemResultado estado="invalido" />;
+  if (link.tipo !== "ok") return <SemResultado estado="versao" />;
+  if (!completas(link.respostas)) return <SemResultado estado="vazio" />;
   const modo: Modo = exemplo ? { tipo: "exemplo", ...exemplo } : admin ? { tipo: "admin" } : { tipo: "publico" };
-  return <Pronto respostas={respostas} codigo={texto!} cartoes={cartoes} modo={modo} leadDoLink={leadDoHash(hash)} />;
+  return (
+    <Pronto
+      respostas={link.respostas}
+      link={link}
+      codigo={texto!}
+      cartoes={cartoes}
+      modo={modo}
+      acessoDoLink={acesso}
+      previa={exemplo?.devolutiva}
+    />
+  );
 }
 
 function Pronto({
   respostas: r,
+  link,
   codigo,
   cartoes,
   modo,
-  leadDoLink,
+  acessoDoLink,
+  previa,
 }: {
   respostas: RespostasCompletas;
+  link: OrigemDoLink;
   codigo: string;
   cartoes: Record<string, ReactNode>;
   modo: Modo;
-  leadDoLink: string | null;
+  acessoDoLink: { lead: string } | { token: string } | null;
+  /** Devolutiva já calculada no servidor (só a página de exemplo). */
+  previa?: Devolutiva;
 }) {
-  const resultado = useMemo(() => calcular(r), [r]);
-  const rec = useMemo(() => recomendar(resultado, r.desafios), [resultado, r.desafios]);
-  const analise = useMemo(() => analisar(r, resultado, rec), [r, resultado, rec]);
+  // A nota é leve e sai na hora; o resto (leituras, alertas, recomendações, plano) vem do motor, carregado sob
+  // demanda enquanto a pessoa preenche nome e e-mail.
+  const { motor, falhou } = useMotor(!previa);
+  const devolutiva = useMemo(
+    () => previa ?? (motor ? motor.montarDevolutiva(r, link) : null),
+    [previa, motor, r, link],
+  );
+  const resultadoBase = useMemo(() => calcular(r, metodoDe(link.metodo)), [r, link.metodo]);
   const chave = r.id ?? codigo;
   const liberadoTexto = useSyncExternalStore(
     assinarArmazenamento,
@@ -131,17 +234,18 @@ function Pronto({
   );
   const liberacao = useMemo(() => lerLiberacao(liberadoTexto), [liberadoTexto]);
   const [foco, setFoco] = useState<"" | "resultado" | "relatorio">("");
-  // Link do e-mail em outro aparelho: confere o par (lead, avaliação) e libera o relatório completo.
-  const conferirLink = modo.tipo === "publico" && leadDoLink !== null && r.id !== undefined;
+  // Link do e-mail em outro aparelho: confere o acesso (token ou par de ids) e libera o relatório completo.
+  const conferirLink = modo.tipo === "publico" && acessoDoLink !== null && r.id !== undefined;
   const [conferindo, setConferindo] = useState(conferirLink);
   useEffect(() => {
     if (!conferirLink || !r.id) return;
     let vivo = true;
-    void consultarLiberacao(leadDoLink!, r.id).then((lead) => {
+    void consultarLiberacao(acessoDoLink!, r.id).then((lead) => {
       if (!vivo) return;
+      tirarAcessoDoEndereco();
       if (lead && !lerLiberacao(relatorio.ler(chave))?.completo)
         relatorio.liberar(chave, {
-          leadId: leadDoLink!,
+          ...("lead" in acessoDoLink! ? { leadId: acessoDoLink.lead } : {}),
           nome: lead.nome,
           empresa: lead.empresa,
           data: new Date().toLocaleDateString("pt-BR"),
@@ -152,7 +256,15 @@ function Pronto({
     return () => {
       vivo = false;
     };
-  }, [conferirLink, leadDoLink, r.id, chave]);
+  }, [conferirLink, acessoDoLink, r.id, chave]);
+  // Voltou à página com o e-mail ainda "pendente" ou "nova tentativa": volta a perguntar ao servidor o estado real.
+  const pendente = liberacao?.emailEstado === "pendente" || liberacao?.emailEstado === "nova-tentativa";
+  const leadParaEmail = liberacao?.leadId;
+  const chaveParaEmail = liberacao?.chave;
+  useEffect(() => {
+    if (modo.tipo === "publico" && pendente && leadParaEmail && chaveParaEmail)
+      void acompanharEmail(chave, leadParaEmail, chaveParaEmail);
+  }, [modo.tipo, pendente, leadParaEmail, chaveParaEmail, chave]);
   const [copiado, setCopiado] = useState(false);
   const h1 = useRef<HTMLHeadingElement>(null);
 
@@ -165,20 +277,23 @@ function Pronto({
   const tudoAberto = modo.tipo !== "publico";
   const viuResultado = tudoAberto || liberacao !== null;
   const viuRelatorio = tudoAberto || liberacao?.completo === true;
+  // O contato só é preciso na chegada sem liberação (já conferida) e entre o resultado e o relatório completo.
+  const precisaDeContato = (!viuResultado && !conferindo) || (viuResultado && !viuRelatorio);
+  const contato = useModulo(carregarContato, precisaDeContato);
   const nome = modo.tipo === "exemplo" ? modo.nome : liberacao?.nome;
   const empresa = modo.tipo === "exemplo" ? modo.empresa : liberacao?.empresa;
 
-  if (!viuResultado && conferindo) return <SemResultado carregando />;
+  if (!viuResultado && conferindo) return <SemResultado estado="carregando" />;
   if (!viuResultado)
-    return <EtapaContato respostas={r} resultado={resultado} codigo={codigo} aoLiberar={() => setFoco("resultado")} />;
+    return contato ? (
+      contato.etapaContato({ respostas: r, resultado: resultadoBase, codigo, aoLiberar: () => setFoco("resultado") })
+    ) : (
+      <SemResultado estado="carregando" />
+    );
+  if (!devolutiva) return <SemResultado estado={falhou ? "falha" : "carregando"} />;
 
+  const { resultado, analise, cobertura, versoes } = devolutiva;
   const nivel = niveis.find((n) => n.id === resultado.nivel);
-  const lacuna = rec.lacunas[0] ? dimensao(rec.lacunas[0]) : null;
-  const mensagem = t.mensagem({
-    indice: resultado.indice,
-    nivel: nivel?.nome ?? null,
-    lacunas: rec.lacunas.slice(0, 2).map((id) => dimensao(id).nome),
-  });
   const moduloDaArea = modulosArea.find((m) => m.area === r.escopo)?.nome;
   const quem =
     r.escopo === "empresa"
@@ -188,7 +303,7 @@ function Pronto({
   async function copiar() {
     try {
       // Sem o `lead` do link do e-mail: quem recebe o link compartilhado passa pelas etapas.
-      await navigator.clipboard.writeText(window.location.href.replace(/&lead=[^&]*/, ""));
+      await navigator.clipboard.writeText(window.location.href.replace(/&(lead|k)=[^&]*/g, ""));
       setCopiado(true);
     } catch {
       setCopiado(false);
@@ -241,10 +356,20 @@ function Pronto({
                 {t.parcial.nome}
               </p>
             )}
+            <CoberturaDaNota cobertura={cobertura} />
             <h2 className="mt-9 text-[22px] leading-[1.3] font-bold">{nivel ? nivel.titulo : t.parcial.titulo}</h2>
             <p className="text-fg-2 mt-3 max-w-[560px] text-[17px] leading-[1.7]">
               {nivel ? nivel.texto : t.parcial.texto}
             </p>
+            {versoes.analiseMaisNova ? (
+              <p className="border-fg text-fg-2 mt-6 max-w-[560px] border-l-2 pl-3 text-[13px] leading-[1.6]">
+                {t.versao.maisNova}
+              </p>
+            ) : versoes.anteriorAoVersionamento ? (
+              <p className="border-line text-fg-2 mt-6 max-w-[560px] border-l-2 pl-3 text-[13px] leading-[1.6]">
+                {t.versao.anterior(versoes.metodo, versoes.analiseAtual)}
+              </p>
+            ) : null}
           </div>
           <div className="border-line bg-painel self-start border p-[26px] md:p-[36px]">
             <h2 className="eyebrow text-fg-2 mb-6 text-[11px]">{t.dimensoes}</h2>
@@ -253,56 +378,73 @@ function Pronto({
         </div>
       </Section>
 
+      {modo.tipo === "publico" && (liberacao?.contato === "pendente" || liberacao?.contato === "recusado") ? (
+        <div data-nao-imprimir data-contato={liberacao.contato} className="gutter border-line bg-painel border-b py-4">
+          <div className="container-site max-w-[900px] text-[14px] leading-[1.6]">
+            <p className="font-semibold">{t.contatoAviso[liberacao.contato].titulo}</p>
+            <p className="text-fg-2">{t.contatoAviso[liberacao.contato].texto}</p>
+          </div>
+        </div>
+      ) : null}
+
       <Section tom="escuro">
         <div className="container-site">
-          <div className="grid gap-3 lg:grid-cols-3">
-            <div className="border-line bg-painel break-inside-avoid border p-[26px] md:p-[32px]">
-              <h2 className="eyebrow text-fg-2 mb-5 text-[11px]">{t.forte}</h2>
-              {rec.forte ? (
-                <>
-                  <p className="text-verde mb-2 text-[14px] font-semibold">{dimensao(rec.forte).nome}</p>
-                  <p className="text-[19px] leading-[1.45] font-semibold">{dimensao(rec.forte).forte}</p>
-                </>
-              ) : (
-                <p className="text-[19px] leading-[1.45] font-semibold">{t.semForte}</p>
-              )}
-            </div>
-            <div className="border-verde/40 break-inside-avoid border bg-[radial-gradient(circle_at_100%_0%,rgba(0,230,118,0.1)_0%,rgba(0,230,118,0)_60%)] p-[26px] md:p-[32px]">
-              <h2 className="eyebrow text-fg-2 mb-5 text-[11px]">{t.lacuna}</h2>
-              {lacuna ? (
-                <>
-                  <p className="text-verde mb-2 text-[14px] font-semibold">{lacuna.nome}</p>
-                  <p className="text-[19px] leading-[1.45] font-semibold">{lacuna.lacuna}</p>
-                </>
-              ) : null}
-            </div>
-            <div className="border-line bg-painel break-inside-avoid border p-[26px] md:p-[32px]">
-              <h2 className="eyebrow text-fg-2 mb-5 text-[11px]">{t.passos}</h2>
-              <ol className="grid gap-4">
-                {rec.passos.map((p, i) => (
-                  <li key={p} className="grid grid-cols-[28px_1fr] gap-2 text-[15px] leading-[1.55]">
-                    <span className="text-verde font-bold tabular-nums">{String(i + 1).padStart(2, "0")}</span>
-                    {p}
-                  </li>
-                ))}
-              </ol>
+          <ResumoExecutivo resumo={devolutiva.sintese.resumo} quem={quem} />
+          <div
+            data-nao-imprimir
+            data-convite="resumo"
+            className="border-line bg-painel mt-3 border p-[22px] md:p-[28px]"
+          >
+            <p className="text-[17px] leading-[1.55] font-semibold">
+              {devolutiva.sintese.conversa.contexto} {devolutiva.sintese.conversa.utilidade}
+            </p>
+            <details className="text-fg-2 mt-4 text-[14px] leading-[1.6]">
+              <summary className="text-verde cursor-pointer font-semibold">
+                {devolutiva.sintese.conversa.previa.titulo}
+              </summary>
+              <p data-previa-whatsapp className="border-line bg-fundo mt-3 border p-3">
+                {devolutiva.sintese.conversa.mensagem}
+              </p>
+              <p className="mt-2">{devolutiva.sintese.conversa.previa.aviso}</p>
+            </details>
+            <div className="mt-5">
+              <Botao
+                href={waUrl(devolutiva.sintese.conversa.mensagem)}
+                origem="diagnostico-resultado-resumo"
+                tamanho="sm"
+              >
+                {devolutiva.sintese.conversa.cta}
+              </Botao>
             </div>
           </div>
 
           {analise.alertas.length ? (
             <div className="mt-14">
-              <h2 className="mb-6 text-[24px] leading-[1.2] font-bold">{alertas.titulo}</h2>
+              <h2 className="mb-6 text-[24px] leading-[1.2] font-bold">{t.alertas.titulo}</h2>
               <ul className="grid gap-3 md:grid-cols-3">
-                {analise.alertas.map((id) => (
-                  <li
-                    key={id}
-                    className="border-line border-l-verde bg-painel break-inside-avoid border border-l-2 p-[22px]"
-                  >
-                    <p className="mb-2 text-[17px] leading-[1.3] font-bold">{alertas.itens[id].titulo}</p>
-                    <p className="text-fg-2 text-[14px] leading-[1.6]">{alertas.itens[id].texto}</p>
-                  </li>
+                {analise.alertas.slice(0, ALERTAS_VISIVEIS).map((a) => (
+                  <CartaoDeAlerta key={a.id} alerta={a} />
                 ))}
               </ul>
+              {analise.alertas.length > ALERTAS_VISIVEIS ? (
+                <>
+                  <details data-nao-imprimir className="mt-4">
+                    <summary className="text-verde cursor-pointer text-[14px] font-semibold">
+                      {t.alertas.outros(analise.alertas.length - ALERTAS_VISIVEIS)}
+                    </summary>
+                    <ul className="mt-4 grid gap-3 md:grid-cols-3">
+                      {analise.alertas.slice(ALERTAS_VISIVEIS).map((a) => (
+                        <CartaoDeAlerta key={a.id} alerta={a} />
+                      ))}
+                    </ul>
+                  </details>
+                  <ul className="mt-3 hidden gap-3 print:grid print:grid-cols-3">
+                    {analise.alertas.slice(ALERTAS_VISIVEIS).map((a) => (
+                      <CartaoDeAlerta key={a.id} alerta={a} />
+                    ))}
+                  </ul>
+                </>
+              ) : null}
             </div>
           ) : null}
 
@@ -354,39 +496,50 @@ function Pronto({
           <Relatorio
             respostas={r}
             resultado={resultado}
-            recomendacao={rec}
-            analise={analise}
+            devolutiva={devolutiva}
+            contexto={{
+              nome: nome ?? null,
+              empresa: empresa ?? null,
+              data: liberacao?.data ?? new Date().toLocaleDateString("pt-BR"),
+              exemplo: modo.tipo === "exemplo",
+            }}
             cartoes={cartoes}
-            quem={quem}
             focar={foco === "relatorio"}
             demo={modo.tipo === "publico" && !supabase.ativo}
             avaliacaoId={r.id}
             leadId={liberacao?.leadId}
             buscarDicas={modo.tipo === "publico" && supabase.ativo}
-            emailEnviadoPara={liberacao?.emailEnviado ? liberacao.email : undefined}
+            chave={liberacao?.chave}
+            email={
+              liberacao?.email && (liberacao.emailEstado || liberacao.emailEnviado)
+                ? { estado: liberacao.emailEstado ?? "aceito", endereco: liberacao.email }
+                : undefined
+            }
           />
         ) : (
-          <FormularioLead
-            avaliacaoId={chave}
-            liberacao={liberacao!}
-            resultado={resultado}
-            aoLiberar={() => setFoco("relatorio")}
-          />
+          (contato?.formularioLead({
+            avaliacaoId: chave,
+            liberacao: liberacao!,
+            resultado,
+            aoLiberar: () => setFoco("relatorio"),
+          }) ?? <div aria-busy="true" className="min-h-[320px]" />)
         )}
       </Section>
 
       <Section tom="contraste" data-nao-imprimir="" className="border-line border-t">
         <div className="container-site grid gap-8 md:grid-cols-[1.2fr_1fr] md:items-end md:gap-[80px]">
           <div>
-            <Eyebrow>{t.conversa.kicker}</Eyebrow>
+            <Eyebrow>{devolutiva.sintese.conversa.kicker}</Eyebrow>
             <h2 className="text-[clamp(32px,4vw,56px)] leading-[1.05] font-bold tracking-[-0.03em]">
-              <Linhas itens={t.conversa.titulo} />
+              <Linhas itens={devolutiva.sintese.conversa.titulo} />
             </h2>
           </div>
           <div>
-            <p className="text-fg-2 mb-7 text-[17px] leading-[1.7]">{t.conversa.texto}</p>
-            <Botao href={waUrl(mensagem)} origem="diagnostico-resultado">
-              {t.conversa.cta}
+            <p className="text-fg-2 mb-7 text-[17px] leading-[1.7]">
+              {devolutiva.sintese.conversa.contexto} {devolutiva.sintese.conversa.utilidade}
+            </p>
+            <Botao href={waUrl(devolutiva.sintese.conversa.mensagem)} origem="diagnostico-resultado">
+              {devolutiva.sintese.conversa.cta}
             </Botao>
           </div>
         </div>

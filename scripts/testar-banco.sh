@@ -30,4 +30,15 @@ esperar ' {"nome" : "Etapa Um", "empresa" : "Empresa Etapa"}'
 esperar " admin@resetia.com.br | ligacao"
 esperar " admin@resetia.com.br | 2026-11-05"
 esperar "new row violates row-level security policy for table \"atividades\""
-echo "Banco OK: RLS, permissões, CHECKs e gatilhos como esperado."
+echo "Migrações 0001 a 0004: RLS, permissões, CHECKs e gatilhos como esperado."
+
+# A cadeia completa (0001 a 0008), com asserções que falham com exceção, num banco novo do mesmo cluster.
+psql -h "$DIR" -p "$PORTA" -U postgres -X -q -d postgres -c "create database atual" >/dev/null
+if ! SAIDA2=$(psql -h "$DIR" -p "$PORTA" -U postgres -X -q -d atual -v ON_ERROR_STOP=1 -f supabase/tests/captura.sql 2>&1); then
+  echo "$SAIDA2" | tail -25
+  echo "FALHOU: supabase/tests/captura.sql"
+  exit 1
+fi
+grep -q "CAPTURA_OK" <<<"$SAIDA2" || { echo "FALHOU: captura.sql não chegou ao fim"; exit 1; }
+echo "Asserções da cadeia completa que passaram: $(grep -c 'NOTICE:  ok' <<<"$SAIDA2" || true)"
+echo "Banco OK: RLS, permissões, CHECKs, gatilhos e as funções de captura como esperado."

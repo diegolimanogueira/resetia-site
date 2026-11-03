@@ -7,16 +7,22 @@ import { Campo, Marcador } from "@/components/ui/campo";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import { Linhas } from "@/components/ui/linhas";
 import { formulario as f } from "@/content/ai-score-questionario";
-import { normalizarWhatsapp } from "@/lib/ai-score/contato";
-import { relatorio, type Liberacao } from "@/lib/ai-score/navegador";
+import { completarContato, type Situacao } from "@/lib/ai-score/captura";
+import { LIMITES_CONTATO, normalizarWhatsapp } from "@/lib/ai-score/contato";
+import { atualizarLiberacao, relatorio, type Liberacao } from "@/lib/ai-score/navegador";
 import type { Resultado } from "@/lib/ai-score/tipos";
 import { track } from "@/lib/analytics";
 import { enviarChamada, pedirEnvioDoRelatorio } from "@/lib/supabase";
 
+/** Quanto esperar a resposta do servidor antes de liberar o relatório. */
+const ESPERA_MAXIMA_MS = 8000;
+
 /**
- * Etapa 2 (camada 2): a empresa, o WhatsApp opcional e o pedido de contato completam o lead criado na etapa 1
- * (função completar_lead) e liberam o relatório completo. Sem envio de e-mail: o relatório abre na página.
- * Se o banco estiver fora, a chamada fica na fila do navegador e o relatório é liberado do mesmo jeito.
+ * Etapa 2 (camada 2): a empresa, o WhatsApp opcional e os pedidos completam o lead criado na etapa 1 e liberam o
+ * relatório completo. Com a chave do lead (leads novos), a função completa o lead, registra cada consentimento e
+ * enfileira o e-mail; o estado do envio aparece depois, como o servidor informa. Lead criado antes desta versão
+ * (sem chave) segue o caminho antigo. Se o servidor não responde, o pedido fica na fila e o relatório é liberado
+ * do mesmo jeito, sem dizer que o contato foi registrado.
  */
 export function FormularioLead({
   avaliacaoId,
@@ -47,23 +53,39 @@ export function FormularioLead({
     if (encontrados.whatsapp) return document.getElementById("lead-whatsapp")?.focus();
 
     setEnviando(true);
-    const completo = { ...liberacao, empresa: empresa.trim(), completo: true };
-    if (liberacao.leadId) {
-      const situacao = await enviarChamada("completar_lead", {
+    const numero = whatsapp.trim() ? normalizarWhatsapp(whatsapp) : null;
+    let situacao: Situacao = "desligado";
+    if (liberacao.leadId && liberacao.chave) {
+      situacao = await Promise.race([
+        completarContato({
+          avaliacaoId,
+          leadId: liberacao.leadId,
+          chave: liberacao.chave,
+          empresa: empresa.trim(),
+          whatsapp: numero,
+          pediuContato: contato,
+          marketing,
+        }),
+        new Promise<Situacao>((ok) => setTimeout(() => ok("pendente"), ESPERA_MAXIMA_MS)),
+      ]);
+    } else if (liberacao.leadId) {
+      // Lead criado antes da chave: caminho antigo (função completar_lead e pedido do e-mail ao servidor).
+      const antiga = await enviarChamada("completar_lead", {
         p_id: liberacao.leadId,
         p_empresa: empresa.trim(),
-        p_whatsapp: whatsapp.trim() ? normalizarWhatsapp(whatsapp) : null,
+        p_whatsapp: numero,
         p_pediu_contato: contato,
         p_marketing: marketing,
       });
-      // O relatório também vai por e-mail (o mesmo endereço da etapa 1). Sem esperar: as dicas por IA demoram.
-      void pedirEnvioDoRelatorio(avaliacaoId, liberacao.leadId, situacao === "tentar-de-novo").then((status) => {
-        if (status === "enviado" || status === "ja-enviado")
-          relatorio.liberar(avaliacaoId, { ...completo, emailEnviado: true });
+      void pedirEnvioDoRelatorio(avaliacaoId, liberacao.leadId, antiga === "tentar-de-novo").then((status) => {
+        if (status === "enviado" || status === "ja-enviado") atualizarLiberacao(avaliacaoId, { emailEnviado: true });
       });
     }
-    track("ai_score_lead", { nivel: resultado.nivel ?? "parcial", contato, marketing });
-    relatorio.liberar(avaliacaoId, completo);
+    track("ai_score_lead", { nivel: resultado.nivel ?? "parcial", contato, marketing }, avaliacaoId);
+    // Mescla com o que já está guardado: o estado do contato e do e-mail pode ter mudado enquanto isso.
+    if (relatorio.ler(avaliacaoId)) atualizarLiberacao(avaliacaoId, { empresa: empresa.trim(), completo: true });
+    else relatorio.liberar(avaliacaoId, { ...liberacao, empresa: empresa.trim(), completo: true });
+    if (situacao === "recusado") atualizarLiberacao(avaliacaoId, { contato: "recusado" });
     aoLiberar();
   }
 
@@ -97,6 +119,7 @@ export function FormularioLead({
           rotulo={f.campos.empresa}
           autoComplete="organization"
           required
+          maxLength={LIMITES_CONTATO.empresa}
           value={empresa}
           onChange={(e) => setEmpresa(e.target.value)}
           erro={erros.empresa}

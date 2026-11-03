@@ -131,24 +131,38 @@ describe("função ai-score e link do e-mail", () => {
     expect(localStorage.getItem("resetia.ai-score.pendentes")).toBeNull();
   });
 
-  it("libera o relatório só com o par lead e avaliação que o banco confirma", async () => {
+  it("libera o relatório só com o par lead e avaliação que o banco confirma (e-mails antigos)", async () => {
     const { consultarLiberacao } = await carregar();
     fetchMock.mockResolvedValueOnce(resposta(200, { nome: "Maria", empresa: "Empresa" }));
-    expect(await consultarLiberacao("l1", "a1")).toEqual({ nome: "Maria", empresa: "Empresa" });
+    expect(await consultarLiberacao({ lead: "l1" }, "a1")).toEqual({ nome: "Maria", empresa: "Empresa" });
     const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe("https://projeto.supabase.co/rest/v1/rpc/lead_liberado");
     expect(JSON.parse(init.body)).toEqual({ p_lead: "l1", p_avaliacao: "a1" });
     fetchMock.mockResolvedValueOnce(resposta(200, "null"));
-    expect(await consultarLiberacao("l1", "outra")).toBeNull();
+    expect(await consultarLiberacao({ lead: "l1" }, "outra")).toBeNull();
     fetchMock.mockRejectedValueOnce(new TypeError("offline"));
-    expect(await consultarLiberacao("l1", "a1")).toBeNull();
+    expect(await consultarLiberacao({ lead: "l1" }, "a1")).toBeNull();
+  });
+
+  it("libera o relatório com o token, só se ele pertence à avaliação do link", async () => {
+    const { consultarLiberacao } = await carregar();
+    fetchMock.mockResolvedValueOnce(resposta(200, { nome: "Maria", empresa: "Empresa", avaliacao: "a1" }));
+    expect(await consultarLiberacao({ token: "tk" }, "a1")).toEqual({ nome: "Maria", empresa: "Empresa" });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe("https://projeto.supabase.co/rest/v1/rpc/ler_relatorio");
+    expect(JSON.parse(init.body)).toEqual({ p_token: "tk" });
+    // O token vale para uma avaliação só: o mesmo token com o código de outra não libera nada.
+    fetchMock.mockResolvedValueOnce(resposta(200, { nome: "Maria", empresa: "Empresa", avaliacao: "a1" }));
+    expect(await consultarLiberacao({ token: "tk" }, "a2")).toBeNull();
+    fetchMock.mockResolvedValueOnce(resposta(200, "null"));
+    expect(await consultarLiberacao({ token: "errado" }, "a1")).toBeNull();
   });
 
   it("sem envs, nem dicas nem e-mail vão para a rede", async () => {
     const { chamarFuncao, pedirEnvioDoRelatorio, consultarLiberacao } = await carregar(false);
     expect(await chamarFuncao({ acao: "dicas" })).toEqual({ ok: false, status: 0, dados: null });
     expect(await pedirEnvioDoRelatorio("a1", "l1")).toBeNull();
-    expect(await consultarLiberacao("l1", "a1")).toBeNull();
+    expect(await consultarLiberacao({ lead: "l1" }, "a1")).toBeNull();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });
@@ -183,7 +197,10 @@ describe("cliente do admin (GoTrue + REST com token)", () => {
     expect(fetchMock.mock.calls[0][0]).toContain("grant_type=refresh_token");
     const [url, init] = fetchMock.mock.calls[1];
     expect(url).toContain("/rest/v1/avaliacoes?select=");
-    expect(url).toContain("leads(*)");
+    // As colunas do lead vão por nome (a chave do lead, que autoriza escrita, não sobe para o painel).
+    expect(url).toContain("leads(id,avaliacao_id,");
+    expect(url).not.toContain("leads(*)");
+    expect(url).not.toContain("chave_hash");
     expect(init.headers.Authorization).toBe("Bearer novo");
     expect(lerSessao(sessao.ler())?.access_token).toBe("novo");
   });

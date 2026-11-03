@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { agentes, areas, categoriasAgentes, consolidacao } from "@/content/agentes";
 import { aiScore } from "@/content/ai-score";
 import * as questionario from "@/content/ai-score-questionario";
+import { conversa } from "@/content/ai-score-sintese";
 import { diagnostico } from "@/content/diagnostico";
 import { home } from "@/content/home";
 import { privacidade } from "@/content/privacidade";
@@ -81,7 +82,7 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
 
   it("navegação: Início, Soluções, Agentes de IA, Tecnologias, Sobre a Reset e o botão do AI Score", () => {
     expect(nav.map((l) => l.label)).toEqual(["Início", "Soluções", "Agentes de IA", "Tecnologias", "Sobre a Reset"]);
-    expect(navDiagnostico).toEqual({ label: "Descubra seu AI Score", href: "/ai-score" });
+    expect(navDiagnostico).toEqual({ label: "Avaliação gratuita", href: "/ai-score" });
     expect(footer.explore.links.map((l) => l.href)).toEqual(
       expect.arrayContaining(["/ai-score", "/diagnostico-gratuito"]),
     );
@@ -98,10 +99,28 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
   });
 
   it("AI Score como porta de entrada; Análise Estratégica no WhatsApp como segundo caminho", () => {
-    expect(site.ctaAiScore).toBe("Descobrir meu AI Score");
+    expect(site.ctaAiScore).toBe("Fazer a avaliação gratuita");
     expect(site.ctaDiagnostico).toBe("Falar com um especialista");
     expect(site.mensagens.diagnostico).toMatch(/Análise Estratégica RESET/);
     expect(home.hero.ctaPrimario).toBe(site.ctaAiScore);
+    // A abertura fala das dores (trabalho manual, ferramentas paradas, processos soltos, por onde começar), sem promessa
+    // universal, e o nome do produto vem com a explicação em português. O aprofundamento é dito à parte, sem tempo.
+    const abertura = `${home.hero.lead} ${home.hero.produto}`;
+    for (const dor of [/trabalho manual/i, /ferramentas de IA paradas/i, /processos soltos/i, /por onde começar/i])
+      expect(abertura).toMatch(dor);
+    expect(abertura).toMatch(/RESET AI Score/);
+    expect(home.hero.produto).toMatch(/nota de 0 a 100 em seis dimensões/);
+    expect(JSON.stringify([home.hero.titulo, home.hero.lead, home.hero.produto, home.hero.opcional])).not.toMatch(
+      /garant|100%|sempre|qualquer empresa|resultado certo/i,
+    );
+    expect(home.hero.garantias).toEqual([
+      "Gratuito",
+      "Cerca de 5 minutos",
+      "Resultado na hora",
+      "Nome e e-mail só no fim",
+    ]);
+    expect(home.hero.opcional).toMatch(/opcional/);
+    expect(home.hero.opcional).not.toMatch(/\d+ minutos/);
     expect(ctaPadrao.botao).toBe(site.ctaAiScore);
     expect(diagnostico.hero.kicker).toBe("Análise Estratégica RESET");
     expect(diagnostico.avaliamos.itens).toHaveLength(6);
@@ -140,7 +159,7 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
       aiScore.metodologia.titulo,
       aiScore.perguntas.titulo,
       aiScore.ctaFinal.titulo,
-      questionario.resultadoTextos.conversa.titulo,
+      conversa.titulo,
       questionario.formulario.titulo,
       questionario.contato.titulo,
     ].flat();
@@ -240,5 +259,74 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
     expect(JSON.stringify({ aiScore, questionario })).not.toMatch(
       /benchmark|certificad[oa] pela|diagnóstico gratuito/i,
     );
+  });
+});
+
+describe("serviços e agentes: o essencial antes de conversar", () => {
+  it("cada solução diz o problema que atende, a entrega, o que precisa estar pronto e o próximo passo", () => {
+    expect(solucoes.lista).toHaveLength(5);
+    for (const s of solucoes.lista) {
+      expect(s.comecar.problema.length, s.slug).toBeGreaterThan(40);
+      expect(s.comecar.entrega.length, s.slug).toBeGreaterThan(40);
+      expect(s.comecar.prerequisitos.length, s.slug).toBeGreaterThanOrEqual(3);
+      expect(s.comecar.proximoPasso, s.slug).toMatch(/avaliação gratuita|conversa|conversar/i);
+      // Sem promessa de resultado, prazo ou ganho: só o que a solução faz e o que ela pede.
+      expect(JSON.stringify(s.comecar), s.slug).not.toMatch(
+        /garant|100%|em \d+ (dias|semanas|meses)|sem esforço|economia de/i,
+      );
+    }
+  });
+
+  it("cada um dos 30 agentes tem entrada, tarefa, saída, revisão humana e um indicador possível", () => {
+    expect(agentes.lista).toHaveLength(30);
+    for (const a of agentes.lista) {
+      for (const campo of ["entrada", "tarefa", "saida", "revisao", "indicador"] as const)
+        expect(a.ficha[campo].length, `${a.nome}: ${campo}`).toBeGreaterThan(10);
+      // Revisão humana nomeia quem revisa (uma pessoa, um papel), e o indicador é uma medida, não uma promessa.
+      expect(a.ficha.revisao, a.nome).toMatch(
+        /respond|respons|aprova|valid|confirm|conduz|decide|revisa|conferid|pessoa|time|gestor|vendedor|editor|CS|equipe|liderança|usos/i,
+      );
+      expect(JSON.stringify(a.ficha), a.nome).not.toMatch(
+        /garant|100%|automaticamente sem|sem revisão|integrado com|integração com/i,
+      );
+    }
+    expect(agentes.ficha.aviso).toMatch(/nada aqui significa uma integração já entregue/);
+  });
+});
+
+describe("política de privacidade alinhada ao que o sistema faz", () => {
+  const texto = privacidade.secoes.flatMap((s) => [s.titulo, ...s.paragrafos]).join("\n");
+
+  it("diz o que o sistema coleta, guarda no navegador e envia, sem prometer o que não existe", () => {
+    // Aprofundamento, navegador, links com código, consentimento por canal e provedores nomeados.
+    for (const trecho of [
+      "aprofundamento",
+      "armazenamento local do seu navegador",
+      "depois do # do endereço",
+      "180 dias",
+      "365 dias",
+      "Supabase",
+      "Resend",
+      "Anthropic",
+    ])
+      expect(texto, trecho).toContain(trecho);
+    expect(texto).toMatch(/canal \(e-mail, WhatsApp ou ligação\)/);
+    // O que vai à IA: fatos estruturados, nunca texto digitado (inclui o aprofundamento).
+    expect(texto).toMatch(/nunca são enviados ao provedor de IA/);
+    // Nada de apagamento automático inventado: a política diz que não há prazo.
+    expect(texto).toContain("não há um prazo automático de apagamento");
+    expect(texto).not.toMatch(/depois são apagados|apagados automaticamente/i);
+  });
+
+  it("não mantém a promessa antiga de e-mail comercial sem escolha da pessoa", () => {
+    expect(texto).not.toMatch(/basta responder pedindo/i);
+    expect(texto).toMatch(/só envia e-mail comercial, liga ou chama no WhatsApp para quem fez essa escolha/);
+  });
+
+  it("cita só números que existem no sistema (prazos dos links) e a lei", () => {
+    const numeros = texto.match(/\d[\d.]*/g) ?? [];
+    const permitidos = new Set(["13.709", "2018", "180", "365", "1", "2026"]);
+    for (const n of numeros) expect(permitidos.has(n.replace(/\.$/, "")), `número fora da lista: ${n}`).toBe(true);
+    expect(privacidade.atualizadaEm).toBe("1 de novembro de 2026");
   });
 });

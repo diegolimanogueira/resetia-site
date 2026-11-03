@@ -52,13 +52,56 @@ export interface Resultado {
 
 export type Faixa = "baixa" | "media" | "alta";
 
+/** Em que se apoia uma conclusão: a nota de uma dimensão, um desafio declarado ou uma resposta específica. */
+export type Apoio =
+  | { tipo: "dimensao"; id: DimensaoId; nota: number }
+  | { tipo: "desafio"; id: DesafioId }
+  | { tipo: "resposta"; ref: string; valor: number };
+
+/** Condição para indicar uma solução: a resposta (`ref`, p1 a p12) precisa chegar a `minimo`. */
+export interface Condicao {
+  ref: string;
+  minimo: number;
+  situacao: "atendida" | "pendente" | "sem-resposta";
+}
+
+/** O que decidiu uma ordem quando as notas empatavam (nunca a posição na lista). */
+export type CriterioDeDesempate = "desafio" | "evidencia-direta" | "resposta-mais-baixa" | "dependencia";
+
+export interface Indicacao {
+  slug: string;
+  /** `indicada`: há evidência direta e as condições estão atendidas. `investigar`: falta uma das duas. */
+  forca: "indicada" | "investigar";
+  apoios: Apoio[];
+  /** Há apoio direto (uma dimensão ou um desafio compatível com as respostas)? */
+  direta: boolean;
+  condicoes: Condicao[];
+  /** Quando esta posição foi decidida por um empate. */
+  criterio?: CriterioDeDesempate;
+}
+
+/** Desafio declarado e o que as respostas dizem dele. */
+export interface LeituraDoDesafio {
+  id: DesafioId;
+  /** `sustentado`: a dimensão dele está abaixo do limite; `contradiz`: respostas altas, exige validação. */
+  situacao: "sustentado" | "contradiz" | "sem-resposta";
+  dimensao: DimensaoId;
+  nota: number | null;
+}
+
 export interface Recomendacao {
   /** Maior dimensão, quando se destaca (nota mínima e acima da menor). */
   forte: DimensaoId | null;
-  /** Dimensões com nota, da menor para a maior. A primeira é a principal oportunidade. */
+  /** Todas as dimensões empatadas na maior nota, quando ela se destaca. */
+  fortes: DimensaoId[];
+  /** Lacunas de maturidade: só dimensões abaixo do limite, da mais frágil para a menos. Pode ser vazio. */
   lacunas: DimensaoId[];
-  /** Até três próximos passos. */
-  passos: string[];
-  /** Slugs das soluções indicadas (no máximo duas). */
+  /** Em lacunas empatadas, o critério que decidiu a ordem. */
+  desempate: Partial<Record<DimensaoId, CriterioDeDesempate>>;
+  /** Até duas soluções, cada uma com a evidência, as condições e a força da indicação. Pode ser vazio. */
+  indicacoes: Indicacao[];
+  /** Slugs das soluções de `indicacoes`, na mesma ordem (indicadas ou a investigar). */
   solucoes: string[];
+  /** Cada desafio declarado frente às respostas. */
+  desafios: LeituraDoDesafio[];
 }

@@ -59,6 +59,19 @@ export function Catalogo({ area }: { area: AreaId | null }) {
             <p className="text-verde text-[10px] tracking-[.15em] uppercase">{nomeDaArea(a.area)}</p>
             <h3 className="mt-[30px] mb-2.5 text-[23px] leading-[1.2] font-bold tracking-[-0.02em]">{a.nome}</h3>
             <p className="text-fg-2 text-[14px] leading-[1.6]">{a.texto}</p>
+            <details data-ficha-agente className="border-line mt-5 border-t pt-4">
+              <summary className="text-verde cursor-pointer text-[13px] font-bold">{agentes.ficha.abrir}</summary>
+              <dl className="mt-3 grid gap-2.5 text-[13px] leading-[1.55]">
+                {(["entrada", "tarefa", "saida", "revisao", "indicador"] as const).map((k) => (
+                  <div key={k}>
+                    <dt className="text-fg-2 text-[11px] font-semibold tracking-[.06em] uppercase">
+                      {agentes.ficha.rotulos[k]}
+                    </dt>
+                    <dd>{a.ficha[k]}</dd>
+                  </div>
+                ))}
+              </dl>
+            </details>
           </li>
         ))}
       </ul>

@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEv
 import { Barra } from "@/components/sections/ai-score/Placar";
 import { Opcao } from "@/components/sections/ai-score/Opcao";
 import { BotaoAcao } from "@/components/ui/botao";
+import { SinalDePronto } from "@/components/ui/sinal-de-pronto";
 import {
   aprofundar,
   desafios,
@@ -21,11 +22,12 @@ import {
 import type { AreaId, Escopo, Opcao as OpcaoTipo } from "@/content/types";
 import { calcular } from "@/lib/ai-score/calcular";
 import { codificar, completas, decodificar, respostasVazias } from "@/lib/ai-score/codificar";
+import { concluirAvaliacao, retomarFila } from "@/lib/ai-score/captura";
+import { carregarContato } from "@/lib/ai-score/contato-sob-demanda";
 import { assinarArmazenamento, lerRascunho, novoId, rascunho } from "@/lib/ai-score/navegador";
-import { linhaAvaliacao } from "@/lib/ai-score/registro";
 import type { Resposta, Respostas, Slot } from "@/lib/ai-score/tipos";
 import { track } from "@/lib/analytics";
-import { enviar, reenviarPendentes } from "@/lib/supabase";
+import { reenviarPendentes } from "@/lib/supabase";
 
 type Etapa =
   | { tipo: "segmentacao" }
@@ -115,7 +117,14 @@ export function Avaliacao() {
 
   useEffect(() => {
     void reenviarPendentes();
+    void retomarFila();
+    track("ai_score_abertura");
   }, []);
+
+  // O formulário de contato do resultado não está no pacote da rota do resultado: pré-carrega enquanto a pessoa responde.
+  useEffect(() => {
+    if (passo >= 1) void carregarContato();
+  }, [passo]);
 
   // Depois de avançar ou voltar: topo da avaliação e foco no título da etapa (leitor de tela anuncia).
   useEffect(() => {
@@ -126,6 +135,7 @@ export function Avaliacao() {
   }, [passo]);
 
   function mudar(novo: Respostas) {
+    track("ai_score_primeira_interacao");
     setDecidiu(true);
     setErro(null);
     setR(novo);
@@ -192,13 +202,18 @@ export function Avaliacao() {
     const codigo = codificar(final);
     const resultado = calcular(final);
     setConcluindo(true);
-    track("ai_score_concluido", {
-      escopo: final.escopo,
-      nivel: resultado.nivel ?? "parcial",
-      indice: resultado.indice ?? -1,
-      areas: final.areas.length,
-    });
-    void enviar("avaliacoes", linhaAvaliacao(final, resultado, codigo));
+    track(
+      "ai_score_concluido",
+      {
+        escopo: final.escopo,
+        nivel: resultado.nivel ?? "parcial",
+        indice: resultado.indice ?? -1,
+        areas: final.areas.length,
+      },
+      final.id,
+    );
+    // Grava só a avaliação (sem lead), pela função, que recalcula a nota: mede quem conclui sem deixar contato.
+    void concluirAvaliacao({ avaliacaoId: final.id, codigo });
     rascunho.apagar();
     router.push(`/ai-score/resultado/#${codigo}`);
   }
@@ -406,6 +421,7 @@ export function Avaliacao() {
       data-tom="carvao"
       className="gutter text-fg bg-(--bg) pt-[40px] pb-[90px] md:pt-[60px] md:pb-[120px]"
     >
+      <SinalDePronto />
       <div className="mx-auto w-full max-w-[860px]">
         <h1 className="eyebrow text-verde mb-5">
           {q.kicker} · {q.titulo}

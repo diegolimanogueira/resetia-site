@@ -1,4 +1,8 @@
 import type { NextConfig } from "next";
+import { verificarConfiguracao } from "./scripts/configuracao-build.mjs";
+
+// O build de produção falha sem a configuração essencial (Supabase), a menos que o modo demo/teste seja explícito.
+verificarConfiguracao();
 
 const nextConfig: NextConfig = {
   // Site 100% estático: gera `out/` e é servido como Static Site no DigitalOcean App Platform.

@@ -71,6 +71,8 @@ jobs:
       - run: npm ci
       - run: npm run build
         env:
+          # Modo de teste declarado: sem ele o build de produção exige o Supabase de verdade (scripts/configuracao-build.mjs).
+          RESETIA_MODO: teste
           # Supabase fictício: o e2e intercepta a REST e o GoTrue e confere o que o site grava e lê.
           NEXT_PUBLIC_SUPABASE_URL: https://supabase.invalid
           NEXT_PUBLIC_SUPABASE_ANON_KEY: chave-de-teste-do-ci

@@ -18,7 +18,7 @@ export const analytics = {
   },
 };
 
-type Dados = Record<string, string | number | boolean | undefined>;
+export type Dados = Record<string, string | number | boolean | undefined>;
 
 declare global {
   interface Window {
@@ -28,10 +28,13 @@ declare global {
   }
 }
 
-export function track(evento: string, dados: Dados = {}) {
+/**
+ * Registra um evento. Sem analytics configurado (o caso hoje), não faz nada e não baixa nada: o catálogo, o saneamento
+ * e a deduplicação vivem em `analytics-eventos.ts`, carregado só quando há um provedor ligado.
+ */
+export function track(evento: string, dados: Dados = {}, chave?: string) {
   if (!analytics.ativo || typeof window === "undefined") return;
-  if (analytics.provedor === "umami") window.umami?.track(evento, dados);
-  else window.gtag?.("event", evento, dados);
+  void import("./analytics-eventos").then((m) => m.enviar(evento, dados, chave));
 }
 
 /** Links que contam como conversão (o listener de clique do Analytics usa este seletor). */

@@ -18,7 +18,7 @@ type Props = {
 } & Omit<ComponentProps<"a">, "href" | "children" | "className">;
 
 const base =
-  "inline-flex items-center justify-center gap-3 rounded-full font-semibold whitespace-nowrap transition-[transform,background-color,border-color] duration-200 motion-safe:hover:-translate-y-0.5";
+  "inline-flex items-center justify-center gap-3 rounded-full font-semibold max-sm:text-center sm:whitespace-nowrap transition-[transform,background-color,border-color] duration-200 motion-safe:hover:-translate-y-0.5";
 const tamanhos = {
   md: "text-[15px] px-6 py-[14px]",
   sm: "text-[14px] px-[18px] py-[10px]",

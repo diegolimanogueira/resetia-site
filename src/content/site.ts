@@ -41,11 +41,11 @@ export const site = {
   cidades: "Fortaleza e Campinas, Brasil",
   ano: 2026,
   /** Item destacado do menu: leva ao RESET AI Score. */
-  ctaMenu: "Descubra seu AI Score",
+  ctaMenu: "Avaliação gratuita",
   /** Botões que abrem o WhatsApp com a mensagem da Análise Estratégica (caminho secundário). */
   ctaDiagnostico: "Falar com um especialista",
   /** Botões que levam ao RESET AI Score (/ai-score), a porta de entrada do site. */
-  ctaAiScore: "Descobrir meu AI Score",
+  ctaAiScore: "Fazer a avaliação gratuita",
   assinatura: "IA sem hype. Resultado na prática.",
   ctaSpotliteSite: "Conhecer Spotlite",
   ctaFluxaSite: "Conhecer Fluxa BPM",
@@ -141,6 +141,10 @@ export const seo = {
   aiScoreResultado: {
     title: "Seu resultado RESET AI Score | Reset IA",
     description: "Seu AI Score: nota de 0 a 100, nível de maturidade em IA, resultado por dimensão e próximos passos.",
+  },
+  aiScorePreferencias: {
+    title: "Preferências de contato | Reset IA",
+    description: "Escolha como a Reset IA pode falar com você sobre o seu RESET AI Score.",
   },
   privacidade: {
     title: "Política de privacidade | Reset IA",

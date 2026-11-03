@@ -5,8 +5,6 @@ import { Barra } from "@/components/sections/ai-score/Placar";
 import { BotaoAcao } from "@/components/ui/botao";
 import { Eyebrow } from "@/components/ui/eyebrow";
 import {
-  alertas,
-  desafios,
   dimensoes,
   escalaAreaCurta,
   formulario,
@@ -18,14 +16,34 @@ import {
   resultadoTextos,
 } from "@/content/ai-score-questionario";
 import type { DimensaoId } from "@/content/types";
-import type { Analise } from "@/lib/ai-score/analisar";
-import { faixaDe, formatarNota } from "@/lib/ai-score/calcular";
+import type { Devolutiva } from "@/lib/ai-score/devolutiva";
+import { formatarNota } from "@/lib/ai-score/calcular";
+import type { EmailEstado } from "@/lib/ai-score/navegador";
 import type { Biblioteca } from "@/content/ai-score-dicas";
 import { alvosDasDicas, lerDicas, montarDicas, type Dicas } from "@/lib/ai-score/dicas";
-import type { Recomendacao, RespostasCompletas, Resultado } from "@/lib/ai-score/tipos";
+import type { RespostasCompletas, Resultado } from "@/lib/ai-score/tipos";
 import { track } from "@/lib/analytics";
 import { chamarFuncao } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+
+/**
+ * O aprofundamento é opcional e vem depois do relatório: o código só é baixado quando ele vai aparecer, fora do peso
+ * da página de resultado. (Um `import()` direto pesa menos que `next/dynamic` nesta rota, que está no limite.)
+ */
+function useAprofundamento(ativo: boolean) {
+  const [modulo, setModulo] = useState<typeof import("@/components/sections/ai-score/Aprofundamento") | null>(null);
+  useEffect(() => {
+    if (!ativo) return;
+    let vivo = true;
+    void import("@/components/sections/ai-score/Aprofundamento").then((m) => {
+      if (vivo) setModulo(m);
+    });
+    return () => {
+      vivo = false;
+    };
+  }, [ativo]);
+  return modulo?.aprofundamento ?? null;
+}
 
 const dimensao = (id: DimensaoId) => dimensoes.find((d) => d.id === id)!;
 const nomeNivel = (id: string | null) => niveis.find((n) => n.id === id)?.nome ?? null;
@@ -55,11 +73,33 @@ function Bloco({
   );
 }
 
+/** O que precisa estar pronto, com a situação de cada condição (atendida, pendente ou sem resposta). */
+function Condicoes({
+  titulo,
+  itens,
+}: {
+  titulo: string;
+  itens: Devolutiva["sintese"]["indicacoes"]["itens"][number]["condicoes"];
+}) {
+  if (!itens.length) return null;
+  return (
+    <div className="mb-3">
+      <p className="text-[13px] font-semibold">{titulo}</p>
+      <ul className="mt-1 grid gap-1">
+        {itens.map((c) => (
+          <li key={c.texto} data-condicao={c.situacao} className="text-[14px] leading-[1.5]">
+            {c.texto}: <span className={c.situacao === "atendida" ? "text-verde" : "font-semibold"}>{c.rotulo}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 const corPrioridade = {
   critica: "border-verde-vivo bg-verde-vivo text-carvao print:text-white",
   alta: "border-verde text-verde",
   media: "border-line text-fg",
-  baixa: "border-line text-fg-2",
 } as const;
 
 /**
@@ -69,24 +109,24 @@ const corPrioridade = {
 export function Relatorio({
   respostas: r,
   resultado,
-  recomendacao: rec,
-  analise: a,
+  devolutiva,
+  contexto,
   cartoes,
-  quem,
   focar,
   demo,
   avaliacaoId,
   leadId,
   buscarDicas = false,
-  emailEnviadoPara,
+  chave,
+  email,
 }: {
   respostas: RespostasCompletas;
   resultado: Resultado;
-  recomendacao: Recomendacao;
-  analise: Analise;
+  /** A devolutiva inteira: a mesma da tela, do PDF e do e-mail. */
+  devolutiva: Devolutiva;
+  /** Para o PDF: quem é, de que empresa, a data, e se é a página de exemplo. */
+  contexto: { nome: string | null; empresa: string | null; data: string; exemplo: boolean };
   cartoes: Record<string, ReactNode>;
-  /** Como o resumo chama a empresa ou a área ("A Empresa X", "Sua empresa"). */
-  quem: string;
   focar: boolean;
   /** Supabase desligado (staging, testes): avisa que nada foi enviado. */
   demo: boolean;
@@ -94,10 +134,15 @@ export function Relatorio({
   leadId?: string;
   /** Pede as dicas à função (IA); sem isso, ou se ela falhar, usa a biblioteca. */
   buscarDicas?: boolean;
-  /** E-mail para onde a função confirmou o envio do relatório. */
-  emailEnviadoPara?: string;
+  /** Chave do lead (leads novos): sem ela as dicas por IA não são entregues. */
+  chave?: string;
+  /** Estado real do envio do relatório por e-mail e o endereço, como o servidor informa. */
+  email?: { estado: EmailEstado; endereco: string };
 }) {
+  const { analise: a, leituras, cobertura, sintese } = devolutiva;
   const titulo = useRef<HTMLHeadingElement>(null);
+  const podeAprofundar = !demo && Boolean(avaliacaoId && leadId && chave);
+  const aprofundamento = useAprofundamento(podeAprofundar);
   useEffect(() => {
     if (focar) titulo.current?.focus();
   }, [focar]);
@@ -121,29 +166,36 @@ export function Relatorio({
   useEffect(() => {
     if (!pedir) return;
     let vivo = true;
-    void chamarFuncao({ acao: "dicas", avaliacao_id: avaliacaoId, lead_id: leadId }, { timeout: 90_000 }).then(
-      (res) => {
-        if (vivo) setDaFuncao((res.ok && lerDicas(res.dados, alvos)) || "falhou");
-      },
-    );
+    void chamarFuncao(
+      { acao: "dicas", avaliacao_id: avaliacaoId, lead_id: leadId, ...(chave ? { chave } : {}) },
+      { timeout: 90_000 },
+    ).then((res) => {
+      if (vivo) setDaFuncao((res.ok && lerDicas(res.dados, alvos)) || "falhou");
+    });
     return () => {
       vivo = false;
     };
-  }, [pedir, avaliacaoId, leadId, alvos]);
+  }, [pedir, avaliacaoId, leadId, chave, alvos]);
   const dicas: Dicas | null = !pedir ? reserva : daFuncao === null ? null : daFuncao === "falhou" ? reserva : daFuncao;
 
+  // O PDF é gerado aqui, no navegador, e só então o código dele é baixado.
+  const [pdf, setPdf] = useState<"" | "gerando" | "falhou">("");
   const baixar = () => {
-    track("ai_score_download", { nivel: resultado.nivel ?? "parcial" });
+    setPdf("gerando");
+    track("ai_score_download", { nivel: resultado.nivel ?? "parcial", formato: "pdf" });
+    void import("@/lib/ai-score/pdf/baixar")
+      .then((m) => m.baixarPdf({ devolutiva, respostas: r, ...contexto, avaliacaoId, dicas }))
+      .then(
+        () => setPdf(""),
+        () => setPdf("falhou"),
+      );
+  };
+  const imprimir = () => {
+    track("ai_score_download", { nivel: resultado.nivel ?? "parcial", formato: "impressao" });
     window.print();
   };
 
   const area = r.escopo !== "empresa";
-  const alertaPrincipal = a.alertas[0] ? alertas.itens[a.alertas[0]].titulo : null;
-  const fases = t.plano.fases.map((f, i) => ({
-    ...f,
-    acoes: i === t.plano.fases.length - 1 ? [...a.plano[i], t.plano.reavaliar] : a.plano[i],
-  }));
-
   return (
     <div className="container-site">
       <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
@@ -157,32 +209,29 @@ export function Relatorio({
               {formulario.demo}
             </p>
           ) : null}
-          {emailEnviadoPara ? (
-            <p data-nao-imprimir className="text-verde mt-4 text-[14px] font-semibold">
-              {t.enviado(emailEnviadoPara)}
+          {email ? (
+            <p
+              data-nao-imprimir
+              data-email-estado={email.estado}
+              className={cn("mt-4 text-[14px] font-semibold", email.estado === "aceito" ? "text-verde" : "text-fg-2")}
+            >
+              {t.email[email.estado](email.endereco)}
             </p>
           ) : null}
         </div>
         <div data-nao-imprimir className="md:max-w-[340px]">
-          <BotaoAcao type="button" onClick={baixar} className="w-full md:w-auto">
-            {t.baixar}
-          </BotaoAcao>
-          <p className="text-fg-2 mt-3 text-[13px] leading-[1.5]">{t.baixarApoio}</p>
+          <div className="flex flex-wrap gap-3">
+            <BotaoAcao type="button" onClick={baixar} disabled={pdf === "gerando"} className="w-full md:w-auto">
+              {pdf === "gerando" ? t.gerandoPdf : t.baixar}
+            </BotaoAcao>
+            <BotaoAcao type="button" variante="secundario" onClick={imprimir} className="w-full md:w-auto">
+              {t.imprimir}
+            </BotaoAcao>
+          </div>
+          <p aria-live="polite" className="text-fg-2 mt-3 text-[13px] leading-[1.5]">
+            {pdf === "falhou" ? t.pdfFalhou : t.baixarApoio}
+          </p>
         </div>
-      </div>
-
-      <div className="border-verde/40 break-inside-avoid border bg-[radial-gradient(circle_at_0%_0%,rgba(0,230,118,0.1)_0%,rgba(0,230,118,0)_55%)] p-[24px] md:p-[36px]">
-        <p className="eyebrow text-verde mb-4 text-[11px]">{t.resumo.titulo}</p>
-        <p className="max-w-[900px] text-[clamp(19px,2vw,24px)] leading-[1.5] font-semibold">
-          {t.resumo.texto({
-            quem,
-            indice: resultado.indice,
-            nivel: nomeNivel(resultado.nivel),
-            forte: rec.forte ? dimensao(rec.forte).nome : null,
-            lacuna: rec.lacunas[0] ? dimensao(rec.lacunas[0]).nome : null,
-            alerta: alertaPrincipal,
-          })}
-        </p>
       </div>
 
       {a.simulacao ? (
@@ -217,45 +266,87 @@ export function Relatorio({
       ) : null}
 
       <Bloco titulo={t.prioridades.titulo} nota={t.prioridades.nota}>
-        <ol className="border-line border-t">
-          {a.prioridades.map((p, i) => (
-            <li
-              key={p.dimensao}
-              className="border-line grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 border-b py-4 sm:grid-cols-[28px_minmax(0,1.2fr)_minmax(0,1fr)_110px]"
-            >
-              <span className="text-fg-2 col-start-1 row-start-1 text-[13px] font-bold tabular-nums">
-                {String(i + 1).padStart(2, "0")}
-              </span>
-              <span className="col-start-2 row-start-1">
-                <span className="block text-[16px] font-semibold">{dimensao(p.dimensao).nome}</span>
-                {p.desafio ? (
-                  <span className="text-verde mt-0.5 block text-[12px] font-semibold">{t.prioridades.desafio}</span>
-                ) : null}
-              </span>
-              <span className="col-span-3 col-start-1 row-start-2 flex items-center gap-3 sm:col-span-1 sm:col-start-3 sm:row-start-1">
-                <span className="w-[44px] text-[15px] font-bold tabular-nums">{formatarNota(p.nota)}</span>
-                <Barra valor={p.nota} />
-              </span>
-              <span
-                className={cn(
-                  "col-start-3 row-start-1 justify-self-end border px-2.5 py-1 text-[12px] font-bold sm:col-start-4",
-                  corPrioridade[p.prioridade],
-                )}
-                data-imprimir-cor
+        {a.prioridades.length ? (
+          <ol className="border-line border-t">
+            {a.prioridades.map((p, i) => (
+              <li
+                key={p.dimensao}
+                className="border-line grid grid-cols-[28px_minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 border-b py-4 sm:grid-cols-[28px_minmax(0,1.2fr)_minmax(0,1fr)_110px]"
               >
-                {t.prioridades.rotulos[p.prioridade]}
-              </span>
-            </li>
-          ))}
-        </ol>
+                <span className="text-fg-2 col-start-1 row-start-1 text-[13px] font-bold tabular-nums">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="col-start-2 row-start-1">
+                  <span className="block text-[16px] font-semibold">{dimensao(p.dimensao).nome}</span>
+                  {p.desafio ? (
+                    <span className="text-verde mt-0.5 block text-[12px] font-semibold">{t.prioridades.desafio}</span>
+                  ) : null}
+                  {p.criterio ? (
+                    <span className="text-fg-2 mt-0.5 block text-[12px]">{sintese.lacunas.criterios[p.criterio]}</span>
+                  ) : null}
+                </span>
+                <span className="col-span-3 col-start-1 row-start-2 flex items-center gap-3 sm:col-span-1 sm:col-start-3 sm:row-start-1">
+                  <span className="w-[44px] text-[15px] font-bold tabular-nums">{formatarNota(p.nota)}</span>
+                  <Barra valor={p.nota} />
+                </span>
+                <span
+                  className={cn(
+                    "col-start-3 row-start-1 justify-self-end border px-2.5 py-1 text-[12px] font-bold sm:col-start-4",
+                    corPrioridade[p.prioridade],
+                  )}
+                  data-imprimir-cor
+                >
+                  {t.prioridades.rotulos[p.prioridade]}
+                </span>
+              </li>
+            ))}
+          </ol>
+        ) : (
+          <p className="text-[15px]">{sintese.lacunas.vazio}</p>
+        )}
       </Bloco>
 
-      <Bloco titulo={t.dicas.titulo} nota={t.dicas.nota}>
+      <Bloco titulo={sintese.oportunidades.titulo} nota={sintese.oportunidades.nota}>
+        {sintese.oportunidades.itens.length ? (
+          <ul className="grid gap-3 md:grid-cols-2">
+            {sintese.oportunidades.itens.map((o) => (
+              <li
+                key={o.id}
+                data-oportunidade={o.id}
+                data-situacao={o.situacao}
+                className="border-line bg-painel break-inside-avoid border p-[22px]"
+              >
+                <p className="text-[17px] font-bold">{o.titulo}</p>
+                <p
+                  className={cn(
+                    "mt-1 text-[13px] font-semibold",
+                    o.situacao === "sustentado" ? "text-verde" : "text-fg",
+                  )}
+                >
+                  {o.rotuloSituacao}
+                </p>
+                <p className="text-fg-2 mt-3 text-[14px] leading-[1.6]">{o.hipotese}</p>
+                <p className="mt-3 text-[13px] font-semibold">{sintese.oportunidades.perguntas}</p>
+                <ul className="mt-1 mb-3 grid gap-1 text-[14px]">
+                  {o.perguntas.map((q) => (
+                    <li key={q}>{q}</li>
+                  ))}
+                </ul>
+                <Condicoes titulo={sintese.oportunidades.condicoes} itens={o.condicoes} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-[15px]">{sintese.oportunidades.vazio}</p>
+        )}
+      </Bloco>
+
+      <Bloco titulo={sintese.dicas.titulo} nota={sintese.dicas.nota}>
         {!alvos.length ? (
-          <p className="text-[15px]">{t.dicas.nenhuma}</p>
+          <p className="text-[15px]">{sintese.dicas.nenhuma}</p>
         ) : !dicas ? (
           <p aria-live="polite" className="border-line bg-painel border p-[22px] text-[15px]">
-            {t.dicas.carregando}
+            {sintese.dicas.carregando}
           </p>
         ) : (
           <>
@@ -283,7 +374,7 @@ export function Relatorio({
               ))}
             </div>
             <p className="text-fg-2 mt-4 text-[13px]" data-fonte-dicas={dicas.fonte}>
-              {t.dicas.fonte[dicas.fonte]}
+              {sintese.dicas.fonte[dicas.fonte]}
             </p>
           </>
         )}
@@ -293,8 +384,12 @@ export function Relatorio({
         <div className="grid gap-3">
           {dimensoes.map((d) => {
             const nota = resultado.dimensoes[d.id];
-            const faixa = nota === null ? null : faixaDe(nota);
+            const sobre = cobertura.porDimensao[d.id];
             const perguntas = a.respostas.filter((x) => x.dimensao === d.id);
+            // A citação da resposta e o próximo estágio já aparecem por pergunta, ao lado; aqui vai a leitura.
+            const leitura = leituras[d.id].afirmacoes.filter(
+              (x) => !x.id.includes(".declarado.") && !x.id.includes(".proximo."),
+            );
             return (
               <article key={d.id} className="border-line bg-painel break-inside-avoid border p-[22px] md:p-[30px]">
                 <div className="grid gap-6 md:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] md:gap-10">
@@ -309,12 +404,21 @@ export function Relatorio({
                       </span>
                     </p>
                     <Barra valor={nota} />
-                    {faixa ? (
-                      <>
-                        <p className="text-verde eyebrow mt-4 mb-2 text-[11px]">{t.faixas[faixa]}</p>
-                        <p className="text-fg-2 text-[15px] leading-[1.65]">{d.leitura[faixa]}</p>
-                      </>
-                    ) : null}
+                    <p className="text-verde eyebrow mt-4 mb-2 text-[11px]">
+                      {resultadoTextos.cobertura.naDimensao(sobre.validas, sobre.total)}
+                    </p>
+                    <div className="grid gap-3">
+                      {leitura.map((x) => (
+                        <p key={x.id} className="text-fg-2 text-[15px] leading-[1.65]">
+                          {x.texto}
+                          {x.pergunta ? (
+                            <span className="text-fg mt-1 block text-[14px] font-semibold">
+                              {t.validar} {x.pergunta}
+                            </span>
+                          ) : null}
+                        </p>
+                      ))}
+                    </div>
                   </div>
                   <ul className="grid content-start gap-4">
                     {perguntas.map((x) => {
@@ -376,22 +480,39 @@ export function Relatorio({
         )}
       </Bloco>
 
-      <Bloco titulo={t.plano.titulo} nota={t.plano.nota}>
-        <ol className="grid gap-3 md:grid-cols-3">
-          {fases.map((f, i) => (
-            <li key={f.periodo} className="border-line bg-painel break-inside-avoid border p-[22px]">
-              <p className="text-verde text-[12px] font-bold tracking-[.08em] uppercase">{f.periodo}</p>
-              <p className="mt-1 mb-4 text-[19px] font-bold">
-                <span className="text-fg-2 mr-2 text-[13px]">{String(i + 1).padStart(2, "0")}</span>
-                {f.nome}
+      <Bloco titulo={sintese.plano.titulo} nota={sintese.plano.nota}>
+        <ol className="grid gap-3">
+          {sintese.plano.etapas.map((e, i) => (
+            <li
+              key={e.id}
+              data-etapa={e.id}
+              data-fase={e.fase}
+              className="border-line bg-painel break-inside-avoid border p-[22px]"
+            >
+              <p className="text-verde text-[12px] font-bold tracking-[.08em] uppercase">
+                {e.periodo} · {e.nomeDaFase}
               </p>
-              <ul className="grid gap-3">
-                {f.acoes.map((acao) => (
-                  <li key={acao} className="border-line border-t pt-3 text-[14px] leading-[1.55]">
-                    {acao}
-                  </li>
+              <p className="mt-1 text-[18px] font-bold">
+                <span className="text-fg-2 mr-2 text-[13px]">{String(i + 1).padStart(2, "0")}</span>
+                {e.titulo}
+              </p>
+              <p className="mt-2 text-[15px] leading-[1.6]">{e.acao}</p>
+              {e.detalhe ? <p className="text-fg-2 mt-2 text-[14px] leading-[1.6]">{e.detalhe}</p> : null}
+              <dl className="mt-4 grid gap-x-4 gap-y-2 text-[14px] leading-[1.55] sm:grid-cols-[170px_1fr]">
+                {(
+                  [
+                    [sintese.plano.rotulos.responsavel, e.responsavel],
+                    [sintese.plano.rotulos.entrega, e.entrega],
+                    [sintese.plano.rotulos.indicador, e.indicador],
+                    [sintese.plano.rotulos.depende, e.dependeDe],
+                  ] as const
+                ).map(([rotulo, texto]) => (
+                  <div key={rotulo} className="contents">
+                    <dt className="text-fg-2">{rotulo}</dt>
+                    <dd>{texto}</dd>
+                  </div>
                 ))}
-              </ul>
+              </dl>
             </li>
           ))}
         </ol>
@@ -436,38 +557,43 @@ export function Relatorio({
         </Bloco>
       ) : null}
 
-      {rec.solucoes.length ? (
-        <Bloco titulo={t.solucoes} nota={t.solucoesNota}>
+      <Bloco titulo={sintese.indicacoes.titulo} nota={sintese.indicacoes.nota}>
+        {sintese.indicacoes.itens.length ? (
           <div className="grid gap-[14px] sm:grid-cols-2">
-            {rec.solucoes.map((slug) => {
-              const pq = a.porque[slug];
-              const motivos = [
-                ...(pq?.dimensoes ?? []).map((x) => t.porque.dimensao(dimensao(x.id).nome, formatarNota(x.nota))),
-                ...(pq?.desafios ?? []).map((id) => t.porque.desafio(desafios.find((d) => d.id === id)!.label)),
-              ];
-              return (
-                <div key={slug} className="break-inside-avoid">
-                  <ul className="mb-3 grid gap-1.5">
-                    {(motivos.length ? motivos : [t.porque.inicio]).map((m) => (
-                      <li key={m} className="flex gap-2 text-[14px] leading-[1.5]">
-                        <span aria-hidden="true" className="text-verde">
-                          ✓
-                        </span>
-                        {m}
-                      </li>
-                    ))}
-                  </ul>
-                  {cartoes[slug]}
-                </div>
-              );
-            })}
+            {sintese.indicacoes.itens.map((i) => (
+              <div key={i.slug} data-indicacao={i.slug} data-forca={i.forca} className="break-inside-avoid">
+                <p className={cn("mb-2 text-[13px] font-bold", i.forca === "indicada" ? "text-verde" : "text-fg")}>
+                  {i.rotuloForca}
+                </p>
+                <ul className="mb-3 grid gap-1.5">
+                  {i.porque.map((m) => (
+                    <li key={m} className="flex gap-2 text-[14px] leading-[1.5]">
+                      <span aria-hidden="true" className="text-verde">
+                        ✓
+                      </span>
+                      {m}
+                    </li>
+                  ))}
+                </ul>
+                {i.ressalva ? <p className="text-fg-2 mb-3 text-[13px] leading-[1.5]">{i.ressalva}</p> : null}
+                {i.criterio ? <p className="text-fg-2 mb-3 text-[13px] leading-[1.5]">{i.criterio}</p> : null}
+                <Condicoes titulo={sintese.indicacoes.condicoes} itens={i.condicoes} />
+                {cartoes[i.slug]}
+              </div>
+            ))}
           </div>
-        </Bloco>
-      ) : null}
+        ) : (
+          <p className="text-[15px]">{sintese.indicacoes.semIndicacao}</p>
+        )}
+      </Bloco>
+
+      {aprofundamento && avaliacaoId && leadId && chave
+        ? aprofundamento({ avaliacaoId, leadId, chave, areasEscolhidas: r.areas })
+        : null}
 
       <div className="border-line mt-16 break-inside-avoid border p-[22px] md:p-[30px]" data-assinatura>
-        <p className="eyebrow text-verde mb-3 text-[11px]">{t.assinatura.titulo}</p>
-        {t.assinatura.paragrafos.map((paragrafo) => (
+        <p className="eyebrow text-verde mb-3 text-[11px]">{sintese.assinatura.titulo}</p>
+        {sintese.assinatura.paragrafos.map((paragrafo) => (
           <p key={paragrafo} className="text-fg-2 mb-3 text-[14px] leading-[1.65] last:mb-0">
             {paragrafo}
           </p>

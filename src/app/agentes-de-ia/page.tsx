@@ -35,6 +35,7 @@ export default function Agentes() {
             <CatalogoAgentes />
           </Suspense>
           <p className="text-fg-2 mt-[30px] max-w-[90ch] text-[12px] leading-[1.6]">{agentes.aviso}</p>
+          <p className="text-fg-2 mt-2 max-w-[90ch] text-[12px] leading-[1.6]">{agentes.ficha.aviso}</p>
         </div>
       </Section>
 

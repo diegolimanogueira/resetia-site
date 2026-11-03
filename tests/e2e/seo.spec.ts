@@ -48,7 +48,8 @@ test("sitemap, robots e manifest", async ({ request, baseURL }) => {
   // home + quatro páginas da navegação + diagnóstico + AI Score + cinco soluções + privacidade; rotas antigas,
   // o questionário, o resultado e o admin ficam fora.
   expect(xml.match(/<url>/g)).toHaveLength(1 + (nav.length - 1) + 1 + 1 + solucoes.lista.length + 1);
-  for (const fora of ["/ai-score/avaliacao/", "/ai-score/resultado/", "/admin/"]) expect(xml).not.toContain(fora);
+  for (const fora of ["/ai-score/avaliacao/", "/ai-score/resultado/", "/ai-score/preferencias/", "/admin/"])
+    expect(xml).not.toContain(fora);
   expect(xml).toContain(`<loc>${site.dominio}${navDiagnostico.href}/</loc>`);
   for (const antiga of ["/produtos/", "/spotlite/", "/agentes/</loc>", "/solucoes/scan/", "/solucoes/workshops/", "#"])
     expect(xml).not.toContain(antiga);

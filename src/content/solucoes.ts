@@ -7,7 +7,7 @@ export const ctaPadrao: CtaFinal = {
   titulo: ["Sua empresa está pronta", "para *resetar o futuro?*"],
   apoio:
     "Comece pelo RESET AI Score: em cerca de 5 minutos, descubra o nível de maturidade em IA da sua empresa e por onde evoluir.",
-  botao: "Descobrir meu AI Score",
+  botao: "Fazer a avaliação gratuita",
 };
 
 const lista: Solucao[] = [
@@ -30,6 +30,19 @@ const lista: Solucao[] = [
       mensagem: "Olá! Conheci a Reset pelo site e quero preparar meu time para IA com o RESET AI Champions.",
     },
     ctaSecundario: { label: "Conhecer o programa", href: "#sobre" },
+    comecar: {
+      problema:
+        "Pessoas que usam pouco as ferramentas de IA já contratadas e gestores sem clareza de como aplicá-las ao trabalho.",
+      entrega:
+        "Formação personalizada de gestores e multiplicadores, exercícios com casos reais da operação e um plano de adoção com indicadores de participação e de uso.",
+      prerequisitos: [
+        "Uma liderança que patrocine o programa e um responsável por ele.",
+        "Ao menos uma ferramenta de IA liberada para o grupo.",
+        "Casos reais de trabalho que sirvam de exercício, sem dados sensíveis.",
+      ],
+      proximoPasso:
+        "Fazer a avaliação gratuita para ver onde a capacitação mais pesa e conversar com a Reset para definir o grupo inicial.",
+    },
     sobre: {
       titulo: ["A transformação com IA", "*começa pelas pessoas.*"],
       paragrafos: [
@@ -150,6 +163,19 @@ const lista: Solucao[] = [
       mensagem: "Olá! Conheci a Reset pelo site e quero transformar meus processos com o RESET Processos com IA.",
     },
     ctaSecundario: { label: "Entender como funciona", href: "#como-funciona" },
+    comecar: {
+      problema:
+        "Processos fragmentados, tarefas repetitivas feitas à mão e dúvida sobre qual processo transformar primeiro.",
+      entrega:
+        "Mapeamento dos processos prioritários, redesenho com IA e um piloto controlado, com linha de base, indicador e revisão humana definidos antes de começar.",
+      prerequisitos: [
+        "Um processo com responsável e volume suficiente para ser medido.",
+        "Acesso a quem executa o processo e aos dados que ele usa.",
+        "Acordo sobre o indicador e a linha de base antes do piloto.",
+      ],
+      proximoPasso:
+        "Escolher um processo candidato e levar para a conversa o volume, o tempo por ocorrência e a consequência que a avaliação pede.",
+    },
     sobre: {
       titulo: ["Antes de implementar IA,", "*é preciso entender como o trabalho acontece.*"],
       paragrafos: [
@@ -276,6 +302,20 @@ const lista: Solucao[] = [
         "Olá! Conheci a Reset pelo site e quero criar agentes de IA para minha empresa com o RESET Agent Factory.",
     },
     ctaSecundario: { label: "Explorar aplicações", href: "#casos-de-uso" },
+    comecar: {
+      problema:
+        "Vontade de usar agentes de IA sem saber se existem processo, dados e controles para sustentá-los, e ferramentas sobrepostas.",
+      entrega:
+        "Avaliação de viabilidade, custos e riscos de um primeiro agente para uma dor específica e, se a viabilidade se confirmar, desenho, teste e operação com revisão humana.",
+      prerequisitos: [
+        "Processo mapeado e com responsável.",
+        "Dados acessíveis e permitidos para esse uso.",
+        "Regras mínimas de uso e de revisão humana.",
+        "Um indicador para saber se o agente ajudou.",
+      ],
+      proximoPasso:
+        "Fazer a avaliação gratuita (ela mostra quais desses pré-requisitos já estão atendidos) e trazer para a conversa a dor específica.",
+    },
     sobre: {
       titulo: ["Menos trabalho operacional.", "*Mais inteligência para o negócio.*"],
       paragrafos: [
@@ -398,6 +438,18 @@ const lista: Solucao[] = [
         "Olá! Conheci a Reset pelo site e quero estruturar a governança de IA da minha empresa com o RESET Governance.",
     },
     ctaSecundario: { label: "Conhecer a solução", href: "#sobre" },
+    comecar: {
+      problema: "Uso de IA sem regras claras: dados sensíveis circulando nas ferramentas e decisões sem verificação.",
+      entrega:
+        "Diretrizes de uso, definição de quem aprova novos usos, critérios de revisão humana e de risco, e um plano para comunicar as regras às equipes.",
+      prerequisitos: [
+        "Alguém com autoridade para aprovar as regras.",
+        "Um levantamento das ferramentas de IA em uso, mesmo informal.",
+        "Participação de jurídico ou de TI, quando houver.",
+      ],
+      proximoPasso:
+        "Fazer a avaliação gratuita para ver o estágio das regras e do controle de qualidade e de risco, e começar pelas regras mínimas.",
+    },
     sobre: {
       titulo: ["Inovar com inteligência também significa", "*estabelecer limites.*"],
       paragrafos: [
@@ -517,6 +569,19 @@ const lista: Solucao[] = [
       mensagem: "Olá! Conheci a Reset pelo site e quero evoluir meus resultados com IA com o RESET Performance.",
     },
     ctaSecundario: { label: "Conhecer o acompanhamento", href: "#como-funciona" },
+    comecar: {
+      problema:
+        "Não saber o que as iniciativas de IA estão entregando: sem indicador, sem linha de base e sem acompanhamento.",
+      entrega:
+        "Indicadores por iniciativa, linha de base, rotina de acompanhamento e uma leitura periódica do que mudou, sem converter em dinheiro o que não foi medido.",
+      prerequisitos: [
+        "Ao menos uma iniciativa de IA em uso, para haver o que medir.",
+        "Acesso às fontes dos dados dos indicadores.",
+        "Um responsável por acompanhar os números.",
+      ],
+      proximoPasso:
+        "Definir o indicador e registrar a linha de base da primeira iniciativa; a conversa com a Reset ajuda a escolhê-los.",
+    },
     sobre: {
       titulo: ["Implementar IA é uma conquista.", "*Fazer ela gerar valor continuamente é o verdadeiro desafio.*"],
       paragrafos: [
@@ -717,6 +782,15 @@ export const solucoes = {
     paraQuem: "Para quem é",
     etapas: "Como funciona",
     relacionadas: { kicker: "Soluções relacionadas", titulo: ["Uma solução conecta", "*a próxima.*"] },
+    /** O essencial de cada solução, logo depois da abertura: problema, entrega, o que precisa estar pronto e o próximo passo. */
+    comecar: {
+      kicker: "Para começar",
+      titulo: ["O essencial,", "*antes de conversar.*"],
+      problema: "Problema que atende",
+      entrega: "O que você recebe",
+      prerequisitos: "O que precisa estar pronto",
+      proximoPasso: "Próximo passo",
+    },
     diagnostico: {
       titulo: "Ainda não sabe se é por aqui que sua empresa deve começar?",
       texto: "O RESET AI Score indica as soluções mais adequadas à sua maturidade, em cerca de 5 minutos.",

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { CompositorEmail } from "@/components/admin/CompositorEmail";
+import { CanaisDoLead, FichaDaConversa, MarcosDoLead, PontuacoesDoLead } from "@/components/admin/DetalheComercial";
 import { BarrasDimensoes } from "@/components/sections/ai-score/Placar";
 import { BotaoAcao } from "@/components/ui/botao";
 import { classesEntrada } from "@/components/ui/campo";
@@ -29,7 +30,9 @@ import {
   sessao,
   type Atividade,
   type CamposCrm,
+  type ContatoPermitido,
   type EmailEnviado,
+  type Marco,
 } from "@/lib/supabase-admin";
 import { cn } from "@/lib/utils";
 import { waUrl } from "@/lib/whatsapp";
@@ -67,20 +70,34 @@ const acao =
  * próximo contato, resumo), linha do tempo de atividades, e-mails enviados, dicas por IA, resultado,
  * respostas e origem. Cada mudança de etapa e cada contato pelo WhatsApp entram na linha do tempo.
  */
-export function DetalheLead({
+function DetalheLead({
   visao: v,
   nomesSolucoes,
   emailAdmin,
   hoje,
+  agora,
+  contato,
+  contatosCarregando,
+  contatosFalhou,
+  marcos,
   aoSalvar,
   aoFechar,
+  aoMudarComercial,
 }: {
   visao: LeadVisao;
   nomesSolucoes: Record<string, string>;
   emailAdmin: string;
   hoje: string;
+  agora: Date;
+  /** O que o banco liberou para este lead (canal por canal); `undefined` até conferir. */
+  contato: ContatoPermitido | undefined;
+  contatosCarregando: boolean;
+  contatosFalhou: boolean;
+  marcos: Marco[];
   aoSalvar: (campos: CamposCrm) => Promise<boolean>;
   aoFechar: () => void;
+  /** Marcos ou canais mudaram: o painel recarrega. */
+  aoMudarComercial: () => void;
 }) {
   const { lead: l, avaliacao: a, resultado, respostas } = v;
   const [status, setStatus] = useState<StatusLead>(l.status);
@@ -158,7 +175,11 @@ export function DetalheLead({
 
   const area = a.escopo !== "empresa";
   const vencido = atrasado(l, hoje);
-  const whatsapp = l.whatsapp ? waUrl(admin.mensagem(l.nome, resultado?.indice ?? null), l.whatsapp) : null;
+  // O número só vem do banco quando a pessoa escolheu WhatsApp ou ligação; sem a escolha, não há botão nem número na tela.
+  const telefone = contato?.telefone ?? null;
+  const whatsapp =
+    telefone && contato?.whatsapp ? waUrl(admin.mensagem(l.nome, resultado?.indice ?? null), telefone) : null;
+  const podeEmail = contato?.email === true || l.consentimento_marketing;
 
   return (
     <div className="p-[20px] md:p-[30px]">
@@ -169,9 +190,8 @@ export function DetalheLead({
           </h2>
           <p className="text-fg-2 mt-1 text-[15px]">{l.empresa ?? d.semEmpresa}</p>
           <p className="text-fg-2 mt-1 text-[13px]">
-            {d.criadoEm} {dataBr(l.criado_em)} · {d.leadScore} <b className="text-fg">{v.leadScore}</b> ·{" "}
-            {admin.colunas.aiScore} <b className="text-fg">{resultado?.indice ?? "–"}</b>{" "}
-            {rotulos.nivel(resultado?.nivel ?? null)}
+            {d.criadoEm} {dataBr(l.criado_em)} · {admin.colunas.aiScore}{" "}
+            <b className="text-fg">{resultado?.indice ?? "–"}</b> {rotulos.nivel(resultado?.nivel ?? null)}
           </p>
           <p className="mt-2 flex flex-wrap gap-2">
             {l.pediu_contato ? <span className={cn(etiqueta, "border-verde text-verde")}>{d.pediuContato}</span> : null}
@@ -195,17 +215,19 @@ export function DetalheLead({
             onClick={abriuWhatsapp}
             className={cn(acao, "border-verde text-verde")}
           >
-            {d.acoes.whatsapp} +{l.whatsapp} <span aria-hidden="true">↗</span>
+            {d.acoes.whatsapp} +{telefone} <span aria-hidden="true">↗</span>
           </a>
         ) : null}
-        {l.whatsapp ? (
-          <a href={`tel:+${l.whatsapp}`} className={acao}>
+        {telefone && contato?.ligacao ? (
+          <a href={`tel:+${telefone}`} className={acao}>
             {d.acoes.ligar}
           </a>
         ) : null}
-        <button type="button" onClick={() => compositor.current?.showModal()} className={cn(acao, "cursor-pointer")}>
-          {d.acoes.email}
-        </button>
+        {podeEmail ? (
+          <button type="button" onClick={() => compositor.current?.showModal()} className={cn(acao, "cursor-pointer")}>
+            {d.acoes.email}
+          </button>
+        ) : null}
         {l.empresa && !l.relatorio_enviado_em ? (
           <button type="button" onClick={mandarRelatorio} className={cn(acao, "cursor-pointer")}>
             {d.acoes.relatorio}
@@ -215,11 +237,18 @@ export function DetalheLead({
           {envioRelatorio}
         </span>
       </div>
-      {l.whatsapp && !l.pediu_contato ? (
-        <p className="border-fg text-fg-2 -mt-3 mb-6 border-l-2 pl-3 text-[13px]">{d.semPedido}</p>
-      ) : null}
-
       <div className="grid gap-6">
+        <FichaDaConversa visao={v} marcos={marcos} contato={contato} agora={agora} />
+        <PontuacoesDoLead visao={v} />
+        <CanaisDoLead
+          leadId={l.id}
+          contato={contato}
+          carregando={contatosCarregando}
+          falhou={contatosFalhou}
+          aoMudar={aoMudarComercial}
+        />
+        <MarcosDoLead leadId={l.id} marcos={marcos} aoMudar={aoMudarComercial} />
+
         <form onSubmit={salvar} className="border-verde/40 grid gap-4 border p-4 sm:grid-cols-2">
           <h3 className="eyebrow text-verde text-[11px] sm:col-span-2">{d.crm}</h3>
           <div>
@@ -379,7 +408,7 @@ export function DetalheLead({
                 {l.email}
               </a>
             </Linha>
-            {l.whatsapp ? <Linha rotulo={d.acoes.whatsapp}>+{l.whatsapp}</Linha> : null}
+            {telefone ? <Linha rotulo={d.acoes.whatsapp}>+{telefone}</Linha> : null}
           </dl>
         </Bloco>
 
@@ -504,3 +533,8 @@ export function DetalheLead({
     </div>
   );
 }
+
+type Props = Parameters<typeof DetalheLead>[0];
+
+/** O elemento pronto, para quem carrega este módulo sob demanda (a gaveta só abre num clique). */
+export const detalheLead = (props: Props) => <DetalheLead {...props} />;
