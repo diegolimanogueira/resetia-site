@@ -23,6 +23,7 @@ import type { AreaId, Escopo, Opcao as OpcaoTipo } from "@/content/types";
 import { calcular } from "@/lib/ai-score/calcular";
 import { codificar, completas, decodificar, respostasVazias } from "@/lib/ai-score/codificar";
 import { concluirAvaliacao, retomarFila } from "@/lib/ai-score/captura";
+import { carregarContato } from "@/lib/ai-score/contato-sob-demanda";
 import { assinarArmazenamento, lerRascunho, novoId, rascunho } from "@/lib/ai-score/navegador";
 import type { Resposta, Respostas, Slot } from "@/lib/ai-score/tipos";
 import { track } from "@/lib/analytics";
@@ -119,6 +120,11 @@ export function Avaliacao() {
     void retomarFila();
     track("ai_score_abertura");
   }, []);
+
+  // O formulário de contato do resultado não está no pacote da rota do resultado: pré-carrega enquanto a pessoa responde.
+  useEffect(() => {
+    if (passo >= 1) void carregarContato();
+  }, [passo]);
 
   // Depois de avançar ou voltar: topo da avaliação e foco no título da etapa (leitor de tela anuncia).
   useEffect(() => {

@@ -313,23 +313,25 @@ where routine_schema = 'public' and grantee in ('anon', 'authenticated', 'PUBLIC
 
 **Validação integrada (L, medida em 01/11):**
 
-| Verificação                                                   | Resultado                                                                                                                                                     |
-| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `lint`, `typecheck` (`tsconfig.test.json`), `knip`            | limpos                                                                                                                                                        |
-| Unidade                                                       | 282 em 21 arquivos                                                                                                                                            |
-| Banco (`test:banco`) e função (`test:funcao`)                 | 184 asserções; 37 testes                                                                                                                                      |
-| E2E completo, Chromium desktop e WebKit celular               | 286 passando, 8 pulados de propósito, 0 falhas; depois da última correção, AI Score, painel e home de novo: 63 passando, 1 pulado                             |
-| `check:html`, `check:links`, `check:falta`                    | sem erro; 959 links internos OK, 0 quebrados; nenhuma pendência `[FALTA]`                                                                                     |
-| `check:size`                                                  | JS 359,9 kB (teto 380), CSS 9,8 de 20, imagens da home 47,9 de 50                                                                                             |
-| `check:rotas`                                                 | resultado e exemplo **224,9 de 225 (0,1 kB de folga)**, painel 228,4 de 240, avaliação 217,4; demais 199 a 206; chunks sob demanda até 15,1 de 30 kB          |
-| Lighthouse local (`collect` + `assert`, 3 rodadas, mediana)   | desempenho 96–97, acessibilidade 98–100, boas práticas 100, SEO 100, CLS 0, TBT ≤ 4 ms; script transferido 163–177 kB e **183 kB em `/ai-score/` (teto 185)** |
-| Telas de 320, 390 e 1440 px, 404, teclado, movimento reduzido | `responsivo.spec.ts` (novo) e `404.spec.ts`, ver abaixo                                                                                                       |
+| Verificação                                                   | Resultado                                                                                                                                                                                  |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `lint`, `typecheck` (`tsconfig.test.json`), `knip`            | limpos                                                                                                                                                                                     |
+| Unidade                                                       | 282 em 21 arquivos                                                                                                                                                                         |
+| Banco (`test:banco`) e função (`test:funcao`)                 | 184 asserções; 37 testes                                                                                                                                                                   |
+| E2E completo, Chromium desktop e WebKit celular               | 286 passando, 8 pulados de propósito, 0 falhas; depois da última correção, AI Score, painel e home de novo: 63 passando, 1 pulado                                                          |
+| `check:html`, `check:links`, `check:falta`                    | sem erro; 959 links internos OK, 0 quebrados; nenhuma pendência `[FALTA]`                                                                                                                  |
+| `check:size`                                                  | JS 359,9 kB (teto 380), CSS 9,8 de 20, imagens da home 47,9 de 50                                                                                                                          |
+| `check:rotas`                                                 | resultado e exemplo **222,5 de 225** (eram 224,9, depois do corte descrito no item 4 abaixo), painel 228,4 de 240, avaliação 217,4; demais 199 a 206; chunks sob demanda até 15,1 de 30 kB |
+| Lighthouse local (`collect` + `assert`, 3 rodadas, mediana)   | desempenho 96–97, acessibilidade 98–100, boas práticas 100, SEO 100, CLS 0, TBT ≤ 4 ms; script transferido 163–177 kB e **183 kB em `/ai-score/` (teto 185)**                              |
+| Telas de 320, 390 e 1440 px, 404, teclado, movimento reduzido | `responsivo.spec.ts` (novo) e `404.spec.ts`, ver abaixo                                                                                                                                    |
 
 **O que a validação achou e eu corrigi:**
 
 1. **Rolagem horizontal em 320 px** em `/agentes-de-ia/`, `/ai-score/exemplo/` e nas soluções (até 65 px de excesso): `Botao` usava `whitespace-nowrap`, e os rótulos longos ("Quero criar agentes para minha empresa") não cabiam. Agora o rótulo quebra abaixo de `sm`; de `sm` para cima nada mudou.
 2. **Barra fixa do celular em 320 px:** com o `nowrap` os botões estouravam a tela sem que nenhum teste visse (a barra é `fixed`); depois da correção do item 1 a avaliação passou a três linhas. Abaixo de 360 px os botões da barra ficam menores e o rótulo, em duas linhas.
 3. **Defeito meu da Fase 4, no resumo executivo:** "Consequência declarada e hipótese" juntava o primeiro desafio marcado com a hipótese da dimensão mais frágil como se fossem um par (no exemplo: "tarefas repetitivas" seguido de "pode expor dados sensíveis"), e o teste fixava esse comportamento. Agora só se pareiam quando o desafio é da mesma dimensão; senão os desafios aparecem à parte e o texto diz que a dimensão mais frágil é outro assunto. A ficha comercial usa o mesmo marcador e continua funcionando. O `nucleo.js` mudou: **a função precisa ser republicada** (`docs/deploy.md`, passo 2).
+
+4. **O CI do GitHub reprovou o orçamento de peso (03/11):** `/ai-score/resultado/` e `/ai-score/exemplo/` deram **225,3 kB** para um teto de 225, enquanto na minha máquina davam 224,9 (o gzip no Linux sai ~0,5 kB maior que no macOS). A folga de 0,1 kB que eu mesmo tinha registrado era frágil demais. Não subi o teto: os dois formulários de contato (`EtapaContato`, `FormularioLead`) só aparecem na chegada fria ao resultado e entre o resultado e o relatório completo, e a página de exemplo nunca os mostra, mas o código deles ia no pacote das duas rotas. Passaram para um chunk sob demanda (`Contato.tsx`, 9,5 kB, teto 30), carregado por `useModulo` no `Resultado` e **pré-carregado pelo questionário** a partir do segundo passo, para o formulário já estar no navegador quando a pessoa chegar. Resultado: 222,5 kB com o ambiente do CI (folga de ~2,5 kB; ~2 kB no GitHub), JS total 363,6 de 380 kB, 166 testes E2E, 282 unitários, lint, tipos e knip limpos. Efeito visível: na chegada fria ao resultado, o formulário aparece depois de um instante de "carregando" se o chunk ainda não estiver em cache.
 
 **Novos testes de acessibilidade e responsividade (`responsivo.spec.ts`):** 13 páginas em 320, 390 e 1440 px sem rolagem horizontal e sem texto fora da tela, nos dois navegadores; foco por Tab em cinco páginas com contorno de 2 px e contraste de pelo menos 3:1 com o fundo (inclui o rodapé em carvão; só no Chromium); movimento reduzido sem transição, animação nem rolagem suave. A conferência de contraste do foco tinha um erro meu (usava o fundo do próprio botão, o que dava 1,00:1) e foi corrigida antes de valer.
 
@@ -343,7 +345,7 @@ where routine_schema = 'public' and grantee in ('anon', 'authenticated', 'PUBLIC
 
 - O `lighthouserc.cjs` termina o `lhci autorun` do CI enviando o relatório ao armazenamento público temporário do Google. Localmente usei só `collect` + `assert`. Trocar `upload.target` por `filesystem` evita a publicação.
 - O teto do JS total (380 kB) já subiu seis vezes e não mede o que o visitante baixa; ver o ADR de 01/11 à noite para as duas saídas.
-- `/ai-score/resultado/` tem 0,1 kB de folga: qualquer acréscimo de texto ou lógica nessa rota vai exigir mover algo para o chunk sob demanda.
+- `/ai-score/resultado/` tem ~2,5 kB de folga (era 0,1): continua apertada, e qualquer acréscimo relevante nessa rota exige mover algo para um chunk sob demanda.
 
 **Pendências externas (nada disto foi feito; roteiro em `docs/deploy.md`):**
 

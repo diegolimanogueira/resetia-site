@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { EtapaContato } from "@/components/sections/ai-score/EtapaContato";
-import { FormularioLead } from "@/components/sections/ai-score/FormularioLead";
 import { Barra, BarrasDimensoes, Nota, Regua } from "@/components/sections/ai-score/Placar";
 import { Relatorio } from "@/components/sections/ai-score/Relatorio";
 import { ResumoExecutivo } from "@/components/sections/ai-score/ResumoExecutivo";
@@ -20,6 +18,7 @@ import {
   resultadoTextos as t,
 } from "@/content/ai-score-questionario";
 import { acompanharEmail, retomarFila } from "@/lib/ai-score/captura";
+import { carregarContato } from "@/lib/ai-score/contato-sob-demanda";
 import { calcular, formatarNota } from "@/lib/ai-score/calcular";
 import { completas, lerLink } from "@/lib/ai-score/codificar";
 import type { Devolutiva, OrigemDoLink } from "@/lib/ai-score/devolutiva";
@@ -35,6 +34,7 @@ import {
   verComoAdmin,
 } from "@/lib/ai-score/navegador";
 import type { RespostasCompletas } from "@/lib/ai-score/tipos";
+import { useModulo } from "@/lib/carregar-modulo";
 import { consultarLiberacao, reenviarPendentes, supabase } from "@/lib/supabase";
 import { waUrl } from "@/lib/whatsapp";
 
@@ -277,13 +277,18 @@ function Pronto({
   const tudoAberto = modo.tipo !== "publico";
   const viuResultado = tudoAberto || liberacao !== null;
   const viuRelatorio = tudoAberto || liberacao?.completo === true;
+  // O contato só é preciso na chegada sem liberação (já conferida) e entre o resultado e o relatório completo.
+  const precisaDeContato = (!viuResultado && !conferindo) || (viuResultado && !viuRelatorio);
+  const contato = useModulo(carregarContato, precisaDeContato);
   const nome = modo.tipo === "exemplo" ? modo.nome : liberacao?.nome;
   const empresa = modo.tipo === "exemplo" ? modo.empresa : liberacao?.empresa;
 
   if (!viuResultado && conferindo) return <SemResultado estado="carregando" />;
   if (!viuResultado)
-    return (
-      <EtapaContato respostas={r} resultado={resultadoBase} codigo={codigo} aoLiberar={() => setFoco("resultado")} />
+    return contato ? (
+      contato.etapaContato({ respostas: r, resultado: resultadoBase, codigo, aoLiberar: () => setFoco("resultado") })
+    ) : (
+      <SemResultado estado="carregando" />
     );
   if (!devolutiva) return <SemResultado estado={falhou ? "falha" : "carregando"} />;
 
@@ -512,12 +517,12 @@ function Pronto({
             }
           />
         ) : (
-          <FormularioLead
-            avaliacaoId={chave}
-            liberacao={liberacao!}
-            resultado={resultado}
-            aoLiberar={() => setFoco("relatorio")}
-          />
+          (contato?.formularioLead({
+            avaliacaoId: chave,
+            liberacao: liberacao!,
+            resultado,
+            aoLiberar: () => setFoco("relatorio"),
+          }) ?? <div aria-busy="true" className="min-h-[320px]" />)
         )}
       </Section>
 

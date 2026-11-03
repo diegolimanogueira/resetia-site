@@ -41,7 +41,7 @@ Os 8 testes pulados são os que só fazem sentido num dos projetos (por exemplo,
 
 ### Peso e desempenho (01/11/2026)
 
-Lighthouse local, mobile, 3 rodadas, mediana (`collect` + `assert`, sem envio): desempenho 96–97, acessibilidade 98–100, boas práticas 100, SEO 100; LCP 2,6–2,8 s; TBT ≤ 4 ms; CLS 0. JS transferido: 163 kB nas páginas comuns, 170 a 177 kB em soluções e agentes, **183 kB em `/ai-score/` para um orçamento de 185 kB**. Rotas (gzip): resultado e exemplo 224,9 de 225; painel 228,4 de 240; avaliação 217,3.
+Lighthouse local, mobile, 3 rodadas, mediana (`collect` + `assert`, sem envio): desempenho 96–97, acessibilidade 98–100, boas práticas 100, SEO 100; LCP 2,6–2,8 s; TBT ≤ 4 ms; CLS 0. JS transferido: 163 kB nas páginas comuns, 170 a 177 kB em soluções e agentes, **183 kB em `/ai-score/` para um orçamento de 185 kB**. Rotas (gzip): resultado e exemplo 222,5 de 225; painel 228,4 de 240; avaliação 217,3.
 
 ## O que ainda não foi medido
 
