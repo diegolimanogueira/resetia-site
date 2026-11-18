@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Areas } from "@/components/sections/home/Areas";
+import { Clientes } from "@/components/sections/home/Clientes";
 import { Hero } from "@/components/sections/home/Hero";
 import { Problema } from "@/components/sections/home/Problema";
 import { Prova } from "@/components/sections/home/Prova";
@@ -20,7 +21,7 @@ export const metadata: Metadata = {
 };
 
 /**
- * Jornada da home: entender a Reset → identificar a necessidade → explorar uma solução →
+ * Jornada da home: entender a Reset → identificar a necessidade → explorar uma solução → ver quem já fez →
  * conhecer a experiência → descobrir o AI Score (ou falar com um especialista).
  */
 export default function Home() {
@@ -32,6 +33,7 @@ export default function Home() {
       <Reset360 />
       <Solucoes />
       <Areas />
+      <Clientes />
       <Scan />
       <Tecnologias />
       <QuemSomos />

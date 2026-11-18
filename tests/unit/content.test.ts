@@ -1,6 +1,8 @@
+import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { agentes, areas, categoriasAgentes, consolidacao } from "@/content/agentes";
 import { aiScore } from "@/content/ai-score";
+import { clientes } from "@/content/clientes";
 import * as questionario from "@/content/ai-score-questionario";
 import { diagnostico } from "@/content/diagnostico";
 import { home } from "@/content/home";
@@ -240,5 +242,23 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
     expect(JSON.stringify({ aiScore, questionario })).not.toMatch(
       /benchmark|certificad[oa] pela|diagnóstico gratuito/i,
     );
+  });
+
+  it("clientes: cinco empresas com logo publicada e o que cada uma fez, na ordem informada pelo Diego", () => {
+    expect(clientes.lista.map((c) => c.nome)).toEqual([
+      "Fortes Tecnologia",
+      "FortesPay",
+      "Somapay",
+      "Longevidade Saudável",
+      "IEL",
+    ]);
+    for (const c of clientes.lista) {
+      expect(c.entregas.length, c.nome).toBeGreaterThan(0);
+      expect(c.logo.largura * c.logo.altura, c.nome).toBeGreaterThan(0);
+      expect(existsSync(`public${c.logo.base}.png`), c.logo.base).toBe(true);
+    }
+    expect(new Set(clientes.lista.map((c) => c.id)).size).toBe(5);
+    const comDiagnostico = clientes.lista.filter((c) => c.entregas.includes(clientes.diagnostico)).map((c) => c.id);
+    expect(comDiagnostico).toEqual(["fortes-tecnologia", "fortespay", "somapay"]);
   });
 });

@@ -174,3 +174,13 @@ O Diego achou o site "muito chapado preto" e pediu uma proposta da versão branc
 - **Fecho em carvão.** Com tudo claro, o CTA final ficava num cinza sem força. O CTA final e o rodapé ficam no tom `noite` (carvão nos dois temas), a única faixa escura, com o verde puro e a `logo-dark`. Alternativa considerada e mostrada ao Diego: tudo claro.
 - **Marca.** Header e hero usam `logo-light` e `icone-light` (arquivos do manual que já estavam no repositório; `npm run images` passou a gerar o `icone-light.webp`). Manifesto (barra do navegador e splash) em neutro. A imagem de compartilhamento passou a clara; favicon e ícones PWA continuam com o ícone sobre carvão.
 - **Sem mudança:** o e-mail do relatório (já era claro e usa o verde só em preenchimentos) e a impressão (já era em branco). O admin acompanha os tokens.
+
+## 2026-11-18 · Clientes na home: faixa de logos e cards com o que cada um fez
+
+A pedido do Diego, a home passou a mostrar os clientes que já passaram pela Reset e o que cada um fez (Fortes Tecnologia, FortesPay, Somapay, Longevidade Saudável e IEL; conteúdo e logos enviados por ele, em `src/content/clientes.ts` e `design/clientes/`).
+
+- **Alternativas.** (a) Carrossel de logos animado: com cinco marcas, as mesmas se repetem a cada poucos segundos e a faixa parece vazia; e só mostra a logo, deixando de fora o que cada cliente fez. (b) Só os cards. (c) Faixa de logos fixa sob o hero mais uma seção de cards: a escolhida, porque dá a prova logo na primeira dobra e conta o trabalho mais abaixo. Sem animação.
+- **Faixa sob o hero** (`Prova`). A frase "Equipes treinadas em empresas como…" virou a fileira das cinco logos em cinza, para o verde seguir como único acento do hero. A frase continua na página Sobre (`home.prova`), com as quatro empresas de antes.
+- **Seção Clientes** (`#clientes`, tom `escuro`), entre Áreas e o AI Score: a prova vem logo antes da chamada para ação. Um card por cliente, logo em cor e lista de entregas; no desktop, os dois de mais entregas dividem a primeira linha e os outros três, a segunda. As cores das logos são marcas de terceiros, a mesma exceção de `MarcaFerramenta`.
+- **Logos.** `scripts/logos-clientes.mjs` (dentro de `npm run images`) tira o fundo branco, apara, corta o slogan do IEL e gera PNG em 2x em `public/clientes/`. Todas ocupam a mesma área na tela (largura e altura saem da proporção); o script imprime os tamanhos que vão no conteúdo.
+- **Pendências do Diego.** Confirmar a autorização de uso das logos (a Somapay não estava na lista validada antes). Os baselines da regressão visual da home mudam: rodar o workflow "Atualizar snapshots".
