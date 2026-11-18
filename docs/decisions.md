@@ -174,3 +174,26 @@ O Diego achou o site "muito chapado preto" e pediu uma proposta da versão branc
 - **Fecho em carvão.** Com tudo claro, o CTA final ficava num cinza sem força. O CTA final e o rodapé ficam no tom `noite` (carvão nos dois temas), a única faixa escura, com o verde puro e a `logo-dark`. Alternativa considerada e mostrada ao Diego: tudo claro.
 - **Marca.** Header e hero usam `logo-light` e `icone-light` (arquivos do manual que já estavam no repositório; `npm run images` passou a gerar o `icone-light.webp`). Manifesto (barra do navegador e splash) em neutro. A imagem de compartilhamento passou a clara; favicon e ícones PWA continuam com o ícone sobre carvão.
 - **Sem mudança:** o e-mail do relatório (já era claro e usa o verde só em preenchimentos) e a impressão (já era em branco). O admin acompanha os tokens.
+
+## 2026-11-18 · Clientes na home: faixa de logos e cards com o que cada um fez
+
+A pedido do Diego, a home passou a mostrar os clientes que já passaram pela Reset e o que cada um fez (Fortes Tecnologia, FortesPay, Somapay, Longevidade Saudável e IEL; conteúdo e logos enviados por ele, em `src/content/clientes.ts` e `design/clientes/`).
+
+- **Alternativas.** (a) Carrossel de logos animado: com cinco marcas, as mesmas se repetem a cada poucos segundos e a faixa parece vazia; e só mostra a logo, deixando de fora o que cada cliente fez. (b) Só os cards. (c) Faixa de logos fixa sob o hero mais uma seção de cards: a escolhida, porque dá a prova logo na primeira dobra e conta o trabalho mais abaixo. Sem animação.
+- **Faixa sob o hero** (`Prova`). A frase "Equipes treinadas em empresas como…" virou a fileira das cinco logos em cinza, para o verde seguir como único acento do hero. A frase continua na página Sobre (`home.prova`); em 18/11 a Somapay entrou nela também, depois de o Diego confirmar que está validada.
+- **Seção Clientes** (`#clientes`, tom `escuro`), entre Áreas e o AI Score: a prova vem logo antes da chamada para ação. Um card por cliente, logo em cor e lista de entregas; no desktop, os dois de mais entregas dividem a primeira linha e os outros três, a segunda. As cores das logos são marcas de terceiros, a mesma exceção de `MarcaFerramenta`.
+- **Logos.** `scripts/logos-clientes.mjs` (dentro de `npm run images`) tira o fundo branco, apara, corta o slogan do IEL e gera PNG em 2x em `public/clientes/`. Todas ocupam a mesma área na tela (largura e altura saem da proporção); o script imprime os tamanhos que vão no conteúdo.
+- **Autorização.** O Diego confirmou em 18/11 que a Somapay está validada para aparecer no site, como as outras quatro.
+- **Pendência do Diego.** Os baselines da regressão visual da home mudam: rodar o workflow "Atualizar snapshots".
+
+## 2026-11-18 · Home enxuta: de 12 para 10 blocos
+
+O Diego achou a home grande e confusa e pediu uma leitura sincera. A leitura como visitante mostrou que o problema era a repetição: as cinco soluções apareciam três vezes (lista "Ajudamos empresas a", "O que é a RESET 360" e "Cinco soluções"), Marketing, Vendas e Customer Success também três, e a página apresentava dez nomes próprios. Ele aprovou montar a versão enxuta para ver.
+
+- **Um bloco só para o que a Reset faz.** A lista de sete itens do Problema e a seção "O que é a RESET 360" (parágrafos e diagrama) saíram. A seção das soluções passou a responder "O que é a RESET 360" e cada card mostra a primeira frase da descrição da solução ("Formamos…", "Redesenhamos…"), que diz o que a empresa recebe, no lugar da frase de efeito (`explicativo` em `CardSolucao`). A página de Soluções segue com a frase de efeito.
+- **Clientes sobem** para logo depois das soluções: a prova concreta vem antes dos exemplos por área.
+- **Saem da home** as Tecnologias próprias (Spotlite e Fluxa BPM têm página e item no menu) e as bios dos fundadores, que viraram uma faixa curta com a frase, os dois retratos com o cargo e o link para a página Sobre.
+- **Hero.** Saem a legenda das órbitas, a faixa de rodapé (assinatura, "Pessoas → Processos → Agentes → Resultado", "Scroll") e "Reset 360" do eyebrow: o nome só aparece quando é explicado. O título passou a "IA aplicada a Marketing, Vendas e Customer Success.", escolhido pelo Diego entre três opções: diz o que a Reset faz e para quem. Com ele, o eyebrow virou a assinatura da marca ("IA sem hype. Resultado na prática."), porque o anterior começava com as mesmas palavras do título. A imagem de compartilhamento (`scripts/og-image.mjs`) segue com a frase antiga.
+- **AI Score** sem a lista das seis dimensões, que fica na página do AI Score. **Perguntas** de sete para cinco (`perguntasHome`): saem "Preciso contratar as cinco soluções?", que o texto das soluções já responde, e a das tecnologias. A página de Soluções mantém as sete.
+- **Resultado medido.** No desktop (1024 px) a página foi de 10.888 para 7.430 px; no celular (375 px), de 17.817 para 11.771 px; o texto, de cerca de 1.070 para 650 palavras. Nenhum texto novo: tudo é copy que já estava no site, recombinada.
+- **Pendência.** Rodar "Atualizar snapshots" de novo, porque os baselines da home mudam.

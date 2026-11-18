@@ -4,8 +4,19 @@ import { solucoes } from "@/content/solucoes";
 import type { Solucao } from "@/content/types";
 import { cn } from "@/lib/utils";
 
-/** Card de solução: número, ícone, nome, frase e "Conhecer solução ↗". O card inteiro é o link. */
-export function CardSolucao({ s, detalhado = false }: { s: Solucao; detalhado?: boolean }) {
+/**
+ * Card de solução: número, ícone, nome, frase e "Conhecer solução ↗". O card inteiro é o link.
+ * Com explicativo, a frase de efeito dá lugar à primeira frase da descrição, que diz o que a empresa recebe.
+ */
+export function CardSolucao({
+  s,
+  detalhado = false,
+  explicativo = false,
+}: {
+  s: Solucao;
+  detalhado?: boolean;
+  explicativo?: boolean;
+}) {
   return (
     <Link
       href={`/solucoes/${s.slug}/`}
@@ -18,7 +29,7 @@ export function CardSolucao({ s, detalhado = false }: { s: Solucao; detalhado?: 
         <span className="text-fg-2 text-[11px] tracking-[.18em]">{s.num}</span>
       </span>
       <h3 className="mt-6 mb-2.5 text-[24px] leading-[1.15] font-bold tracking-[-0.02em]">{s.nome}</h3>
-      <p className="text-fg-2 text-[15px] leading-[1.6]">{s.frase}</p>
+      <p className="text-fg-2 text-[15px] leading-[1.6]">{explicativo ? s.descricao[0] : s.frase}</p>
       {detalhado ? (
         <ul className="text-fg mt-5 flex flex-col gap-1.5 text-[14px]">
           {s.beneficios.itens.slice(0, 3).map((b) => (
@@ -45,16 +56,18 @@ export function CardSolucao({ s, detalhado = false }: { s: Solucao; detalhado?: 
 export function GradeSolucoes({
   itens,
   detalhado,
+  explicativo,
   className,
 }: {
   itens: Solucao[];
   detalhado?: boolean;
+  explicativo?: boolean;
   className?: string;
 }) {
   return (
     <div className={cn("grid gap-[14px] sm:grid-cols-2 lg:grid-cols-3", className)}>
       {itens.map((s) => (
-        <CardSolucao key={s.slug} s={s} detalhado={detalhado} />
+        <CardSolucao key={s.slug} s={s} detalhado={detalhado} explicativo={explicativo} />
       ))}
     </div>
   );

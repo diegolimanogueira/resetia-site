@@ -1,13 +1,15 @@
+import { existsSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { agentes, areas, categoriasAgentes, consolidacao } from "@/content/agentes";
 import { aiScore } from "@/content/ai-score";
+import { clientes } from "@/content/clientes";
 import * as questionario from "@/content/ai-score-questionario";
 import { diagnostico } from "@/content/diagnostico";
 import { home } from "@/content/home";
 import { privacidade } from "@/content/privacidade";
 import { FALTA, footer, movidas, nav, navDiagnostico, rotaAtiva, seo, site } from "@/content/site";
 import { sobre } from "@/content/sobre";
-import { ctaPadrao, perguntas, seoSolucao, solucaoPorSlug, solucoes } from "@/content/solucoes";
+import { ctaPadrao, perguntas, perguntasHome, seoSolucao, solucaoPorSlug, solucoes } from "@/content/solucoes";
 import { ferramentas, tecnologias } from "@/content/tecnologias";
 
 describe("conteúdo do site (reestruturação RESET 360)", () => {
@@ -123,10 +125,8 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
   it("títulos marcam o destaque com *…* em pares", () => {
     const titulos = [
       home.hero.titulo,
-      home.reset360.titulo,
       home.solucoes.titulo,
       home.scan.titulo,
-      home.tecnologias.titulo,
       ctaPadrao.titulo,
       diagnostico.hero.titulo,
       sobre.fechamento.titulo,
@@ -240,5 +240,34 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
     expect(JSON.stringify({ aiScore, questionario })).not.toMatch(
       /benchmark|certificad[oa] pela|diagnóstico gratuito/i,
     );
+  });
+
+  it("home enxuta: cinco perguntas, sem a das tecnologias, e cada card de solução explica o que a empresa recebe", () => {
+    expect(perguntasHome).toHaveLength(5);
+    expect(perguntas).toHaveLength(7);
+    expect(JSON.stringify(perguntasHome)).not.toMatch(/Spotlite|Fluxa/);
+    for (const s of solucoes.lista) {
+      expect(s.descricao[0], s.slug).toMatch(/^(Formamos|Redesenhamos|Criamos|Estruturamos|Transformamos) /);
+      expect(s.descricao[0].length, s.slug).toBeLessThanOrEqual(140);
+    }
+    expect(Object.keys(home)).toEqual(["hero", "prova", "problema", "solucoes", "areas", "scan", "quemSomos"]);
+  });
+
+  it("clientes: cinco empresas com logo publicada e o que cada uma fez, na ordem informada pelo Diego", () => {
+    expect(clientes.lista.map((c) => c.nome)).toEqual([
+      "Fortes Tecnologia",
+      "FortesPay",
+      "Somapay",
+      "Longevidade Saudável",
+      "IEL",
+    ]);
+    for (const c of clientes.lista) {
+      expect(c.entregas.length, c.nome).toBeGreaterThan(0);
+      expect(c.logo.largura * c.logo.altura, c.nome).toBeGreaterThan(0);
+      expect(existsSync(`public${c.logo.base}.png`), c.logo.base).toBe(true);
+    }
+    expect(new Set(clientes.lista.map((c) => c.id)).size).toBe(5);
+    const comDiagnostico = clientes.lista.filter((c) => c.entregas.includes(clientes.diagnostico)).map((c) => c.id);
+    expect(comDiagnostico).toEqual(["fortes-tecnologia", "fortespay", "somapay"]);
   });
 });
