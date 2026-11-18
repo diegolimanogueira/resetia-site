@@ -47,8 +47,8 @@ test.describe("CTAs de WhatsApp", () => {
       await expect(a, cta).toHaveAttribute("href", waDiagnostico());
       await expect(a, cta).toHaveText(new RegExp(site.ctaDiagnostico));
     }
-    await expect(page.locator("a[data-cta='home-spotlite-site']")).toHaveAttribute("href", site.ferramentas.spotlite);
-    await expect(page.locator("a[data-cta='home-fluxa-site']")).toHaveAttribute("href", site.ferramentas.fluxa);
+    // As tecnologias próprias saíram da home em 18/11: Spotlite e Fluxa BPM ficam na página Tecnologias.
+    await expect(page.locator("main a[data-cta$='-site']")).toHaveCount(0);
   });
 
   test("a página da Análise Estratégica: WhatsApp e AI Score no topo, teste da Spotlite como alternativa", async ({

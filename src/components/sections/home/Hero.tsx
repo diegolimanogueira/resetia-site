@@ -48,9 +48,6 @@ function Orbitas() {
           {p} <b className="text-verde">↗</b>
         </span>
       ))}
-      <span className="text-fg-2 absolute bottom-[30px] hidden text-[9px] tracking-[.2em] uppercase md:block">
-        {h.legenda}
-      </span>
     </div>
   );
 }
@@ -61,7 +58,7 @@ export function Hero() {
   return (
     <section
       data-tom="carvao"
-      className="gutter text-fg relative overflow-hidden bg-(--bg) bg-[radial-gradient(circle_at_73%_41%,rgba(0,230,118,0.16)_0%,rgba(0,230,118,0)_38%)] md:min-h-[740px]"
+      className="gutter text-fg relative overflow-hidden bg-(--bg) bg-[radial-gradient(circle_at_73%_41%,rgba(0,230,118,0.16)_0%,rgba(0,230,118,0)_38%)]"
     >
       <div aria-hidden="true" className="grade pointer-events-none absolute inset-0" />
       <div className="container-site relative grid items-center md:min-h-[680px] md:grid-cols-2">
@@ -84,13 +81,6 @@ export function Hero() {
           </div>
         </div>
         <Orbitas />
-      </div>
-      <div className="container-site text-fg-2 border-fg/15 relative flex justify-between border-t py-5 text-[8px] tracking-[.2em] uppercase sm:text-[10px]">
-        {h.rodape.map((item, i) => (
-          <span key={item} className={i === 1 ? "hidden sm:inline" : undefined}>
-            {item}
-          </span>
-        ))}
       </div>
     </section>
   );

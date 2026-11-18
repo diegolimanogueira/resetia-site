@@ -15,6 +15,8 @@ export interface Passo {
 export interface Pergunta {
   pergunta: string;
   resposta: string;
+  /** Fica só na página de Soluções; a home mostra uma lista mais curta. */
+  foraDaHome?: true;
 }
 
 export type Ferramenta = "spotlite" | "fluxa";
