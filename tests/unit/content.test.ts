@@ -254,6 +254,7 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
   });
 
   it("clientes: cinco empresas com logo publicada e o que cada uma fez, na ordem informada pelo Diego", () => {
+    expect(clientes.faixa).toBe("Alguns de nossos clientes");
     expect(clientes.lista.map((c) => c.nome)).toEqual([
       "Fortes Tecnologia",
       "FortesPay",

@@ -197,3 +197,13 @@ O Diego achou a home grande e confusa e pediu uma leitura sincera. A leitura com
 - **AI Score** sem a lista das seis dimensões, que fica na página do AI Score. **Perguntas** de sete para cinco (`perguntasHome`): saem "Preciso contratar as cinco soluções?", que o texto das soluções já responde, e a das tecnologias. A página de Soluções mantém as sete.
 - **Resultado medido.** No desktop (1024 px) a página foi de 10.888 para 7.430 px; no celular (375 px), de 17.817 para 11.771 px; o texto, de cerca de 1.070 para 650 palavras. Nenhum texto novo: tudo é copy que já estava no site, recombinada.
 - **Pendência.** Rodar "Atualizar snapshots" de novo, porque os baselines da home mudam.
+
+## 2026-11-18 (tarde) · Clientes mais discretos: só a faixa de logos, em movimento
+
+Com a home já publicada, o Diego pediu para manter os clientes mais discretos por ora.
+
+- **Sai a seção de cards** (`#clientes`, logo em cor e entregas de cada cliente). O componente foi removido; o conteúdo (`kicker`, `titulo`, `entregas`) continua em `src/content/clientes.ts` para quando a seção voltar, e o componente está no histórico do git (commit `11bfda6`).
+- **Fica a faixa sob o hero**, com o rótulo "Alguns de nossos clientes" (texto do Diego) e as logos em cinza, do mesmo tamanho.
+- **Logos em esteira**, a pedido dele. Só CSS (`esteira` em `globals.css`): a lista se repete quatro vezes, cada grupo anda a própria largura em laço de 32 s e o mouse em cima pausa. Com `prefers-reduced-motion`, só o primeiro grupo aparece, parado e centralizado, que é também o que a regressão visual fotografa. As cópias ficam fora da leitura de tela (`aria-hidden`, `alt` vazio).
+- **Limpeza.** Saíram de `globals.css` as animações `fluxo-x` e `fluxo-y`, que só o diagrama da RESET 360 usava.
+- **Pendência.** Os baselines da home mudam: rodar "Atualizar snapshots".

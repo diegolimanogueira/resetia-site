@@ -1,5 +1,7 @@
 /**
  * Clientes que já passaram pela Reset e o que cada um fez (informado pelo Diego em 18/11/2026).
+ * Por ora a home mostra só a faixa de logos: a seção com um card por cliente e as entregas saiu a pedido do Diego,
+ * e `kicker`, `titulo` e `entregas` ficam guardados aqui para quando ela voltar.
  * As logos saem de design/clientes por `npm run images` (scripts/logos-clientes.mjs), que também imprime a
  * largura e a altura de exibição de cada uma.
  */
@@ -15,7 +17,7 @@ const diagnostico = "Diagnóstico de maturidade de IA e processos";
 
 export const clientes = {
   /** Rótulo da faixa de logos sob o hero. */
-  faixa: "Clientes",
+  faixa: "Alguns de nossos clientes",
   kicker: "Quem já passou pela Reset",
   titulo: ["Empresas que já", "*colocaram a IA para trabalhar.*"],
   diagnostico,
