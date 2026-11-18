@@ -129,7 +129,7 @@
     display: block;
   }
 
-  /* Os deslocamentos de hover usam motion-safe:; aqui some o resto do movimento (inclusive o fluxo do diagrama). */
+  /* Os deslocamentos de hover usam motion-safe:; aqui some o resto do movimento (inclusive a esteira de logos). */
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
@@ -222,46 +222,49 @@
   background-size: 76px 76px;
   mask-image: linear-gradient(to right, transparent, #000 65%);
 }
-/* Conexões do diagrama RESET 360: linha fina com um brilho verde que percorre o caminho. */
-@keyframes fluxo-x {
-  from {
-    background-position:
-      100% 0,
-      0 0;
-  }
+/*
+ * Esteira de logos da faixa de clientes. Com movimento permitido, os grupos (cópias da mesma lista) ficam lado a
+ * lado e cada um anda a própria largura, em laço; o mouse em cima pausa. Com movimento reduzido, só o primeiro
+ * grupo aparece, parado e centralizado.
+ */
+@keyframes esteira {
   to {
-    background-position:
-      -100% 0,
-      0 0;
+    transform: translateX(-100%);
   }
 }
-@keyframes fluxo-y {
-  from {
-    background-position:
-      0 100%,
-      0 0;
-  }
-  to {
-    background-position:
-      0 -100%,
-      0 0;
+@utility esteira-janela {
+  @media (prefers-reduced-motion: no-preference) {
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
   }
 }
-@utility fluxo-x {
-  background-image:
-    linear-gradient(90deg, transparent 40%, var(--color-verde) 50%, transparent 60%),
-    linear-gradient(var(--line), var(--line));
-  background-size:
-    200% 100%,
-    100% 100%;
-  animation: fluxo-x 3.2s linear infinite;
+@utility esteira {
+  @media (prefers-reduced-motion: no-preference) {
+    display: flex;
+    width: max-content;
+    &:hover > * {
+      animation-play-state: paused;
+    }
+  }
 }
-@utility fluxo-y {
-  background-image:
-    linear-gradient(180deg, transparent 40%, var(--color-verde) 50%, transparent 60%),
-    linear-gradient(var(--line), var(--line));
-  background-size:
-    100% 200%,
-    100% 100%;
-  animation: fluxo-y 3.2s linear infinite;
+@utility esteira-grupo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 24px 40px;
+  @media (prefers-reduced-motion: no-preference) {
+    flex: none;
+    flex-wrap: nowrap;
+    gap: 0;
+    animation: esteira 32s linear infinite;
+    & > li {
+      padding-right: 64px;
+    }
+  }
+}
+@utility esteira-copia {
+  @media (prefers-reduced-motion: reduce) {
+    display: none;
+  }
 }
