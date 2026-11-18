@@ -20,7 +20,7 @@ export const home = {
   /** Prova de credibilidade validada pelo Diego (equipes treinadas). */
   prova: {
     antes: "Equipes treinadas em empresas como",
-    empresas: ["IEL", "Fortes Tecnologia", "FortesPay", "Longevidade Saudável"],
+    empresas: ["IEL", "Fortes Tecnologia", "FortesPay", "Somapay", "Longevidade Saudável"],
     depois: "entre outras.",
   },
   problema: {
