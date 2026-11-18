@@ -2,20 +2,20 @@ import { site } from "./site";
 import type { AreaId, Link } from "./types";
 
 /**
- * Home do RESET 360 (brief de 26/10): o que a Reset faz, que problemas resolve e como começar.
+ * Home do RESET 360 (brief de 26/10, enxugada em 18/11): o que a Reset faz, que problemas resolve e como começar.
  * Títulos em linhas; *trecho* = destaque verde.
  */
 export const home = {
   hero: {
-    eyebrow: "Reset 360 · IA aplicada ao crescimento do negócio",
-    titulo: ["Sua parceira na *transformação digital e comercial* do seu negócio."],
+    /** A assinatura da marca: o rótulo antigo ("IA aplicada ao crescimento do negócio") repetiria o título. */
+    eyebrow: site.assinatura,
+    /** Escolhido pelo Diego em 18/11: diz o que a Reset faz e para quem. */
+    titulo: ["IA aplicada a *Marketing, Vendas e Customer Success.*"],
     lead: "Transformamos a forma como empresas trabalham com inteligência artificial. Desenvolvemos líderes, redesenhamos processos e criamos agentes inteligentes para potencializar Marketing, Vendas e Customer Success.",
     /** Leva ao RESET AI Score. */
     ctaPrimario: site.ctaAiScore,
     ctaSecundario: { label: "Conhecer nossas soluções", href: "#solucoes" } satisfies Link,
     pilulas: ["Marketing", "Vendas", "Customer Success"],
-    legenda: "Inteligência em toda a jornada de receita",
-    rodape: [site.assinatura, "Pessoas → Processos → Agentes → Resultado", "Scroll ↓"],
   },
   /** Prova de credibilidade validada pelo Diego (equipes treinadas). */
   prova: {
@@ -32,38 +32,10 @@ export const home = {
       antes: "Na Reset, começamos pela pergunta certa:",
       destaque: "onde a IA pode remover desperdício e gerar crescimento mensurável?",
     },
-    ajudamos: "Ajudamos empresas a",
-    itens: [
-      "Capacitar gestores e equipes para trabalhar com IA.",
-      "Redesenhar processos e melhorar a eficiência operacional.",
-      "Desenvolver agentes inteligentes personalizados.",
-      "Reduzir a dependência de ferramentas redundantes.",
-      "Estruturar a governança de inteligência artificial.",
-      "Mensurar ganhos de produtividade, eficiência e resultados de negócio.",
-      "Identificar oportunidades para ampliar aquisição, conversão, retenção e receita.",
-    ],
   },
-  reset360: {
-    kicker: "O que é a RESET 360",
-    titulo: ["Uma transformação completa.", "*Do potencial da IA ao resultado do negócio.*"],
-    paragrafos: [
-      "Acreditamos que a inteligência artificial só gera valor quando conecta as pessoas certas, processos eficientes e soluções tecnológicas aplicadas aos desafios reais da empresa.",
-      "Por isso, desenvolvemos uma atuação 360°, que combina capacitação, transformação operacional, agentes inteligentes, governança e evolução contínua.",
-      "Nosso foco é ajudar empresas a trabalhar melhor, reduzir desperdícios e desenvolver novas oportunidades de crescimento.",
-    ],
-    diagrama: {
-      rotulo: "A jornada de receita conectada às cinco soluções da Reset",
-      hub: "RESET 360",
-      jornada: [
-        { area: "marketing", papel: "Atrair e gerar oportunidades." },
-        { area: "vendas", papel: "Converter e aumentar receita." },
-        { area: "customer-success", papel: "Reter, fidelizar e expandir." },
-      ] satisfies Array<{ area: AreaId; papel: string }>,
-      legenda: "Cinco soluções atendem uma necessidade pontual ou uma transformação integrada de toda a jornada.",
-    },
-  },
+  /** A RESET 360 é apresentada uma vez só, pelas cinco soluções; cada card diz o que a empresa recebe. */
   solucoes: {
-    kicker: "Portfólio RESET 360",
+    kicker: "O que é a RESET 360",
     titulo: ["Cinco soluções.", "*Uma transformação.*"],
     lead: "Contrate uma solução específica ou combine as cinco em um programa de transformação. Cada empresa entra pela solução adequada à sua maturidade.",
     depois: "Não sabe por onde começar?",
@@ -100,22 +72,13 @@ export const home = {
     titulo: ["Qual é o AI Score", "*da sua empresa?*"],
     lead: "Descubra gratuitamente o nível de maturidade em IA da sua empresa: nota de 0 a 100, seis dimensões avaliadas e os próximos passos para evoluir.",
     nota: "Gratuito • 5 minutos • Resultado imediato",
-    dimensoes: "O que o AI Score avalia",
     link: { label: "Como funciona o AI Score", href: "/ai-score" } satisfies Link,
   },
-  tecnologias: {
-    kicker: "Tecnologias próprias",
-    titulo: ["Tecnologia própria para transformar", "*estratégia em execução.*"],
-    lead: "As cinco soluções são o trabalho de transformação e consultoria da Reset. Spotlite e Fluxa BPM são tecnologias próprias, com propostas independentes, que apoiam essas soluções.",
-    link: { label: "Conhecer as tecnologias", href: "/tecnologias" } satisfies Link,
-  },
+  /** Faixa curta: quem são os fundadores e o link para a página Sobre, onde ficam as bios. */
   quemSomos: {
     kicker: "Quem está por trás",
-    titulo: ["Negócio encontra", "*tecnologia.*"],
-    paragrafos: [
+    texto:
       "Élida entende os desafios de crescimento do negócio. Diego transforma esses desafios em soluções tecnológicas inteligentes.",
-      "Juntos, conectam estratégia, pessoas, processos e IA para ajudar empresas a operar de maneira mais eficiente e competitiva.",
-    ],
     link: { label: "Conheça a Reset", href: "/sobre" } satisfies Link,
   },
 };

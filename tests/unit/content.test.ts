@@ -9,7 +9,7 @@ import { home } from "@/content/home";
 import { privacidade } from "@/content/privacidade";
 import { FALTA, footer, movidas, nav, navDiagnostico, rotaAtiva, seo, site } from "@/content/site";
 import { sobre } from "@/content/sobre";
-import { ctaPadrao, perguntas, seoSolucao, solucaoPorSlug, solucoes } from "@/content/solucoes";
+import { ctaPadrao, perguntas, perguntasHome, seoSolucao, solucaoPorSlug, solucoes } from "@/content/solucoes";
 import { ferramentas, tecnologias } from "@/content/tecnologias";
 
 describe("conteúdo do site (reestruturação RESET 360)", () => {
@@ -125,10 +125,8 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
   it("títulos marcam o destaque com *…* em pares", () => {
     const titulos = [
       home.hero.titulo,
-      home.reset360.titulo,
       home.solucoes.titulo,
       home.scan.titulo,
-      home.tecnologias.titulo,
       ctaPadrao.titulo,
       diagnostico.hero.titulo,
       sobre.fechamento.titulo,
@@ -242,6 +240,17 @@ describe("conteúdo do site (reestruturação RESET 360)", () => {
     expect(JSON.stringify({ aiScore, questionario })).not.toMatch(
       /benchmark|certificad[oa] pela|diagnóstico gratuito/i,
     );
+  });
+
+  it("home enxuta: cinco perguntas, sem a das tecnologias, e cada card de solução explica o que a empresa recebe", () => {
+    expect(perguntasHome).toHaveLength(5);
+    expect(perguntas).toHaveLength(7);
+    expect(JSON.stringify(perguntasHome)).not.toMatch(/Spotlite|Fluxa/);
+    for (const s of solucoes.lista) {
+      expect(s.descricao[0], s.slug).toMatch(/^(Formamos|Redesenhamos|Criamos|Estruturamos|Transformamos) /);
+      expect(s.descricao[0].length, s.slug).toBeLessThanOrEqual(140);
+    }
+    expect(Object.keys(home)).toEqual(["hero", "prova", "problema", "solucoes", "areas", "scan", "quemSomos"]);
   });
 
   it("clientes: cinco empresas com logo publicada e o que cada uma fez, na ordem informada pelo Diego", () => {

@@ -185,3 +185,15 @@ A pedido do Diego, a home passou a mostrar os clientes que já passaram pela Res
 - **Logos.** `scripts/logos-clientes.mjs` (dentro de `npm run images`) tira o fundo branco, apara, corta o slogan do IEL e gera PNG em 2x em `public/clientes/`. Todas ocupam a mesma área na tela (largura e altura saem da proporção); o script imprime os tamanhos que vão no conteúdo.
 - **Autorização.** O Diego confirmou em 18/11 que a Somapay está validada para aparecer no site, como as outras quatro.
 - **Pendência do Diego.** Os baselines da regressão visual da home mudam: rodar o workflow "Atualizar snapshots".
+
+## 2026-11-18 · Home enxuta: de 12 para 10 blocos
+
+O Diego achou a home grande e confusa e pediu uma leitura sincera. A leitura como visitante mostrou que o problema era a repetição: as cinco soluções apareciam três vezes (lista "Ajudamos empresas a", "O que é a RESET 360" e "Cinco soluções"), Marketing, Vendas e Customer Success também três, e a página apresentava dez nomes próprios. Ele aprovou montar a versão enxuta para ver.
+
+- **Um bloco só para o que a Reset faz.** A lista de sete itens do Problema e a seção "O que é a RESET 360" (parágrafos e diagrama) saíram. A seção das soluções passou a responder "O que é a RESET 360" e cada card mostra a primeira frase da descrição da solução ("Formamos…", "Redesenhamos…"), que diz o que a empresa recebe, no lugar da frase de efeito (`explicativo` em `CardSolucao`). A página de Soluções segue com a frase de efeito.
+- **Clientes sobem** para logo depois das soluções: a prova concreta vem antes dos exemplos por área.
+- **Saem da home** as Tecnologias próprias (Spotlite e Fluxa BPM têm página e item no menu) e as bios dos fundadores, que viraram uma faixa curta com a frase, os dois retratos com o cargo e o link para a página Sobre.
+- **Hero.** Saem a legenda das órbitas, a faixa de rodapé (assinatura, "Pessoas → Processos → Agentes → Resultado", "Scroll") e "Reset 360" do eyebrow: o nome só aparece quando é explicado. O título passou a "IA aplicada a Marketing, Vendas e Customer Success.", escolhido pelo Diego entre três opções: diz o que a Reset faz e para quem. Com ele, o eyebrow virou a assinatura da marca ("IA sem hype. Resultado na prática."), porque o anterior começava com as mesmas palavras do título. A imagem de compartilhamento (`scripts/og-image.mjs`) segue com a frase antiga.
+- **AI Score** sem a lista das seis dimensões, que fica na página do AI Score. **Perguntas** de sete para cinco (`perguntasHome`): saem "Preciso contratar as cinco soluções?", que o texto das soluções já responde, e a das tecnologias. A página de Soluções mantém as sete.
+- **Resultado medido.** No desktop (1024 px) a página foi de 10.888 para 7.430 px; no celular (375 px), de 17.817 para 11.771 px; o texto, de cerca de 1.070 para 650 palavras. Nenhum texto novo: tudo é copy que já estava no site, recombinada.
+- **Pendência.** Rodar "Atualizar snapshots" de novo, porque os baselines da home mudam.

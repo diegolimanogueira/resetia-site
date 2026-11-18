@@ -657,6 +657,7 @@ export const perguntas: Pergunta[] = [
     pergunta: "Preciso contratar as cinco soluções?",
     resposta:
       "Não. Cada solução pode ser contratada individualmente ou combinada em um programa de transformação mais amplo. A empresa entra pela solução adequada à sua maturidade e à sua necessidade.",
+    foraDaHome: true,
   },
   {
     pergunta: "Por onde devemos começar?",
@@ -682,6 +683,7 @@ export const perguntas: Pergunta[] = [
     pergunta: "O que são Spotlite e Fluxa BPM?",
     resposta:
       "Tecnologias próprias da Reset, com propostas independentes. A Spotlite apoia diagnósticos e análises de maturidade e oportunidades de IA; a Fluxa BPM apoia o mapeamento, a documentação e o redesenho de processos. Elas podem entrar nos projetos, conforme o escopo.",
+    foraDaHome: true,
   },
   {
     pergunta: "Como vocês medem os resultados?",
@@ -689,6 +691,12 @@ export const perguntas: Pergunta[] = [
       "Com indicadores e linha de base definidos antes de qualquer promessa de ganho. O RESET Performance acompanha a adoção, a eficiência e os resultados das soluções implantadas.",
   },
 ];
+
+/**
+ * Perguntas da home: saem a que o texto das soluções já responde ("Preciso contratar as cinco?") e a das
+ * tecnologias, que não aparecem na home.
+ */
+export const perguntasHome = perguntas.filter((p) => !p.foraDaHome);
 
 export const solucoes = {
   hero: {
