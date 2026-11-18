@@ -7,8 +7,10 @@ import type { AreaId, Link } from "./types";
  */
 export const home = {
   hero: {
-    eyebrow: "IA aplicada ao crescimento do negócio",
-    titulo: ["Sua parceira na *transformação digital e comercial* do seu negócio."],
+    /** A assinatura da marca: o rótulo antigo ("IA aplicada ao crescimento do negócio") repetiria o título. */
+    eyebrow: site.assinatura,
+    /** Escolhido pelo Diego em 18/11: diz o que a Reset faz e para quem. */
+    titulo: ["IA aplicada a *Marketing, Vendas e Customer Success.*"],
     lead: "Transformamos a forma como empresas trabalham com inteligência artificial. Desenvolvemos líderes, redesenhamos processos e criamos agentes inteligentes para potencializar Marketing, Vendas e Customer Success.",
     /** Leva ao RESET AI Score. */
     ctaPrimario: site.ctaAiScore,
