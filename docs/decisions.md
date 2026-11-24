@@ -207,3 +207,11 @@ Com a home já publicada, o Diego pediu para manter os clientes mais discretos p
 - **Logos em esteira**, a pedido dele. Só CSS (`esteira` em `globals.css`): a lista se repete quatro vezes, cada grupo anda a própria largura em laço de 32 s e o mouse em cima pausa. Com `prefers-reduced-motion`, só o primeiro grupo aparece, parado e centralizado, que é também o que a regressão visual fotografa. As cópias ficam fora da leitura de tela (`aria-hidden`, `alt` vazio).
 - **Limpeza.** Saíram de `globals.css` as animações `fluxo-x` e `fluxo-y`, que só o diagrama da RESET 360 usava.
 - **Pendência.** Os baselines da home mudam: rodar "Atualizar snapshots".
+
+## 2026-11-24 · Telefone novo da Reset IA
+
+O Diego informou o número novo: **19 99781-7355**, para o WhatsApp e para tudo.
+
+- **Um lugar só.** `site.whatsapp` e `site.whatsappFormatado` em `src/content/site.ts`. Todo botão de WhatsApp sai de `src/lib/whatsapp.ts` e o `telephone` do JSON-LD lê o mesmo campo, então o site inteiro troca junto.
+- **Função `ai-score`.** O `nucleo.js` foi regenerado (`npm run funcao:nucleo`) e a função precisa ser republicada (`docs/deploy.md`) para o e-mail do relatório levar o número novo.
+- **Fora do site.** Os arquivos de `design/` (handoff original) continuam com o número antigo: são referência histórica e não são publicados.
