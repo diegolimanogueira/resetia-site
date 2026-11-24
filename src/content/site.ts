@@ -8,8 +8,8 @@ export const site = {
   dominio: "https://www.resetia.com.br",
   /** A logo traz o slogan escrito; o alt repete o que está na imagem. */
   logoAlt: "Reset IA — IA sem hype. Resultado na prática.",
-  whatsapp: "5511916170606",
-  whatsappFormatado: "+55 11 91617-0606",
+  whatsapp: "5519997817355",
+  whatsappFormatado: "+55 19 99781-7355",
   mensagens: {
     geral: "Olá! Quero conhecer as soluções da Reset 360.",
     /**
