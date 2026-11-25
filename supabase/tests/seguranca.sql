@@ -14,11 +14,19 @@ grant usage on schema auth to anon, authenticated;
 create table auth.users (id uuid primary key, email text);
 create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
 grant execute on function auth.uid() to anon, authenticated;
+-- Storage do Supabase, só o que a migração de materiais usa: buckets e objects (com RLS, como no Supabase).
+create schema storage;
+grant usage on schema storage to anon, authenticated;
+create table storage.buckets (id text primary key, name text not null, public boolean default false, file_size_limit bigint, allowed_mime_types text[]);
+create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text references storage.buckets (id), name text);
+alter table storage.objects enable row level security;
+grant all on storage.objects to anon, authenticated;
 
 \i supabase/migrations/0001_ai_score.sql
 \i supabase/migrations/0002_cadastro_fechado.sql
 \i supabase/migrations/0003_captura_em_duas_etapas.sql
 \i supabase/migrations/0004_crm_email_dicas.sql
+\i supabase/migrations/0005_materiais.sql
 
 \set ON_ERROR_STOP 0
 \set VERBOSITY terse
@@ -114,3 +122,67 @@ set request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
 insert into public.atividades (lead_id, tipo, texto) values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'nota', 'x');
 reset role;
 
+\echo '--- materiais: admin cria um publicado e um rascunho'
+set role authenticated;
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+insert into public.materiais (palavra, titulo, descricao, arquivo, tamanho, publicado) values
+  ('brabo', 'Guia Brabo', 'Descricao', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd/brabo.pdf', 1234, true),
+  ('rascunho', 'Ainda nao', null, 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee/rascunho.pdf', 10, false);
+select 'admin ve' as quem, count(*)::text as n from public.materiais;
+\echo '--- materiais: palavra repetida, palavra invalida e arquivo que nao e PDF (esperado: unique, check x2)'
+insert into public.materiais (palavra, titulo, arquivo) values ('brabo', 'Outro', 'x/brabo.pdf');
+insert into public.materiais (palavra, titulo, arquivo) values ('Com Espaco', 'Outro', 'x/y.pdf');
+insert into public.materiais (palavra, titulo, arquivo) values ('planilha', 'Outro', 'x/planilha.xlsx');
+\echo '--- materiais: admin nao forja contador (esperado: permission denied)'
+update public.materiais set acessos = 999;
+\echo '--- materiais: logado sem ser admin nao cria nem le (esperado: violates row-level security, 0)'
+set request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
+insert into public.materiais (palavra, titulo, arquivo) values ('intruso', 'Intruso', 'x/intruso.pdf');
+select 'sem admin ve' as quem, count(*)::text as n from public.materiais;
+reset role;
+\echo '--- materiais: anon le so o publicado, sem contadores, e nao escreve (esperado: 1, permission denied x4)'
+set role anon;
+select 'anon ve' as quem, count(*)::text as n from public.materiais;
+select format('%s|%s|%s', palavra, titulo, arquivo) as publicado_para_anon from public.materiais;
+select acessos from public.materiais;
+insert into public.materiais (palavra, titulo, arquivo) values ('anonimo', 'Anonimo', 'x/anonimo.pdf');
+update public.materiais set titulo = 'x';
+delete from public.materiais;
+\echo '--- materiais: contadores so pela funcao e so nos publicados'
+select format('acesso=%s', public.registrar_material('brabo', 'acesso')) as contou;
+select format('acesso=%s', public.registrar_material('brabo', 'acesso')) as contou;
+select format('download=%s', public.registrar_material('brabo', 'download')) as contou;
+select format('rascunho=%s', public.registrar_material('rascunho', 'acesso')) as contou;
+select format('invalido=%s', public.registrar_material('brabo', 'outro')) as contou;
+reset role;
+select format('%s acessos=%s downloads=%s editado=%s', palavra, acessos, downloads, atualizado_em > criado_em) as contadores
+from public.materiais order by palavra;
+\echo '--- materiais: admin edita (a data de alteracao anda) e despublica'
+set role authenticated;
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+update public.materiais set titulo = 'Guia Brabo 2', publicado = false where palavra = 'brabo';
+select format('%s titulo=%s editado=%s', palavra, titulo, atualizado_em > criado_em) as depois_de_editar
+from public.materiais where palavra = 'brabo';
+reset role;
+set role anon;
+select 'anon ve despublicado' as quem, count(*)::text as n from public.materiais;
+reset role;
+\echo '--- materiais: arquivos, so admin envia e apaga (esperado: violates row-level security em objects)'
+select format('bucket=%s publico=%s limite=%s tipos=%s', id, public, file_size_limit, allowed_mime_types) as bucket from storage.buckets;
+set role authenticated;
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+insert into storage.objects (bucket_id, name) values ('materiais', 'dddddddd-dddd-4ddd-8ddd-dddddddddddd/brabo.pdf');
+set request.jwt.claim.sub = '22222222-2222-4222-8222-222222222222';
+insert into storage.objects (bucket_id, name) values ('materiais', 'x/intruso.pdf');
+delete from storage.objects;
+select 'sem admin ve arquivos' as quem, count(*)::text as n from storage.objects;
+set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
+select 'admin ve arquivos' as quem, count(*)::text as n from storage.objects;
+delete from storage.objects;
+select 'admin apagou, restam' as quem, count(*)::text as n from storage.objects;
+reset role;
+\echo '--- materiais: admin exclui'
+set role authenticated;
+delete from public.materiais where palavra = 'rascunho';
+select 'admin ve depois de excluir' as quem, count(*)::text as n from public.materiais;
+reset role;

@@ -1,6 +1,9 @@
 import type { StatusLead, TipoAtividade } from "./types";
 
-/** Textos do /admin: mini CRM dos leads do RESET AI Score (fora do menu, do sitemap e do índice). */
+/**
+ * Textos do /admin: mini CRM dos leads do RESET AI Score e a área de materiais para baixar
+ * (fora do menu, do sitemap e do índice).
+ */
 export const admin = {
   seo: { title: "Admin | Reset IA" },
   kicker: "Admin · RESET AI Score",
@@ -203,6 +206,69 @@ export const admin = {
       "O envio de e-mail pelo site ainda não está configurado (ver docs/deploy.md). Enquanto isso, envie pelo seu e-mail:",
     abrirEmail: "Abrir no meu e-mail",
     erro: "Não foi possível enviar. Tente de novo.",
+  },
+  /** As duas áreas do admin: os leads do AI Score e os materiais (iscas dos posts). */
+  areas: { rotulo: "Áreas do admin", leads: "Leads", materiais: "Materiais" },
+  /** Materiais para baixar: um PDF por palavra-chave, com o link que vai para o post ou para o ManyChat. */
+  materiais: {
+    kicker: "Admin · Materiais",
+    titulo: "Materiais",
+    vazio: "Nenhum material ainda. Publique o primeiro no formulário acima.",
+    erroCarga: "Não foi possível carregar os materiais. Tente atualizar.",
+    form: {
+      novo: "Novo material",
+      editar: (palavra: string) => `Editar material: ${palavra}`,
+      palavra: "Palavra-chave",
+      palavraApoio: (link: string) => `O link do material será ${link}`,
+      palavraApoioVazio: "Letras, números e hífen. É a palavra que vai no link.",
+      titulo: "Título",
+      descricao: "Descrição (opcional)",
+      arquivo: "Arquivo PDF",
+      arquivoApoio: "Só PDF, até 20 MB.",
+      arquivoApoioEdicao: "Só PDF, até 20 MB. Deixe vazio para manter o arquivo atual.",
+      publicado: "Publicado (o link já funciona para quem receber)",
+      salvar: "Publicar material",
+      salvarRascunho: "Salvar rascunho",
+      salvarEdicao: "Salvar alterações",
+      salvando: "Salvando…",
+      cancelar: "Cancelar edição",
+    },
+    erros: {
+      palavra: "Use pelo menos 2 caracteres: letras, números e hífen.",
+      palavraRepetida: "Já existe um material com essa palavra-chave.",
+      titulo: "Escreva um título com pelo menos 2 caracteres.",
+      arquivoFalta: "Escolha o arquivo PDF.",
+      arquivoTipo: "O arquivo precisa ser um PDF.",
+      arquivoTamanho: "O arquivo passa de 20 MB.",
+      envio: "Não foi possível enviar o arquivo. Tente de novo.",
+      salvar: "Não foi possível salvar. Tente de novo.",
+      excluir: "Não foi possível excluir. Tente de novo.",
+    },
+    avisos: {
+      criado: "Material salvo.",
+      atualizado: "Alterações salvas.",
+      excluido: "Material excluído.",
+    },
+    colunas: {
+      material: "Material",
+      link: "Link",
+      acessos: "Acessos",
+      downloads: "Downloads",
+      situacao: "Situação",
+      acoes: "Ações",
+    },
+    publicado: "Publicado",
+    rascunho: "Rascunho",
+    copiar: "Copiar link",
+    copiado: "Link copiado",
+    abrir: "Abrir página",
+    editar: "Editar",
+    publicar: "Publicar",
+    despublicar: "Despublicar",
+    excluir: "Excluir",
+    confirmarExclusao: "Confirmar exclusão",
+    /** Rótulo acessível dos botões de cada linha: "Editar (brabo)". */
+    de: (acao: string, palavra: string) => `${acao} (${palavra})`,
   },
   /** Primeira mensagem do time comercial para o lead, com o resultado. */
   mensagem: (nome: string, indice: number | null) =>

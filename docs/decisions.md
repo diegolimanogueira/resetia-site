@@ -215,3 +215,18 @@ O Diego informou o número novo: **19 99781-7355**, para o WhatsApp e para tudo.
 - **Um lugar só.** `site.whatsapp` e `site.whatsappFormatado` em `src/content/site.ts`. Todo botão de WhatsApp sai de `src/lib/whatsapp.ts` e o `telephone` do JSON-LD lê o mesmo campo, então o site inteiro troca junto.
 - **Função `ai-score`.** O `nucleo.js` foi regenerado (`npm run funcao:nucleo`) e a função precisa ser republicada (`docs/deploy.md`) para o e-mail do relatório levar o número novo.
 - **Fora do site.** Os arquivos de `design/` (handoff original) continuam com o número antigo: são referência histórica e não são publicados.
+
+## 2026-11-25 · Página de materiais para baixar e área Materiais no admin
+
+O Diego quer um link próprio para as iscas dos posts (o que ele manda no direct, no ManyChat ou no próprio post), no site da Reset e publicado por ele mesmo. Os materiais são PDFs.
+
+- **Endereço.** `resetia.com.br/materiais/?palavra`. O site é estático: uma rota `/materiais/[palavra]` só nasceria no deploy, e a ideia é publicar sem deploy. A página é uma só e lê a palavra-chave do endereço no navegador (`palavraDaUrl`, em `src/lib/materiais.ts`), ignorando os parâmetros que as redes penduram no link (`fbclid`, `utm_…`). Ela também entende `/materiais/palavra`, que só funciona se a hospedagem devolver a página de materiais para caminhos que não existem.
+- **Pendência: endereço limpo.** Tentar `/materiais/palavra` com um segundo componente estático na DigitalOcean, montado em `/materiais` com `catchall_document`. A documentação não diz com que status a página responde nem confirma que o segundo componente segue gratuito; só publicando para saber. Se não der, o link com interrogação continua valendo, e nenhum link divulgado quebra.
+- **Página pública.** Título, descrição, botão do PDF (abre em nova aba) e, no fim, o `CtaFinal` padrão do site (AI Score e especialista). Sem cadastro: o lead já foi captado na rede. Palavra inexistente, rascunho ou material excluído mostram "Material não encontrado" com o caminho para a home. `noindex`, fora do menu e do sitemap.
+- **Admin.** O `/admin` ganhou a troca de área (Leads, que continua sendo a primeira, e Materiais). Em Materiais: formulário (palavra-chave, título, descrição, PDF, publicado ou rascunho) e a lista com o link, acessos, downloads, editar, publicar ou despublicar e excluir (com confirmação no próprio botão).
+- **Banco e arquivos (`0005_materiais.sql`).** Tabela `materiais` com RLS: o anônimo lê só os publicados e só as colunas da página; admin cria, edita e exclui; os contadores só mudam pela função `registrar_material`. O PDF fica no bucket público `materiais` do Storage (só PDF, até 20 MB), num caminho novo a cada envio (`<uuid>/<palavra>.pdf`), e só admin envia e apaga. O teste do banco ganhou um Storage simulado e os cenários de materiais. Com isso o banco deixa de ser só do AI Score (`CLAUDE.md` atualizado).
+- **Métrica.** Acessos e downloads por material, contados no próprio banco, porque o analytics do site ainda está sem ID.
+- **Copy.** Os rótulos da página (`src/content/materiais.ts`: "Material Reset IA", "Baixar o PDF", "Material não encontrado" e os avisos) e os da área do admin foram escritos por mim e ficam para o Diego confirmar. Título e descrição de cada material são dele, pelo admin.
+- **Fica de fora.** Formulário de captura na página, material em texto (sem PDF) e mais de um arquivo por material.
+- **Não testado.** O botão do PDF dentro do navegador embutido do Instagram, que tem regras próprias para arquivos.
+- **Banco de produção.** A `0005` foi aplicada em 25/11, antes do merge.
