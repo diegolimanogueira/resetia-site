@@ -230,3 +230,14 @@ O Diego quer um link próprio para as iscas dos posts (o que ele manda no direct
 - **Fica de fora.** Formulário de captura na página, material em texto (sem PDF) e mais de um arquivo por material.
 - **Não testado.** O botão do PDF dentro do navegador embutido do Instagram, que tem regras próprias para arquivos.
 - **Banco de produção.** A `0005` foi aplicada em 25/11, antes do merge.
+
+## 2026-11-25 (tarde) · Endereço limpo dos materiais: preparado, falta aplicar na DigitalOcean
+
+O Diego pediu para tentar `/materiais/palavra` (sem a interrogação).
+
+- **Como.** Um segundo componente estático no spec (`materiais`), montado em `/materiais`, servindo só `out/materiais` com `catchall_document: index.html`. Assim a página responde com o título e os metadados de materiais (o que aparece na prévia do link), e o resto do site continua com a 404 de verdade.
+- **Dois builds, um \_next para cada.** Cada componente tem o próprio build e os arquivos do `_next` levam hash. Para o HTML de um build não depender do JavaScript do outro, o componente `materiais` builda com `NEXT_ASSET_PREFIX=/materiais` e copia `out/_next` para dentro de `out/materiais`. Testado localmente com dois builds e um servidor que imita o roteamento da DO: `/materiais/brabo` abre, conta o acesso, os cliques levam ao resto do site e uma rota inexistente fora de `/materiais` segue em 404.
+- **O que travou.** O workflow Deploy está dormente: não existe o secret `DIGITALOCEAN_ACCESS_TOKEN`, então o spec do repositório não é aplicado e quem publica é a própria DO a cada push. Aplicar o spec novo depende de um token da DO (ou de colar o spec no painel), que é do Diego.
+- **Conferência antes de aplicar.** O Deploy ganhou a opção `so_conferir`: valida o spec, mostra se o app continua estático e o custo (`doctl apps propose`) e a diferença para o spec que está no ar, sem publicar.
+- **Ainda sem resposta.** Com que status o catchall responde e se o segundo componente segue no plano gratuito: só com o token (custo) e com o spec aplicado (status).
+- **Enquanto isso.** O link divulgado continua `/materiais/?palavra`; `linkMaterial` só muda depois de o endereço limpo responder em produção.

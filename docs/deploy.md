@@ -1,6 +1,6 @@
 # Deploy — DigitalOcean App Platform (Static Site)
 
-O site é um export estático (`out/`). Vai para o App Platform como componente `static_site`, no tier gratuito (até 3 apps estáticos, 1 GiB de saída por app/mês; excedente US$ 0,02/GiB). CDN e TLS automáticos. O spec está em `.do/app.yaml`. A DO publica sozinha a cada push na `main` (`deploy_on_push: true`), sem token; o CI protege a `main` no GitHub. O `deploy.yml` com token é opcional e fica dormente sem o secret.
+O site é um export estático (`out/`). Vai para o App Platform como componente `static_site`, no tier gratuito (até 3 apps estáticos, 1 GiB de saída por app/mês; excedente US$ 0,02/GiB). CDN e TLS automáticos. O spec está em `.do/app.yaml`. A DO publica sozinha a cada push na `main` (`deploy_on_push: true`), sem token; o CI protege a `main` no GitHub. O `deploy.yml` com token é opcional e fica dormente sem o secret (em 25/11 o secret não existe). **Sem ele, mudar `.do/app.yaml` não muda a hospedagem:** a DO segue com o spec guardado no app. Para aplicar um spec novo: criar o secret (passo 1 abaixo), rodar o workflow Deploy à mão no branch com `so_conferir` (valida o arquivo, mostra o custo e a diferença para o spec no ar, sem publicar) e só então fazer o merge; ou colar o spec no painel (App → Settings → App Spec).
 
 ## Staging já no ar (GitHub Pages)
 

@@ -1,6 +1,8 @@
 name: Deploy
 
-# Só faz deploy quando o CI da main terminou verde. O app spec (.do/app.yaml) tem deploy_on_push: false.
+# Com o secret DIGITALOCEAN_ACCESS_TOKEN, aplica o spec (.do/app.yaml) e publica quando o CI da main termina verde.
+# Sem o secret (como hoje), não faz nada: quem publica é a própria DO, a cada push na main, com o spec que está
+# guardado no app. Mudar .do/app.yaml sozinho, portanto, não muda a hospedagem.
 on:
   workflow_run:
     workflows: [CI]
@@ -54,6 +56,10 @@ jobs:
           APP=$(doctl apps list --format ID,Spec.Name --no-header | awk '$2 == "resetia-site" { print $1 }')
           doctl apps propose --spec .do/app.yaml --app "$APP"
           doctl apps propose --spec .do/app.yaml --app "$APP" --output json
+          # O deploy troca o spec do app pelo do repositório: o que mudou no painel e não está no arquivo se perde.
+          echo "Diferença entre o spec no ar (-) e o do repositório (+):"
+          doctl apps spec get "$APP" > /tmp/no-ar.yaml
+          diff -u /tmp/no-ar.yaml .do/app.yaml || true
       - name: Deploy (app spec em .do/app.yaml)
         if: steps.token.outputs.pronto == 'true' && inputs.so_conferir != true
         uses: digitalocean/app_action/deploy@v2
