@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { DetalheLead } from "@/components/admin/DetalheLead";
 import { Kanban } from "@/components/admin/Kanban";
+import { Materiais } from "@/components/admin/Materiais";
 import { BotaoAcao } from "@/components/ui/botao";
 import { Campo, classesEntrada } from "@/components/ui/campo";
 import { admin } from "@/content/admin";
@@ -38,7 +39,10 @@ import { cn } from "@/lib/utils";
 
 const caixa = "gutter text-fg pt-[40px] pb-[90px] md:pt-[60px]";
 
-/** /admin: login e o mini CRM dos leads. Sem Supabase configurado, avisa que é modo demonstração. */
+/**
+ * /admin: login e as duas áreas, o mini CRM dos leads e os materiais para baixar.
+ * Sem Supabase configurado, avisa que é modo demonstração.
+ */
 export function Admin({ nomesSolucoes }: { nomesSolucoes: Record<string, string> }) {
   const texto = useSyncExternalStore(sessao.assinar, sessao.ler, () => null);
   const s = useMemo(() => lerSessao(texto), [texto]);
@@ -52,7 +56,39 @@ export function Admin({ nomesSolucoes }: { nomesSolucoes: Record<string, string>
         </div>
       </section>
     );
-  return s ? <Painel email={s.email} nomesSolucoes={nomesSolucoes} /> : <Login />;
+  return s ? <Logado email={s.email} nomesSolucoes={nomesSolucoes} /> : <Login />;
+}
+
+const AREAS = ["leads", "materiais"] as const;
+
+/** Depois do login: a troca de área em cima e, embaixo, os leads (padrão) ou os materiais. */
+function Logado({ email, nomesSolucoes }: { email: string; nomesSolucoes: Record<string, string> }) {
+  const [area, setArea] = useState<(typeof AREAS)[number]>("leads");
+  return (
+    <>
+      <nav aria-label={admin.areas.rotulo} className="gutter text-fg pt-[28px]">
+        <div className="container-site">
+          <div className="border-line inline-flex border">
+            {AREAS.map((a) => (
+              <button
+                key={a}
+                type="button"
+                aria-pressed={area === a}
+                onClick={() => setArea(a)}
+                className={cn(
+                  "cursor-pointer px-4 py-2 text-[13px] font-semibold transition-colors",
+                  area === a ? "bg-verde-vivo text-carvao" : "text-fg-2 hover:text-fg",
+                )}
+              >
+                {admin.areas[a]}
+              </button>
+            ))}
+          </div>
+        </div>
+      </nav>
+      {area === "leads" ? <Painel email={email} nomesSolucoes={nomesSolucoes} /> : <Materiais email={email} />}
+    </>
+  );
 }
 
 function Login() {

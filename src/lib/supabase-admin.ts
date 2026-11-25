@@ -170,12 +170,20 @@ async function renovar(s: Sessao): Promise<Sessao | null> {
   }
 }
 
-/** Chamada autenticada: renova o token perto de expirar e uma vez mais se o servidor recusar. */
-async function pedir(s: Sessao, caminho: string, init: RequestInit = {}): Promise<Response | "sessao"> {
+/**
+ * Chamada autenticada: renova o token perto de expirar e uma vez mais se o servidor recusar.
+ * `raiz` troca a REST pelo Storage ("storage/v1") nos arquivos dos materiais.
+ */
+export async function pedir(
+  s: Sessao,
+  caminho: string,
+  init: RequestInit = {},
+  raiz: "rest/v1" | "storage/v1" = "rest/v1",
+): Promise<Response | "sessao"> {
   let atual: Sessao | null = s;
   if (atual.expires_at * 1000 - Date.now() < 60_000) atual = await renovar(atual);
   for (let tentativa = 0; atual && tentativa < 2; tentativa++) {
-    const r = await fetch(`${supabase.url}/rest/v1/${caminho}`, {
+    const r = await fetch(`${supabase.url}/${raiz}/${caminho}`, {
       ...init,
       headers: { ...cabecalhos(atual.access_token), ...(init.headers as Record<string, string> | undefined) },
     });

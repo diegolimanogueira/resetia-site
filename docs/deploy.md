@@ -52,10 +52,12 @@ Checar, nesta ordem, em Apps → resetia-site → Settings → componente:
 
 Configurado em 28/10/2026 no projeto **`site_resetia`** (`pjjzjbjamalwkjtlifgm`, South America / São Paulo, plano gratuito; o `projetosunimed` foi pausado para liberar a vaga).
 
-- **Migrações aplicadas:** `supabase/migrations/0001_ai_score.sql` (tabelas, RLS, permissões, `ping()`), `0002_cadastro_fechado.sql` (um gatilho em `auth.users` recusa qualquer cadastro novo; também tira da API a função `rls_auto_enable` do RLS automático do Supabase), `0003_captura_em_duas_etapas.sql` (`completar_lead`) e `0004_crm_email_dicas.sql` (CRM, e-mails, dicas e `lead_liberado`). Conferido pela API pública: o anônimo só insere, cadastro por e-mail e anônimo recusados, o admin lê e só muda os campos do CRM.
+- **Migrações aplicadas:** `supabase/migrations/0001_ai_score.sql` (tabelas, RLS, permissões, `ping()`), `0002_cadastro_fechado.sql` (um gatilho em `auth.users` recusa qualquer cadastro novo; também tira da API a função `rls_auto_enable` do RLS automático do Supabase), `0003_captura_em_duas_etapas.sql` (`completar_lead`), `0004_crm_email_dicas.sql` (CRM, e-mails, dicas e `lead_liberado`) e `0005_materiais.sql` (materiais para baixar, em 25/11). Conferido pela API pública: o anônimo só insere, cadastro por e-mail e anônimo recusados, o admin lê e só muda os campos do CRM.
 - **Admin:** `contato@resetia.com.br`, criado direto no banco e já em `public.admins`. A senha foi entregue ao Diego; a recuperação por e-mail passa a funcionar quando a caixa existir.
 - **Chaves no site:** `.env.production` (versionado) traz a URL e a chave `sb_publishable_…`. O `next build` lê esse arquivo na DigitalOcean, sem configurar o painel. O CI sobrescreve com um Supabase fictício e o staging com valores vazios (modo demonstração). Não declarar essas variáveis no painel da DO: um valor vazio lá venceria o arquivo.
 - **Keep-alive:** as variáveis `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` estão em GitHub → Settings → Variables; o `keepalive.yml` chama `public.ping()` a cada dois dias.
+
+- **Materiais (`0005_materiais.sql`):** tabela `materiais`, as políticas e o bucket público `materiais` do Storage (só PDF, até 20 MB). Aplicada em 25/11 pelo MCP do Supabase e conferida pela API pública: o anônimo lê só os publicados, não lê contadores, não insere e não envia arquivo. Num projeto novo, aplicar **antes** de publicar o site: sem a tabela, a página `/materiais` mostra o aviso de erro e a área Materiais do admin não carrega.
 
 **Cadastrar outro admin.** Com o cadastro fechado, o usuário nasce pelo SQL Editor (troque e-mail e senha):
 
