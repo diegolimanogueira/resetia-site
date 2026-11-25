@@ -30,6 +30,36 @@ static_sites:
       - key: NEXT_TELEMETRY_DISABLED
         scope: BUILD_TIME
         value: "1"
+  # Materiais com endereço limpo (/materiais/palavra): o mesmo código, servindo só out/materiais em /materiais.
+  # O catchall devolve a página de materiais para qualquer palavra-chave, que é lida no navegador
+  # (src/lib/materiais.ts). Cada componente tem o próprio build, e os arquivos do _next levam hash: por isso este
+  # leva o próprio _next (NEXT_ASSET_PREFIX + cp), em vez de depender dos arquivos do build do componente "site".
+  - name: materiais
+    github:
+      repo: diegolimanogueira/resetia-site
+      branch: main
+      deploy_on_push: true
+    environment_slug: node-js
+    build_command: npm ci && npm run build && cp -r out/_next out/materiais/_next
+    output_dir: out/materiais
+    index_document: index.html
+    catchall_document: index.html
+    envs:
+      - key: NEXT_ASSET_PREFIX
+        scope: BUILD_TIME
+        value: /materiais
+      - key: NEXT_PUBLIC_SITE_URL
+        scope: BUILD_TIME
+        value: https://www.resetia.com.br
+      - key: NEXT_PUBLIC_ANALYTICS_PROVIDER
+        scope: BUILD_TIME
+        value: umami
+      - key: NEXT_PUBLIC_ANALYTICS_ID
+        scope: BUILD_TIME
+        value: "" # [FALTA] o mesmo ID do componente "site"
+      - key: NEXT_TELEMETRY_DISABLED
+        scope: BUILD_TIME
+        value: "1"
 domains:
   - domain: www.resetia.com.br
     type: PRIMARY
@@ -46,6 +76,11 @@ ingress:
         authority: www.resetia.com.br
         scheme: https
         redirect_code: 301
+    - match:
+        path:
+          prefix: /materiais
+      component:
+        name: materiais
     - match:
         path:
           prefix: /

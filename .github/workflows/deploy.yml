@@ -7,6 +7,11 @@ on:
     branches: [main]
     types: [completed]
   workflow_dispatch:
+    inputs:
+      so_conferir:
+        description: "Só valida o spec e mostra o custo (doctl apps propose), sem publicar"
+        type: boolean
+        default: false
 
 concurrency:
   group: deploy-producao
@@ -36,8 +41,21 @@ jobs:
           else
             echo "pronto=true" >> "$GITHUB_OUTPUT"
           fi
+      # Antes de mudar o spec (componente novo, domínio): rodar este workflow à mão, no branch, com "so_conferir".
+      # A DO valida o arquivo e diz se o app continua estático e quanto custa, sem publicar nada.
+      - name: Instalar doctl
+        if: steps.token.outputs.pronto == 'true' && inputs.so_conferir == true
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Conferir spec e custo (sem publicar)
+        if: steps.token.outputs.pronto == 'true' && inputs.so_conferir == true
+        run: |
+          APP=$(doctl apps list --format ID,Spec.Name --no-header | awk '$2 == "resetia-site" { print $1 }')
+          doctl apps propose --spec .do/app.yaml --app "$APP"
+          doctl apps propose --spec .do/app.yaml --app "$APP" --output json
       - name: Deploy (app spec em .do/app.yaml)
-        if: steps.token.outputs.pronto == 'true'
+        if: steps.token.outputs.pronto == 'true' && inputs.so_conferir != true
         uses: digitalocean/app_action/deploy@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
